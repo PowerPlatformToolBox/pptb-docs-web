@@ -247,6 +247,10 @@ export const navigation: Array<NavGroup> = [
     links: [
       { title: 'Overview', href: '/tool-development' },
       { title: 'API Reference', href: '/tool-development/api-reference' },
+      {
+        title: 'CSP Configuration',
+        href: '/tool-development/csp-configuration',
+      },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
     ],
   },
