@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
 import { Navigation } from '@/components/Navigation'
+import { EditLink } from '@/components/EditLink'
 import { SectionProvider, type Section } from '@/components/SectionProvider'
 import Image from 'next/image'
 
@@ -43,6 +44,9 @@ export function Layout({
           </div>
         </motion.header>
         <div className="relative flex h-full flex-col px-4 pt-14 sm:px-6 lg:px-8">
+          <div className="fixed top-18 right-2 z-30 sm:right-2 lg:right-4">
+            <EditLink />
+          </div>
           <main className="flex-auto">{children}</main>
           <Footer />
         </div>
