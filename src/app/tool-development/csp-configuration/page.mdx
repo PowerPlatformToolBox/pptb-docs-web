@@ -55,6 +55,7 @@ Rather than weakening security for all tools, PPTB allows each tool to request o
 <Row>
   <Col>
     1. **First Launch**: When you launch a tool that requires CSP exceptions for the first time, you'll see a consent dialog
+    [![CSP Consent Dialog](/images/screenshots/csp-consent-dialog.png)](images/screenshots/csp-consent-dialog.png)
     2. **Review Permissions**: The dialog shows exactly what external resources the tool wants to access
     3. **Grant or Decline**: You can choose to accept or decline the permissions
        - If you Accept: The tool will load with the requested CSP exceptions
@@ -65,7 +66,7 @@ Rather than weakening security for all tools, PPTB allows each tool to request o
   </Col>
 </Row>
 
-### For Tool Developers
+### For Tool Developerscsp-consent-dialog.png
 
 Tools can specify CSP exceptions in their `package.json` manifest:
 
@@ -84,6 +85,7 @@ Tools can specify CSP exceptions in their `package.json` manifest:
   }
 }
 ```
+<Note>Once the CSP Exception is added, the tool must be reloaded to trigger the consent dialog on next launch.</Note>
 
 ## Supported CSP Directives {{ anchor: false }}
 

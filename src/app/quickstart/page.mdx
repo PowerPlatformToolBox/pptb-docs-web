@@ -14,85 +14,67 @@ Get up and running with Power Platform Tool Box in just a few minutes. This guid
 
 <Row>
   <Col>
-    **Windows**
-    - Download the `.exe` installer
-    - Run the installer and follow prompts
-    - Launch from Start Menu or Desktop
+    **Windows** - Download the `.exe` installer - Run the installer and follow
+    prompts - Launch from Start Menu or Desktop
   </Col>
   <Col>
-    **macOS**
-    - Download the `.dmg` disk image
-    - Open and drag to Applications
-    - Launch from Applications folder
+    **macOS** - Download the `.dmg` disk image - Open and drag to Applications -
+    Launch from Applications folder
   </Col>
   <Col>
-    **Linux**
-    - Download the `.AppImage` file
-    - Make it executable: `chmod +x *.AppImage`
-    - Run the AppImage
+    **Linux** - Download the `.AppImage` file - Make it executable: `chmod +x
+    *.AppImage` - Run the AppImage
   </Col>
 </Row>
 
 <div className="not-prose mt-6">
-  <Button href="https://github.com/PowerPlatformToolBox/desktop-app/releases" variant="text" arrow="right">
+  <Button
+    href="https://github.com/PowerPlatformToolBox/desktop-app/releases"
+    variant="text"
+    arrow="right"
+  >
     <>Download Latest Release</>
   </Button>
 </div>
 
 <Note>
-  **⚠️ macOS Users:** If you see a 'damaged' or 'unidentified developer' warning after installation, run the following command in Terminal:
-  
-  ```bash
-  xattr -cr "/Applications/Power Platform Tool Box.app"
-  ```
+  **⚠️ macOS Users:** If you see a 'damaged' or 'unidentified developer' warning
+  after installation, run the following command in Terminal: ```bash xattr -cr
+  "/Applications/Power Platform Tool Box.app" ```
 </Note>
 
 <Note>
-  Power Platform Tool Box requires Node.js 18+ for tool execution. It will be automatically detected or you can configure the path in Settings.
+  Power Platform Tool Box requires Node.js 18+ for tool execution. It will be
+  automatically detected or you can configure the path in Settings.
 </Note>
 
 ## Step 2: Connect to Power Platform
 
-Power Platform Tool Box supports multiple authentication methods:
+Power Platform Tool Box supports multiple authentication methods, the simplest being interactive login. Follow the steps below to set up your first connection.
 
 ### Interactive Login (Recommended)
 
-1. Click **"Add Connection"** in the Connections panel
-2. Enter your **Environment URL** (e.g., `https://org.crm.dynamics.com`)
-3. Select **"Interactive Login"**
-4. Click **"Connect"**
-5. A browser window opens for Microsoft authentication
-6. Sign in with your credentials (MFA supported)
-7. Grant consent when prompted
-8. Connection is saved with encrypted tokens
-
-### OAuth App Registration
-
-For automated scenarios or service principals:
-
-1. Register an app in Azure AD
-2. Add Dataverse API permissions
-3. Create client secret
-4. In PPTB, choose **"OAuth (Client Secret)"**
-5. Enter: Environment URL, Client ID, Client Secret, Tenant ID
-6. Click **"Connect"**
-
-### Username/Password
+1. Open the Connections panel
+   [![Connections Panel](images/screenshots/quickstart-connection.png)](images/screenshots/quickstart-connection.png)
+2. Click **"Add Connection"** in the Connections panel
+   [![Connections Panel](images/screenshots/quickstart-connections-panel.png)](images/screenshots/quickstart-connections-panel.png)
+3. Give your connection a name in **Connection Name**
+4. Enter your **Environment URL** (e.g. `https://org.crm.dynamics.com`)
+5. Ensure **Authentication Type** is set to _Microsoft Login Prompt_
+6. Click **Add**
+7. A browser window opens for Microsoft authentication
+   [![Microsoft Login](images/screenshots/quickstart-connection-ms.png)](images/screenshots/quickstart-connection-ms.png)
+8. Sign in with your credentials (MFA supported)
+9. Grant consent when prompted.
+10. An Authentication Successful message appears in the browser.
+    [![Authentication Success message](images/screenshots/quickstart-connectionsuccess.png)](images/screenshots/quickstart-connectionsuccess.png)
+11. Your connection is saved securely and is ready for use.
+12. You can manage your connections in the Connections Panel, including deletion.
 
 <Note>
-  Only use for development/testing. Not recommended for production.
+  Further authentication methods are documented in the [Authentication
+  Guide](/authentication).
 </Note>
-
-1. Choose **"Username/Password"**
-2. Enter: Environment URL, Username, Password
-3. Click **"Connect"**
-
-<div className="not-prose mt-6">
-  <Button href="/authentication" variant="text" arrow="right">
-    <>Learn more about authentication</>
-  </Button>
-</div>
-
 ## Step 3: Install Your First Tool
 
 Browse and install tools from the marketplace:
@@ -105,7 +87,8 @@ Browse and install tools from the marketplace:
 6. Click the tool to launch it in the workspace
 
 <Note>
-  Tools are downloaded from the PPTB registry as pre-built packages. No npm/pnpm required on your machine!
+  Tools are downloaded from the PPTB registry as pre-built packages. No npm/pnpm
+  required on your machine!
 </Note>
 
 ## What's Next?
