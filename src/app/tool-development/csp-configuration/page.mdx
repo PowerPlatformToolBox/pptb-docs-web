@@ -22,11 +22,11 @@ export const sections = [
 
 Configure Content Security Policy exceptions for your tools to access external resources while maintaining security. {{ className: 'lead' }}
 
-## Overview {{ anchor: false }}
+## Overview {{ anchor: true }}
 
 Power Platform Tool Box implements per-tool Content Security Policy (CSP) configuration to allow tools to make external API calls and load external resources while maintaining security. This feature requires explicit user consent before granting any CSP exceptions.
 
-## What is CSP? {{ anchor: false }}
+## What is CSP? {{ anchor: true }}
 
 Content Security Policy (CSP) is a security standard that helps prevent Cross-Site Scripting (XSS) attacks and other code injection attacks by controlling which resources can be loaded by a web page.
 
@@ -37,7 +37,7 @@ By default, PPTB enforces a strict CSP for all tools:
 - Images can be loaded from the tool, data URIs, or HTTPS sources
 - External fonts and other resources are restricted
 
-## Why Per-Tool CSP? {{ anchor: false }}
+## Why Per-Tool CSP? {{ anchor: true }}
 
 Some tools need to:
 
@@ -48,13 +48,14 @@ Some tools need to:
 
 Rather than weakening security for all tools, PPTB allows each tool to request only the specific CSP exceptions it needs, and users must explicitly grant these permissions.
 
-## How It Works {{ anchor: false }}
+## How It Works {{ anchor: true }}
 
 ### For Tool Users
 
 <Row>
   <Col>
     1. **First Launch**: When you launch a tool that requires CSP exceptions for the first time, you'll see a consent dialog
+    [![CSP Consent Dialog](/images/screenshots/csp-consent-dialog.png)](images/screenshots/csp-consent-dialog.png)
     2. **Review Permissions**: The dialog shows exactly what external resources the tool wants to access
     3. **Grant or Decline**: You can choose to accept or decline the permissions
        - If you Accept: The tool will load with the requested CSP exceptions
@@ -84,8 +85,9 @@ Tools can specify CSP exceptions in their `package.json` manifest:
   }
 }
 ```
+<Note>Once the CSP Exception is added, the tool must be reloaded to trigger the consent dialog on next launch.</Note>
 
-## Supported CSP Directives {{ anchor: false }}
+## Supported CSP Directives {{ anchor: true }}
 
 PPTB supports the following CSP directives for per-tool configuration:
 
@@ -134,7 +136,7 @@ PPTB supports the following CSP directives for per-tool configuration:
   </Property>
 </Properties>
 
-## Default CSP Policy {{ anchor: false }}
+## Default CSP Policy {{ anchor: true }}
 
 Tools start with this default CSP policy:
 
@@ -151,7 +153,7 @@ connect-src 'self';
   Tool-specified exceptions are added to these defaults, not replaced.
 </Note>
 
-## Best Practices {{ anchor: false }}
+## Best Practices {{ anchor: true }}
 
 ### 1. Request Only What You Need
 
@@ -216,7 +218,7 @@ Before requesting CSP exceptions, consider if there are alternatives:
 - Can you proxy API calls through a secure backend?
 - Can you use PPTB's built-in Dataverse API instead of direct calls?
 
-## Security Considerations {{ anchor: false }}
+## Security Considerations {{ anchor: true }}
 
 ### Implementation Details
 
@@ -249,7 +251,7 @@ CSP Enforcement Flow:
 - Keep dependencies up to date
 - Follow the principle of least privilege
 
-## Revoking Consent {{ anchor: false }}
+## Revoking Consent {{ anchor: true }}
 
 Users can revoke CSP consent for any tool:
 
@@ -262,7 +264,7 @@ Users can revoke CSP consent for any tool:
   Alternatively, consent is stored in the user settings file and can be manually edited.
 </Note>
 
-## Registry Configuration {{ anchor: false }}
+## Registry Configuration {{ anchor: true }}
 
 When publishing a tool to the PPTB registry, include the `cspExceptions` in your registry entry:
 
@@ -284,7 +286,7 @@ When publishing a tool to the PPTB registry, include the `cspExceptions` in your
   Local tools can also specify CSP exceptions in their `package.json`. The same consent flow applies when loading local development tools.
 </Note>
 
-## Troubleshooting {{ anchor: false }}
+## Troubleshooting {{ anchor: true }}
 
 ### Tool Shows CSP Violation Errors
 
@@ -313,7 +315,7 @@ When publishing a tool to the PPTB registry, include the `cspExceptions` in your
 2. Manually edit the settings file located in the app's user data directory
 3. Full UI for consent management is planned for a future release
 
-## Complete Example {{ anchor: false }}
+## Complete Example {{ anchor: true }}
 
 Here's a complete example for a tool that needs Dataverse access and external libraries:
 

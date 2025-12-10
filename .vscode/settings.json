@@ -1,0 +1,4 @@
+{
+  "sarif-viewer.connectToGithubCodeScanning": "off",
+  "sqldeveloper.format.lineBreaks.maxCharLineWidth": 0
+}

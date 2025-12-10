@@ -4,7 +4,14 @@ export const metadata = {
     'Learn how to authenticate Power Platform Tool Box with your Dataverse environments using interactive login, OAuth app registration, or username/password.',
 }
 
-export const sections = []
+export const sections = [
+  { title: 'Authentication Methods', id: 'authentication-methods' },
+  { title: 'Security Features', id: 'security-features' },
+  { title: 'Managing Connections', id: 'managing-connections' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+  { title: 'Best Practices', id: 'best-practices' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
 
 # Authentication
 
@@ -14,59 +21,101 @@ Connect Power Platform Tool Box to your Dataverse environments securely. This gu
 
 Power Platform Tool Box supports three authentication methods for connecting to Dataverse environments:
 
-### Interactive Login (Recommended)
+## Interactive Login (Recommended)
 
 **Best for:** End users, interactive scenarios, MFA-enabled accounts
 
 Interactive login uses Microsoft's OAuth 2.0 flow with the Microsoft Authentication Library (MSAL):
 
-1. User initiates connection
-2. Browser opens Microsoft login page
-3. User authenticates (supports MFA, Conditional Access)
-4. Consent is granted to PPTB
-5. Access and refresh tokens are securely stored
+1. Open the Connections panel
+   [![Connections Panel](images/screenshots/quickstart-connection.png)](images/screenshots/quickstart-connection.png)
+2. Click **"Add Connection"** in the Connections panel
+   [![Connections Panel](images/screenshots/quickstart-connections-panel.png)](images/screenshots/quickstart-connections-panel.png)
+3. Give your connection a name in **Connection Name**
+4. Enter your **Environment URL** (e.g. `https://org.crm.dynamics.com`)
+5. Ensure **Authentication Type** is set to _Microsoft Login Prompt_
+6. Click **Add**
+7. A browser window opens for Microsoft authentication
+   [![Microsoft Login](images/screenshots/quickstart-connection-ms.png)](images/screenshots/quickstart-connection-ms.png)
+8. Sign in with your credentials (MFA supported)
+9. Grant consent when prompted.
+10. An Authentication Successful message appears in the browser.
+    [![Authentication Success message](images/screenshots/quickstart-connectionsuccess.png)](images/screenshots/quickstart-connectionsuccess.png)
+11. Your connection is saved securely and is ready for use.
+12. You can manage your connections in the Connections Panel, including deletion.
 
 **Benefits:**
+
 - Most secure method
 - Supports Multi-Factor Authentication (MFA)
 - Supports Conditional Access policies
 - No need to handle credentials
 - Automatic token refresh
 
-**Setup:**
-```
-Environment URL: https://org.crm.dynamics.com
-Auth Method: Interactive Login
-```
-
 <Note>
-  Interactive login is the recommended method for most users. It provides the highest security and best user experience.
+  Interactive login is the recommended method for most users. It provides the
+  highest security and best user experience.
 </Note>
 
-### OAuth App Registration
+## OAuth App Registration
 
 **Best for:** Automation, service principals, CI/CD pipelines, background processes
 
-Use an Azure AD application registration with client credentials:
+Use an Entra ID application registration with client credentials:
 
 **Prerequisites:**
-1. Register app in Azure AD:
-   - Go to Azure Portal → Azure Active Directory → App registrations
-   - Click "New registration"
-   - Name: `PowerPlatformToolBox`
-   - Supported account types: Choose appropriate option
-   - Redirect URI: Leave blank
 
-2. Configure API permissions:
-   - Add "Dynamics CRM" → "user_impersonation"
-   - Grant admin consent
+<Note>
+  For detailed steps on registering an application in Entra ID, see:
 
-3. Create client secret:
-   - Go to Certificates & secrets
-   - New client secret
-   - Copy the secret value immediately
+https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app
+
+</Note>
+
+<Note type="emphasis">
+  Ensure you have the necessary permissions to register applications in your
+  Entra ID tenant. This should only be done with consent of the Entra tenant
+  owner.
+</Note>
+
+### Register app in Entra ID:
+
+1. Go to Entra Portal and select App registrations
+2. Click "New registration"
+   [![App Registration](images/screenshots/authentication-registerapp1.png)](images/screenshots/authentication-registerapp1.png)
+3. Provide an appropriate name such as `PowerPlatformToolBox` (or your choice)
+4. Select a supported account type: Choose an appropriate option. Recommended "Accounts in this organizational directory only"
+5. Leave Redirect URI blank
+6. Click "Register"
+
+### Configure API permissions:
+
+7. In your app registratin page, select API permissions
+   [![App Registration API Permissin](images/screenshots/authentication-registerapp2.png)](images/screenshots/authentication-registerapp2.png)
+8. Select Add a permission
+9. Add "Dynamics CRM"
+   [![App Registration Add Permission](images/screenshots/authentication-registerapp3.png)](images/screenshots/authentication-registerapp3.png)
+10. Select user_impersonation then Add permissions
+    [![App Registration User Impersonation](images/screenshots/authentication-registerapp4.png)](images/screenshots/authentication-registerapp4.png)
+11. Select "Grant admin consent for [Your Tenant]"
+    [![App Registration Grant Admin Consent](images/screenshots/authentication-registerapp5.png)](images/screenshots/authentication-registerapp5.png)
+12. Confirm by clicking Yes
+
+### Create client secret:
+
+13. Select Certificates & secrets
+    [![App Registration Certificates & Secrets](images/screenshots/authentication-registerapp6.png)](images/screenshots/authentication-registerapp6.png)
+14. Click New client secret
+15. Provide a description (e.g. "PPTB Secret")
+    [![App Registration Certificates & Secrets](images/screenshots/authentication-registerapp7.png)](images/screenshots/authentication-registerapp7.png)
+16. Select an expiration period, keep as short as possible
+17. Click Add
+
+18. Copy the secret value immediately, you won't be able to see it again
+    [![App Registration Client Secret](images/screenshots/authentication-registerapp8.png)](images/screenshots/authentication-registerapp8.png)
 
 **Setup:**
+
 ```
 Environment URL: https://org.crm.dynamics.com
 Auth Method: OAuth (Client Secret)
@@ -76,13 +125,15 @@ Tenant ID: 00000000-0000-0000-0000-000000000000
 ```
 
 **Benefits:**
+
 - Suitable for automation
 - No interactive prompts
 - Service principal support
 - Fine-grained permissions
 
 <Note>
-  Store client secrets securely. Never commit them to source control or share them publicly.
+  Store client secrets securely. Never commit them to source control or share
+  them publicly.
 </Note>
 
 ### Username/Password
@@ -90,16 +141,15 @@ Tenant ID: 00000000-0000-0000-0000-000000000000
 **Best for:** Development, testing, POC scenarios
 
 <Note type="warning">
-  **Not recommended for production use.** This method:
-  - Cannot bypass MFA
-  - Does not support Conditional Access
-  - Requires storing credentials
-  - May violate security policies
+  **Not recommended for production use.** This method: - Cannot bypass MFA -
+  Does not support Conditional Access - Requires storing credentials - May
+  violate security policies
 </Note>
 
 Direct authentication with username and password:
 
 **Setup:**
+
 ```
 Environment URL: https://org.crm.dynamics.com
 Auth Method: Username/Password
@@ -108,6 +158,7 @@ Password: your-password
 ```
 
 Use this method only for:
+
 - Local development environments
 - Testing and proof-of-concepts
 - Environments without MFA requirements
@@ -123,6 +174,7 @@ All sensitive credentials are encrypted using OS-native secure storage:
 - **Linux:** libsecret
 
 **Encrypted fields:**
+
 - Client ID
 - Client Secret
 - Access Token
@@ -132,6 +184,7 @@ All sensitive credentials are encrypted using OS-native secure storage:
 ### Automatic Migration
 
 If you're upgrading from an older version:
+
 - Plain-text connections are automatically encrypted on first launch
 - No manual intervention required
 - Backwards compatible
@@ -181,6 +234,7 @@ If you're upgrading from an older version:
 **Symptom:** "Failed to connect" error
 
 **Solutions:**
+
 - Verify environment URL is correct
 - Check network connectivity
 - Ensure credentials are valid
@@ -192,6 +246,7 @@ If you're upgrading from an older version:
 **Symptom:** "Unauthorized" or "Token expired" error
 
 **Solutions:**
+
 - PPTB automatically refreshes tokens
 - If refresh fails, re-authenticate
 - Check refresh token is not revoked
@@ -202,6 +257,7 @@ If you're upgrading from an older version:
 **Symptom:** "MFA required" error with username/password
 
 **Solution:**
+
 - Use Interactive Login instead
 - Username/password cannot bypass MFA
 - Configure OAuth app registration for automation
@@ -211,6 +267,7 @@ If you're upgrading from an older version:
 **Symptom:** "Access denied" or "Insufficient privileges"
 
 **Solutions:**
+
 - Verify user has necessary security roles in Dataverse
 - Check app registration API permissions (OAuth)
 - Ensure admin consent granted for app permissions
@@ -220,25 +277,17 @@ If you're upgrading from an older version:
 
 <Row>
   <Col>
-    **For End Users**
-    - Use Interactive Login
-    - Enable MFA on your account
-    - Don't share connections
-    - Review active connections regularly
+    **For End Users** - Use Interactive Login - Enable MFA on your account -
+    Don't share connections - Review active connections regularly
   </Col>
   <Col>
-    **For Developers**
-    - Use OAuth for automation
-    - Rotate client secrets regularly
-    - Use service principals for CI/CD
-    - Never commit credentials to code
+    **For Developers** - Use OAuth for automation - Rotate client secrets
+    regularly - Use service principals for CI/CD - Never commit credentials to
+    code
   </Col>
   <Col>
-    **For Administrators**
-    - Enforce MFA policies
-    - Use Conditional Access
-    - Review app registrations
-    - Audit connection usage
+    **For Administrators** - Enforce MFA policies - Use Conditional Access -
+    Review app registrations - Audit connection usage
   </Col>
 </Row>
 
