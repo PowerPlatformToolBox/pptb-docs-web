@@ -11,6 +11,11 @@ const withMDX = nextMDX({
     rehypePlugins,
     recmaPlugins,
   },
+  editLink: {
+    pattern:
+      'https://github.com/PowerPlatformToolBox/pptb-docs-web/edit/main/src/app/:path',
+    text: 'Edit this page on GitHub',
+  },
 })
 
 /** @type {import('next').NextConfig} */
