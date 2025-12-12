@@ -66,17 +66,17 @@ Use an Entra ID application registration with client credentials:
 **Prerequisites:**
 
 <Note>
-  For detailed steps on registering an application in Entra ID, see:
+  For detailed steps on registering an application in Entra ID and Dataverse, see:
 
-https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app
+https://learn.microsoft.com/en-us/power-apps/developer/data-platform/walkthrough-register-app-azure-active-directory
 
 </Note>
 
-<Note type="emphasis">
+<Warning>
   Ensure you have the necessary permissions to register applications in your
   Entra ID tenant. This should only be done with consent of the Entra tenant
   owner.
-</Note>
+</Warning>
 
 ### Register app in Entra ID:
 
@@ -110,19 +110,41 @@ https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-ap
     [![App Registration Certificates & Secrets](images/screenshots/authentication-registerapp7.png)](images/screenshots/authentication-registerapp7.png)
 16. Select an expiration period, keep as short as possible
 17. Click Add
-
 18. Copy the secret value immediately, you won't be able to see it again
     [![App Registration Client Secret](images/screenshots/authentication-registerapp8.png)](images/screenshots/authentication-registerapp8.png)
+19. You will also need the Application (client) ID and Directory (tenant) ID from the app overview page.
+    [![App Registration Client ID / Tenant ID](images/screenshots/authentication-registerapp10.png)](images/screenshots/authentication-registerapp10.png)
+    <Warning>
+      Store the client secret securely. If compromised, it can be used to access
+      your Dataverse environment.
+    </Warning>
 
-**Setup:**
+### Configure App user in Dataverse:
 
-```
-Environment URL: https://org.crm.dynamics.com
-Auth Method: OAuth (Client Secret)
-Client ID: 00000000-0000-0000-0000-000000000000
-Client Secret: your-secret-value
-Tenant ID: 00000000-0000-0000-0000-000000000000
-```
+20. In Power Platform Admin Center, navigate to your environment
+21. Go to Users
+    [![Power Platform Admin Users](images/screenshots/authentication-registerapp9.png)](images/screenshots/authentication-registerapp9.png)
+22. Select New app user & Add an app
+    [![Power Platform Admin Add an app](images/screenshots/authentication-registerapp11.png)](images/screenshots/authentication-registerapp11.png)
+23. Search for and select your registered app
+    [![Power Platform Admin Add an app screen 2](images/screenshots/authentication-registerapp12.png)](images/screenshots/authentication-registerapp12.png)
+24. Enter an appropriate business unit and select edit on the security roles.
+25. Assign necessary security roles. This should be as minimal as possible, particularly in production environments.
+26. Once complete, select Create
+
+### Configure Power Platform Tool Box:
+
+1. In Power Platform Tool Box, open the Connections panel and select Add
+   [![PPTB Configure connection](images/screenshots/authentication-registerapp13.png)](images/screenshots/authentication-registerapp13.png)
+2. Configure an appropriate connection name
+3. Enter your Environment URL (e.g. `https://org.crm.dynamics.com`)
+4. Select Authentication Type: Client ID/Secret
+5. Enter the Client ID you saved earlier
+6. Enter the Client Secret you saved earlier
+7. Enter the Tenant ID you saved earlier
+8. Select Test, if all is correct you will see a success message
+9. Click Add to save the connection securely
+   [![PPTB Configure connection](images/screenshots/authentication-registerapp14.png)](images/screenshots/authentication-registerapp14.png)
 
 **Benefits:**
 
@@ -131,21 +153,25 @@ Tenant ID: 00000000-0000-0000-0000-000000000000
 - Service principal support
 - Fine-grained permissions
 
-<Note>
-  Store client secrets securely. Never commit them to source control or share
-  them publicly.
-</Note>
+<Warning>
+  Store tenant, client id & client secrets securely. Never commit them to source
+  control or share them publicly.
+</Warning>
 
 ### Username/Password
 
 **Best for:** Development, testing, POC scenarios
 
-<Note type="warning">
-  **Not recommended for production use.** This method: - Cannot bypass MFA -
-  Does not support Conditional Access - Requires storing credentials - May
-  violate security policies
-</Note>
+<Warning>
+  **Not recommended for production use.**
 
+This method: 
+- Cannot bypass MFA
+- Does not support Conditional Access
+- Requires storing credentials
+- May violate security policies
+
+</Warning>
 Direct authentication with username and password:
 
 **Setup:**
