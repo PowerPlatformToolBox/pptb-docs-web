@@ -8,6 +8,7 @@ export const sections = [
   { title: 'Authentication Methods', id: 'authentication-methods' },
   { title: 'Security Features', id: 'security-features' },
   { title: 'Managing Connections', id: 'managing-connections' },
+  { title: 'Multiple Connections', id: 'multiple-connections' },
   { title: 'Troubleshooting', id: 'troubleshooting' },
   { title: 'Best Practices', id: 'best-practices' },
   { title: 'Next Steps', id: 'next-steps' },
@@ -165,7 +166,8 @@ https://learn.microsoft.com/en-us/power-apps/developer/data-platform/walkthrough
 <Warning>
   **Not recommended for production use.**
 
-This method: 
+This method:
+
 - Cannot bypass MFA
 - Does not support Conditional Access
 - Requires storing credentials
@@ -252,6 +254,20 @@ If you're upgrading from an older version:
 2. Connection becomes active
 3. Tools use the active connection
 4. Active connection highlighted in UI
+
+## Multiple Connections
+
+Some tools may require multiple connections to different Dataverse environments. Power Platform ToolBox supports managing and using multiple connections seamlessly.
+
+If the tool is configured for multiple connections, a different connection screen will be displayed, allowing selection of both connections.
+
+[![PPTB Configure multiple connections](images/screenshots/authentication-multiconnections.png)](images/screenshots/authentication-multiconnections.png)
+
+Utilise the connect buttons on both sides of the pane to select the appropriate connections for each environment. Select confirm once both connections are connected to open the tool.
+
+The footer will display both active connections for reference while using the tool. Appropriate colours for the environments will also be shown as a border for the tool to give a visual indication.
+
+[![PPTB Configure multiple connections colours](images/screenshots/authentication-multiconnections2.png)](images/screenshots/authentication-multiconnections2.png)
 
 ## Troubleshooting
 
