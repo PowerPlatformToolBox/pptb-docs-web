@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'API Reference',
-  description: 'Complete API reference for ToolBox API and Dataverse API available to tool developers',
+  description:
+    'Complete API reference for ToolBox API and Dataverse API available to tool developers',
 }
 
 export const sections = [
@@ -16,9 +17,7 @@ Comprehensive reference for the ToolBox API and Dataverse API available to all t
 
 <Note>
   For complete TypeScript definitions, install the `@pptb/types` package:
-  ```bash
-  npm install --save-dev @pptb/types
-  ```
+  ```bash npm install --save-dev @pptb/types ```
 </Note>
 
 ## ToolBox API
@@ -34,14 +33,14 @@ Get information about the active Dataverse connection.
 Returns the currently active connection or null if none is selected.
 
 ```typescript
-const connection = await toolboxAPI.connections.getActiveConnection();
+const connection = await toolboxAPI.connections.getActiveConnection()
 
 if (connection) {
-  console.log('Connected to:', connection.name);
-  console.log('Environment:', connection.environment);
-  console.log('API URL:', connection.apiUrl);
+  console.log('Connected to:', connection.name)
+  console.log('Environment:', connection.environment)
+  console.log('API URL:', connection.apiUrl)
 } else {
-  console.log('No active connection');
+  console.log('No active connection')
 }
 ```
 
@@ -49,14 +48,89 @@ if (connection) {
 
 ```typescript
 interface DataverseConnection {
-  id: string;
-  name: string;
-  environment: string;
-  apiUrl: string;
-  version: string;
-  isDefault?: boolean;
+  id: string // Unique identifier of the connection
+  name: string // Friendly name of the connection
+  url: string // Base URL of the Dataverse instance
+  environment: string // Dev | Test | UAT | Prod - Defines the type as established by the user
+  clientId: string // Application (client) ID used for authentication
+  tenantId: string // Tenant ID of the Azure AD tenant
+  createdAt: string // ISO date string of when the connection was created
+  lastUsedAt: string // ISO date string of when the connection was last used
 }
 ```
+
+### Secondary Connections
+
+As a tool developer, you may require access to a second Dataverse connections. This can be useful for copying data or configuration between environments.
+
+To enable this feature, you must update the package.json file to indicate your tool requires multiconnections.
+
+```json
+{
+  "name": "@toolname",
+  "version": "0.1.10",
+  "displayName": " My Awesome Tool",
+  "description": "A Power Platform Tool Box tool to do awesome things",
+  "main": "index.html",
+  "contributors": [
+    "Awesome Developer "
+  ],
+  "keywords": [
+    "powerplatform",
+    "dataverse",
+    "toolbox"
+  ],
+  // This section enables multiple connections
+  "features": {
+    "multi-connection": true
+  },
+```
+
+When the user opens your tool, they are presented with the option to connect to a primary and secondary environment.
+
+#### `toolboxAPI.connections.getSecondaryConnection()`
+
+Returns the currently active secoondary connection or null if none is configured.
+
+```typescript
+const secondaryConnection =
+  await toolboxAPI.connections.getSecondaryConnection()
+
+if (secondaryConnection) {
+  console.log('Connected to:', secondaryConnection.name)
+  console.log('Environment:', secondaryConnection.environment)
+  console.log('API URL:', secondaryConnection.apiUrl)
+} else {
+  console.log('No active secondary connection')
+}
+```
+
+**Returns:** `Promise<DataverseConnection | null>`
+
+```typescript
+interface DataverseConnection {
+  id: string // Unique identifier of the connection
+  name: string // Friendly name of the connection
+  url: string // Base URL of the Dataverse instance
+  environment: string // Dev | Test | UAT | Prod - Defines the type as established by the user
+  clientId: string // Application (client) ID used for authentication
+  tenantId: string // Tenant ID of the Azure AD tenant
+  createdAt: string // ISO date string of when the connection was created
+  lastUsedAt: string // ISO date string of when the connection was last used
+}
+```
+
+When interacting with dataverse and you want to use the secondary connection, pass the connectionTarget parameter as 'secondary'. ConnectionTarget is optional and defaults to 'primary'.
+
+```typescript
+// Example useage of dataverseAPI using secondary connection
+const myTables = await dataverseAPI.getAllEntitiesMetadata(
+  ['logicalName'],
+  'secondary',
+)
+```
+
+###
 
 ### Utils
 
@@ -71,14 +145,16 @@ await toolboxAPI.utils.showNotification({
   title: 'Success',
   body: 'Operation completed successfully',
   type: 'success',
-  duration: 3000 // Auto-dismiss after 3 seconds
-});
+  duration: 3000, // Auto-dismiss after 3 seconds
+})
 ```
 
 **Parameters:**
+
 - `options` - Notification configuration object
 
 **Types:**
+
 - `type`: `'info' | 'success' | 'warning' | 'error'`
 - `duration`: Number in milliseconds (0 = persistent)
 
@@ -87,14 +163,14 @@ await toolboxAPI.utils.showNotification({
 Copy text to the system clipboard.
 
 ```typescript
-const data = JSON.stringify({ accounts: [], contacts: [] }, null, 2);
-await toolboxAPI.utils.copyToClipboard(data);
+const data = JSON.stringify({ accounts: [], contacts: [] }, null, 2)
+await toolboxAPI.utils.copyToClipboard(data)
 
 await toolboxAPI.utils.showNotification({
   title: 'Copied',
   body: 'Data copied to clipboard',
-  type: 'success'
-});
+  type: 'success',
+})
 ```
 
 #### `toolboxAPI.utils.saveFile(filename, content)`
@@ -102,16 +178,16 @@ await toolboxAPI.utils.showNotification({
 Save content to a file with user-selected location.
 
 ```typescript
-const jsonData = { accounts: [], contacts: [] };
+const jsonData = { accounts: [], contacts: [] }
 const filePath = await toolboxAPI.utils.saveFile(
   'export.json',
-  JSON.stringify(jsonData, null, 2)
-);
+  JSON.stringify(jsonData, null, 2),
+)
 
 if (filePath) {
-  console.log('File saved to:', filePath);
+  console.log('File saved to:', filePath)
 } else {
-  console.log('Save cancelled');
+  console.log('Save cancelled')
 }
 ```
 
@@ -122,8 +198,8 @@ if (filePath) {
 Get the current application theme.
 
 ```typescript
-const theme = await toolboxAPI.utils.getCurrentTheme();
-document.body.classList.add(`theme-${theme}`);
+const theme = await toolboxAPI.utils.getCurrentTheme()
+document.body.classList.add(`theme-${theme}`)
 ```
 
 **Returns:** `Promise<'light' | 'dark'>`
@@ -133,20 +209,20 @@ document.body.classList.add(`theme-${theme}`);
 Show/hide a loading overlay.
 
 ```typescript
-await toolboxAPI.utils.showLoading('Fetching data from Dataverse...');
+await toolboxAPI.utils.showLoading('Fetching data from Dataverse...')
 
 try {
   // Perform long-running operations
-  const data = await fetchLargeDataset();
-  processData(data);
-  
+  const data = await fetchLargeDataset()
+  processData(data)
+
   await toolboxAPI.utils.showNotification({
     title: 'Success',
     body: 'Data processed successfully',
-    type: 'success'
-  });
+    type: 'success',
+  })
 } finally {
-  await toolboxAPI.utils.hideLoading();
+  await toolboxAPI.utils.hideLoading()
 }
 ```
 
@@ -155,13 +231,14 @@ try {
 Execute multiple async operations in parallel.
 
 ```typescript
-const [account, contact, opportunities] = await toolboxAPI.utils.executeParallel(
-  dataverseAPI.retrieve('account', accountId, ['name']),
-  dataverseAPI.retrieve('contact', contactId, ['fullname']),
-  dataverseAPI.fetchXmlQuery(opportunityFetchXml)
-);
+const [account, contact, opportunities] =
+  await toolboxAPI.utils.executeParallel(
+    dataverseAPI.retrieve('account', accountId, ['name']),
+    dataverseAPI.retrieve('contact', contactId, ['fullname']),
+    dataverseAPI.fetchXmlQuery(opportunityFetchXml),
+  )
 
-console.log('All data fetched:', account, contact, opportunities);
+console.log('All data fetched:', account, contact, opportunities)
 ```
 
 ### Settings
@@ -173,8 +250,8 @@ Store and retrieve tool-specific settings.
 Retrieve a setting value for your tool.
 
 ```typescript
-const theme = await toolboxAPI.settings.get('theme', 'light');
-const pageSize = await toolboxAPI.settings.get('pageSize', 25);
+const theme = await toolboxAPI.settings.get('theme', 'light')
+const pageSize = await toolboxAPI.settings.get('pageSize', 25)
 ```
 
 #### `toolboxAPI.settings.set(key, value)`
@@ -182,8 +259,8 @@ const pageSize = await toolboxAPI.settings.get('pageSize', 25);
 Save a setting value for your tool.
 
 ```typescript
-await toolboxAPI.settings.set('theme', 'dark');
-await toolboxAPI.settings.set('pageSize', 50);
+await toolboxAPI.settings.set('theme', 'dark')
+await toolboxAPI.settings.set('pageSize', 50)
 ```
 
 #### `toolboxAPI.settings.remove(key)`
@@ -191,7 +268,7 @@ await toolboxAPI.settings.set('pageSize', 50);
 Remove a setting.
 
 ```typescript
-await toolboxAPI.settings.remove('theme');
+await toolboxAPI.settings.remove('theme')
 ```
 
 #### `toolboxAPI.settings.clear()`
@@ -199,7 +276,7 @@ await toolboxAPI.settings.remove('theme');
 Clear all settings for your tool.
 
 ```typescript
-await toolboxAPI.settings.clear();
+await toolboxAPI.settings.clear()
 ```
 
 ### Terminal
@@ -215,11 +292,11 @@ const terminal = await toolboxAPI.terminal.create({
   name: 'Build Terminal',
   cwd: '/path/to/project',
   env: {
-    NODE_ENV: 'production'
-  }
-});
+    NODE_ENV: 'production',
+  },
+})
 
-console.log('Terminal created:', terminal.id);
+console.log('Terminal created:', terminal.id)
 ```
 
 #### `toolboxAPI.terminal.execute(terminalId, command)`
@@ -227,12 +304,12 @@ console.log('Terminal created:', terminal.id);
 Execute a command in a terminal.
 
 ```typescript
-const result = await toolboxAPI.terminal.execute(terminal.id, 'npm install');
+const result = await toolboxAPI.terminal.execute(terminal.id, 'npm install')
 
 if (result.exitCode === 0) {
-  console.log('Command completed successfully');
+  console.log('Command completed successfully')
 } else {
-  console.error('Command failed:', result.error);
+  console.error('Command failed:', result.error)
 }
 ```
 
@@ -241,7 +318,7 @@ if (result.exitCode === 0) {
 Show or hide a terminal's UI panel.
 
 ```typescript
-await toolboxAPI.terminal.setVisibility(terminal.id, true);
+await toolboxAPI.terminal.setVisibility(terminal.id, true)
 ```
 
 #### `toolboxAPI.terminal.list()`
@@ -249,8 +326,8 @@ await toolboxAPI.terminal.setVisibility(terminal.id, true);
 List all terminals created by your tool.
 
 ```typescript
-const terminals = await toolboxAPI.terminal.list();
-console.log(`This tool has ${terminals.length} terminals`);
+const terminals = await toolboxAPI.terminal.list()
+console.log(`This tool has ${terminals.length} terminals`)
 ```
 
 #### `toolboxAPI.terminal.close(terminalId)`
@@ -258,7 +335,7 @@ console.log(`This tool has ${terminals.length} terminals`);
 Close a terminal.
 
 ```typescript
-await toolboxAPI.terminal.close(terminal.id);
+await toolboxAPI.terminal.close(terminal.id)
 ```
 
 ### Events
@@ -271,23 +348,24 @@ Subscribe to events relevant to your tool.
 
 ```typescript
 toolboxAPI.events.on((event, payload) => {
-  console.log('Event:', payload.event, 'Data:', payload.data);
-  
+  console.log('Event:', payload.event, 'Data:', payload.data)
+
   switch (payload.event) {
     case 'connection:updated':
-      refreshConnectionInfo();
-      break;
+      refreshConnectionInfo()
+      break
     case 'connection:activated':
-      handleConnectionActivated(payload.data);
-      break;
+      handleConnectionActivated(payload.data)
+      break
     case 'theme:changed':
-      applyTheme(payload.data.theme);
-      break;
+      applyTheme(payload.data.theme)
+      break
   }
-});
+})
 ```
 
 **Event Types:**
+
 - `connection:updated` - Active connection changed
 - `connection:activated` - Connection activated
 - `connection:deactivated` - Connection deactivated
@@ -301,7 +379,9 @@ Complete HTTP client for interacting with Microsoft Dataverse.
 
 ### CRUD Operations
 
-#### `dataverseAPI.create(entityName, data)`
+Each method accepts an optional `connectionTarget` parameter to specify which connection to use (`'primary' | 'secondary'`). Defaults to `'primary'`.
+
+#### `dataverseAPI.create(entityName, data, connectionTarget?)`
 
 Create a new record.
 
@@ -309,48 +389,54 @@ Create a new record.
 const accountId = await dataverseAPI.create('account', {
   name: 'Contoso Ltd',
   telephone1: '555-1234',
-  websiteurl: 'https://contoso.com'
-});
+  websiteurl: 'https://contoso.com',
+})
 
-console.log('Created account:', accountId);
+console.log('Created account:', accountId)
 ```
 
-#### `dataverseAPI.retrieve(entityName, id, columns?)`
+#### `dataverseAPI.retrieve(entityName, id, columns?, connectionTarget?)`
 
 Retrieve a single record.
 
 ```typescript
-const account = await dataverseAPI.retrieve(
-  'account',
-  accountId,
-  ['name', 'telephone1', 'emailaddress1']
-);
+const account = await dataverseAPI.retrieve('account', accountId, [
+  'name',
+  'telephone1',
+  'emailaddress1',
+])
 
-console.log('Account name:', account.name);
+console.log('Account name:', account.name)
 ```
 
-#### `dataverseAPI.update(entityName, id, data)`
+#### `dataverseAPI.update(entityName, id, data, connectionTarget?)`
 
 Update an existing record.
 
 ```typescript
 await dataverseAPI.update('account', accountId, {
   telephone1: '555-5678',
-  websiteurl: 'https://www.contoso.com'
-});
+  websiteurl: 'https://www.contoso.com',
+})
 ```
 
-#### `dataverseAPI.delete(entityName, id)`
+#### `dataverseAPI.delete(entityName, id, connectionTarget?)`
 
 Delete a record.
 
 ```typescript
-await dataverseAPI.delete('account', accountId);
+/// Deleting an account record using the primary connection
+await dataverseAPI.delete('account', accountId)
+```
+
+```typescript
+/// Deleting an account record using the secondary connection
+await dataverseAPI.delete('account', accountId, 'secondary')
 ```
 
 ### Queries
 
-#### `dataverseAPI.fetchXmlQuery(fetchXml)`
+#### `dataverseAPI.fetchXmlQuery(fetchXml, connectionTarget? )`
 
 Execute a FetchXML query.
 
@@ -366,54 +452,66 @@ const fetchXml = `
       <order attribute="name" />
     </entity>
   </fetch>
-`;
+`
 
-const result = await dataverseAPI.fetchXmlQuery(fetchXml);
+const result = await dataverseAPI.fetchXmlQuery(fetchXml)
 
-result.value.forEach(account => {
-  console.log('Account:', account.name);
-});
+result.value.forEach((account) => {
+  console.log('Account:', account.name)
+})
 ```
 
-#### `dataverseAPI.retrieveMultiple(entityName, options)`
+#### `dataverseAPI.retrieveMultiple(entityName, options, connectionTarget?)`
 
 Retrieve multiple records with OData query options.
 
 ```typescript
 const accounts = await dataverseAPI.retrieveMultiple('account', {
   select: ['name', 'accountid'],
-  filter: "statecode eq 0",
+  filter: 'statecode eq 0',
   orderBy: ['name'],
-  top: 10
-});
+  top: 10,
+})
 
-console.log(`Found ${accounts.value.length} accounts`);
+console.log(`Found ${accounts.value.length} accounts`)
 ```
 
 ### Metadata
 
-#### `dataverseAPI.getEntityMetadata(entityName)`
+#### `dataverseAPI.getEntityMetadata(entityName, connectionTarget?)`
 
 Get entity metadata.
 
 ```typescript
-const metadata = await dataverseAPI.getEntityMetadata('account');
+const metadata = await dataverseAPI.getEntityMetadata('account')
 
-console.log('Display Name:', metadata.DisplayName.UserLocalizedLabel.Label);
-console.log('Primary Key:', metadata.PrimaryIdAttribute);
+console.log('Display Name:', metadata.DisplayName.UserLocalizedLabel.Label)
+console.log('Primary Key:', metadata.PrimaryIdAttribute)
 ```
 
-#### `dataverseAPI.getEntityAttributes(entityName)`
+#### `dataverseAPI.getEntityAttributes(entityName, connectionTarget?)`
 
 Get all attributes for an entity.
 
 ```typescript
-const attributes = await dataverseAPI.getEntityAttributes('account');
+const attributes = await dataverseAPI.getEntityAttributes('account')
 
-attributes.forEach(attr => {
-  console.log(`${attr.LogicalName}: ${attr.AttributeType}`);
-});
+attributes.forEach((attr) => {
+  console.log(`${attr.LogicalName}: ${attr.AttributeType}`)
+})
 ```
+
+#### `dataverseAPI.getEntitySetName(logicalName)`
+
+Get the entity set name for a given logical name. No connectionTarget needed.
+
+```typescript
+const tableSetName = await dataverseAPI.getEntitySetName('contact')
+
+console.log('Entity Set Name for contact:', tableSetName) // Outputs: contacts
+```
+
+````typescript
 
 ### Actions & Functions
 
@@ -424,11 +522,11 @@ Execute a custom action.
 ```typescript
 const result = await dataverseAPI.executeAction('new_CustomAction', {
   InputParameter1: 'value1',
-  InputParameter2: 123
-});
+  InputParameter2: 123,
+})
 
-console.log('Action result:', result);
-```
+console.log('Action result:', result)
+````
 
 #### `dataverseAPI.executeFunction(functionName, parameters)`
 
@@ -436,10 +534,10 @@ Execute a custom function.
 
 ```typescript
 const result = await dataverseAPI.executeFunction('new_CustomFunction', {
-  Parameter1: 'value'
-});
+  Parameter1: 'value',
+})
 
-console.log('Function result:', result);
+console.log('Function result:', result)
 ```
 
 ## Error Handling
@@ -448,23 +546,23 @@ All API calls may throw errors. Always use try-catch blocks:
 
 ```typescript
 try {
-  const account = await dataverseAPI.retrieve('account', accountId);
+  const account = await dataverseAPI.retrieve('account', accountId)
   // Process account
 } catch (error) {
-  console.error('Failed to retrieve account:', error);
-  
+  console.error('Failed to retrieve account:', error)
+
   await toolboxAPI.utils.showNotification({
     title: 'Error',
     body: error.message,
     type: 'error',
-    duration: 0 // Persistent
-  });
+    duration: 0, // Persistent
+  })
 }
 ```
 
 ## Next Steps
 
-<div className="not-prose mb-16 mt-6 flex gap-3">
+<div className="not-prose mt-6 mb-16 flex gap-3">
   <Button href="/tool-development/examples" arrow="right">
     <>View Examples</>
   </Button>
