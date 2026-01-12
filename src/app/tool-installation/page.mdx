@@ -6,13 +6,14 @@ export const metadata = {
 
 export const sections = [
   { title: 'Tool Marketplace', id: 'tool-marketplace' },
-  { title: 'Installation Methods', id: 'installation-methods' },
+  {
+    title: 'Additional Installation Methods',
+    id: 'additional-installation-methods',
+  },
   { title: 'Managing Installed Tools', id: 'managing-installed-tools' },
   { title: 'Tool Registry System', id: 'tool-registry-system' },
   { title: 'Tool Permissions', id: 'tool-permissions' },
-  { title: 'Understanding CSP Exceptions', id: 'understanding-csp-exceptions' },
   { title: 'Troubleshooting', id: 'troubleshooting' },
-  { title: 'For Tool Developers', id: 'for-tool-developers' },
   { title: 'Next Steps', id: 'next-steps' },
 ]
 
@@ -24,59 +25,75 @@ Power Platform ToolBox uses a marketplace-style registry system for discovering 
 
 ### Discovering Tools
 
-The Tool Marketplace provides a centralized catalog of available tools:
+The Tools Marketplace provides a centralized catalog of available tools:
 
-1. Click **"Tool Marketplace"** in the sidebar
-2. Browse featured tools or search by name
-3. View tool details:
+1. Click **"Tools Marketplace"** in the sidebar
+
+[![PPTB Tools Marketplace](images/screenshots/toolsinstallation-marketplace.png)](images/screenshots/toolsinstallation-marketplace.png)
+
+2. Browse featured tools or search by name, author, or category
+3. Select a tool to view details
+   [![PPTB Tools details](images/screenshots/toolsinstallation-marketplace2.png)](images/screenshots/toolsinstallation-marketplace2.png)
    - Name and description
    - Author and version
    - Download count
-   - Required permissions
+   - Required permissions (if any above Dataverse access)
+   - An author provided description of the tool
    - Screenshots (if available)
-4. Click **"Install"** to add the tool
+4. Click **"Install"** to add the tool to your PPTB installation
 
 <Note>
-  Tools are downloaded as pre-built packages from the PPTB registry. No npm or pnpm installation required on your machine!
+  Tools are downloaded as pre-built packages from the PPTB registry. No npm or
+  pnpm installation required on your machine.
 </Note>
 
-## Installation Methods
+## Additional Installation Methods
 
-### From Marketplace (Recommended)
+For developers or private tools, PPTB supports installing directly from npm packages or your local filesystem.
 
-The easiest way to install tools:
+<Warning>
+  Installing from npm or local files is intended for development and testing
+  purposes only. Use the marketplace whenever possible.
+</Warning>
 
-1. Open Tool Marketplace
-2. Find the tool you want
-3. Click **"Install"**
-4. Tool downloads and installs automatically
-5. Appears in Tools panel when ready
-
-**Benefits:**
-- Pre-built and verified
-- Fast download and installation
-- Automatic dependency resolution
-- No build tools required
+<Note>
+  Both these methods require the Show Debug Setting to be enabled in Settings
+  menu.
+</Note>
 
 ### From npm (For Development & Private Packages)
 
 For debugging, development, or installing private npm packages:
 
 1. Ensure pnpm is installed on your system
-2. Click **"Install from npm"**
-3. Enter package name (e.g., `@your-org/your-tool`)
-4. PPTB installs via pnpm
-5. Tool loads after installation
+2. Open Debug / Install by Package in the sidebar
+3. Within the Install Tool by Package name, enter package name as shown on https://www.npmjs.com/  
+   (e.g., `@your-org/your-tool`)
+4. Click **"Install Package"**
+5. PPTB installs via pnpm
+6. Tool loads after installation
+
+### From Local Files
+
+For tool developers
+
+1. Ensure pnpm is installed on your system
+2. Open Debug / Install by Package in the sidebar
+3. Click browse and select the folder where your tool is, this is usually the root folder of your tool project
+4. Click **"Load Tool"**
+5. PPTB installs the local tool
+6. Tool loads after installation
 
 <Note>
-  Use this method for testing local tools during development or installing private npm packages not available in the marketplace.
+  Use this method for testing local tools during development or installing
+  private npm packages not available in the marketplace.
 </Note>
 
 ## Managing Installed Tools
 
 ### View Installed Tools
 
-The **Tools** panel shows all installed tools:
+The **Installed Tools** panel shows all installed tools:
 
 - Tool name and icon
 - Version number
@@ -85,28 +102,29 @@ The **Tools** panel shows all installed tools:
 
 ### Launch a Tool
 
-1. Click on a tool in the Tools panel
-2. Tool loads in the main workspace
-3. Tool UI appears in an isolated iframe
-4. Tool can now interact with active connection
+1. Click on a tool in the Installed Tools panel
+2. Tool loads in the main workspace, asking for a connection
+3. Tool UI appears in main workspace area
+4. Tool can now interact with active connection(s)
 
 ### Update a Tool
 
-1. Marketplace shows update badge for outdated tools
+1. The Installed Tools panel will show an update badge for tools that have an update available
 2. Click **"Update"** next to the tool
-3. New version downloads and replaces old version
-4. Tool reloads with new features
+3. New version of the tool will be downloaded and update old version
+4. The new version of the tool will be available
 
 <Note>
-  Updates are atomic - if an update fails, the previous version remains installed.
+  Updates are atomic - if an update fails, the previous version remains
+  installed.
 </Note>
 
 ### Uninstall a Tool
 
-1. Right-click tool in Tools panel
-2. Select **"Uninstall"**
-3. Confirm deletion
-4. Tool and its data are removed
+1. In the Installed Tools panel, click the trash icon next to the tool
+
+2. Confirm uninstallation.
+3. Tool and any stored preferences are removed
 
 ## Tool Registry System
 
@@ -117,21 +135,21 @@ Power Platform ToolBox uses a VS Code-style marketplace architecture:
 ```
 1. Developer publishes tool to npm
    ↓
-2. Developer submits to PPTB registry via GitHub issue form
+2. Registered developers submit their tool to PPTB registry via https://www.powerplatformtoolbox.com/submit-tool
    ↓
-3. Automated validation checks package
+3. Automated validation checks package and data about the tool
    ↓
-4. Manual review by maintainers
+4. A manual review by the Power Platform ToolBox team will be completed
    ↓
-5. Tool approved and added to registry
+5. Tool is approved and added to registry.
    ↓
-6. Users discover tool in marketplace
+6. Tool is available in PPTB marketplace
    ↓
 7. Installation downloads pre-built archive
    ↓
 8. Tool extracted and cached locally
    ↓
-9. Tool appears in Tools panel
+9. Tool appears in Installed Tools panel
 ```
 
 ### Registry Features
@@ -145,67 +163,20 @@ Power Platform ToolBox uses a VS Code-style marketplace architecture:
 
 ## Tool Permissions
 
-Tools request permissions for sensitive operations:
+Tools may required additional permissions beyond standard Dataverse access.
 
-### Permission Types
+The first time you launch the tool, or the required permissions change, you will see a permission consent dialog.
 
-<Properties>
-  <Property name="dataverse.read">
-    Read data from Dataverse (retrieve, query)
-  </Property>
-  <Property name="dataverse.write">
-    Create, update, delete records in Dataverse
-  </Property>
-  <Property name="terminal.create">
-    Create and manage terminal instances
-  </Property>
-  <Property name="files.write">
-    Save files to local disk
-  </Property>
-  <Property name="clipboard.write">
-    Copy data to clipboard
-  </Property>
-</Properties>
+[![PPTB Tool Permissions](images/screenshots/toolsinstallation-additionalpermissions.png)](images/screenshots/toolsinstallation-additionalpermissions.png)
 
-### Reviewing Permissions
+Review the requested permissions carefully before accepting.
 
-1. Before installation, review requested permissions
-2. Understand what data the tool can access
-3. Only install tools from trusted sources
-4. Report suspicious tools to maintainers
-
-## Understanding CSP Exceptions
-
-Some tools may request **Content Security Policy (CSP) Exceptions** when you install them. Here's what you need to know in simple terms:
-
-### What Are CSP Exceptions?
-
-Think of CSP Exceptions like app permissions on your smartphone. Just as a mobile app might ask permission to access your camera or location, tools in Power Platform ToolBox may ask permission to access specific external resources on the internet.
-
-By default, Power Platform ToolBox enforces strict security rules that only allow tools to use resources packaged within themselves. This protects you from malicious code. However, some legitimate tools need to access external resources to function properly.
-
-### Why Do Tools Need CSP Exceptions?
-
-Tools may request exceptions for valid reasons:
-
-- **Loading visualization libraries** from trusted CDNs (like Chart.js or D3.js)
-- **Accessing external APIs** to fetch data or integrate with other services
-- **Using web fonts** from services like Google Fonts
-- **Embedding maps or videos** from trusted providers
-- **Connecting to Dataverse** or other Microsoft services
-
-### The Consent Dialog
-
-When you first launch a tool that needs CSP exceptions, you'll see a consent dialog that shows:
-
-- **Exactly which external resources** the tool wants to access
-- **The type of access** needed (scripts, styles, API connections, images, etc.)
-- **Specific domains or URLs** the tool will communicate with
-
-You can then choose to **Accept** (grant the permissions) or **Decline** (don't allow the tool to load).
+Additional details on permissions, please see the Tool Developer documentation [here](/tool-development/csp-configuration).
 
 <Note>
-  If you decline, the tool won't load. If you accept, your choice is saved and you won't see the dialog again for that tool.
+  If you decline, the tool won't load. If you accept, your choice is saved and
+  you won't see the dialog again for that tool, unless the permissions requested
+  change.
 </Note>
 
 ### Staying Safe
@@ -214,16 +185,20 @@ Follow these best practices when reviewing CSP exceptions:
 
 <Properties>
   <Property name="Review Carefully">
-    Read what the tool is requesting access to. Does it make sense for what the tool does?
+    Read what the tool is requesting access to. Does it make sense for what the
+    tool does?
   </Property>
   <Property name="Trust the Source">
-    Only grant exceptions to tools from developers you trust or tools with good reviews in the marketplace.
+    Only grant exceptions to tools from developers you trust or tools with good
+    reviews in the marketplace.
   </Property>
   <Property name="Watch for Red Flags">
-    Be suspicious if a simple tool requests access to many unrelated domains or services.
+    Be suspicious if a simple tool requests access to many unrelated domains or
+    services.
   </Property>
   <Property name="Revoke Anytime">
-    You can revoke CSP permissions at any time in the tool settings if you change your mind.
+    You can revoke CSP permissions at any time in the tool settings if you
+    change your mind.
   </Property>
 </Properties>
 
@@ -232,18 +207,14 @@ Follow these best practices when reviewing CSP exceptions:
 Here are common, legitimate reasons tools request CSP exceptions:
 
 **Scenario 1: Data Visualization Tool**
+
 ```
 Requests: script-src from https://cdn.jsdelivr.net
 Reason: Loads a charting library to create graphs
 ```
 
-**Scenario 2: Dynamics Integration Tool**
-```
-Requests: connect-src to https://*.dynamics.com
-Reason: Needs to communicate with your Dynamics 365 environment
-```
+**Scenario 2: Custom Branding Tool**
 
-**Scenario 3: Custom Branding Tool**
 ```
 Requests: font-src from https://fonts.googleapis.com
            style-src from https://fonts.googleapis.com
@@ -251,7 +222,8 @@ Reason: Uses custom web fonts for professional appearance
 ```
 
 <Note>
-  CSP exceptions are tool-specific, not global. Granting access for one tool doesn't affect other tools' permissions.
+  Permissions are tool-specific, not global. Granting access for one tool
+  doesn't affect other tools' permissions.
 </Note>
 
 ## Troubleshooting
@@ -261,6 +233,7 @@ Reason: Uses custom web fonts for professional appearance
 **Symptom:** Installation fails or hangs
 
 **Solutions:**
+
 - Check internet connectivity
 - Verify registry server is accessible
 - Check disk space is sufficient
@@ -272,6 +245,7 @@ Reason: Uses custom web fonts for professional appearance
 **Symptom:** Tool installed but won't launch
 
 **Solutions:**
+
 - Ensure Node.js 18+ is installed
 - Check tool compatibility with PPTB version
 - Look for errors in developer console
@@ -283,6 +257,7 @@ Reason: Uses custom web fonts for professional appearance
 **Symptom:** Update downloads but doesn't apply
 
 **Solutions:**
+
 - Close the tool before updating
 - Check write permissions in tool directory
 - Verify sufficient disk space
@@ -293,33 +268,15 @@ Reason: Uses custom web fonts for professional appearance
 **Symptom:** Tool reports missing dependencies
 
 **Solutions:**
+
 - Registry packages should be self-contained
 - Report issue to tool author
 - Check tool's npm package configuration
 - Try reinstalling from marketplace
 
-## For Tool Developers
-
-Interested in publishing your own tools?
-
-<div className="not-prose flex gap-3 mt-6">
-  <Button href="/tool-development" variant="text" arrow="right">
-    <>Tool Development Guide</>
-  </Button>
-  <Button href="/tool-development/publishing" variant="text" arrow="right">
-    <>Publishing Tools</>
-  </Button>
-</div>
-
 ## Next Steps
 
-- Browse the marketplace for useful tools
-- Connect to your Power Platform environment
-- Start using tools to be more productive
-- Provide feedback on tools you use
-- Build your own tools for the community
-
-<div className="not-prose flex gap-3 mt-6">
+<div className="not-prose mt-6 flex gap-3">
   <Button href="/quickstart" variant="text" arrow="right">
     <>Quick Start</>
   </Button>

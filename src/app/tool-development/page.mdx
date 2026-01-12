@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Tool Development Guide',
-  description: 'Complete guide for developing tools for Power Platform ToolBox using webview-based architecture with secure APIs',
+  description:
+    'Complete guide for developing tools for Power Platform ToolBox using webview-based architecture with secure APIs',
 }
 
 export const sections = [
@@ -18,7 +19,7 @@ Power Platform ToolBox provides a secure, extensible platform for creating custo
 
 ## Overview
 
-Tools are web applications that run in isolated environments and communicate with the ToolBox through secure APIs:
+Tools are web applications that run in isolated environments and communicate with the PPTB host through secure APIs:
 
 - **Webview-Based**: Each tool runs in a sandboxed iframe with limited API access
 - **Organized APIs**: Namespaced APIs for connections, utilities, terminals, events, and Dataverse
@@ -44,12 +45,24 @@ Organized into namespaces:
 
 Complete HTTP client for Dataverse:
 
-- CRUD operations (create, retrieve, update, delete)
-- FetchXML queries
-- Metadata operations
-- Execute actions and functions
+- **CRUD** operations (create, retrieve, update, delete)
+- **FetchXML** queries
+- **Metadata** operations
+- **Execute** actions and functions
 
 ## Quick Start
+
+<Note>
+  This guide assumes basic knowledge of web development with HTML, CSS, and
+  JavaScript/TypeScript.
+</Note>
+
+<Note>
+  Sample tools, using the supported frameworks are available on our GitHub
+  repository: https://github.com/PowerPlatformToolBox/sample-tools  
+  
+  This also contains example code of utilising the PPTB APIs.
+</Note>
 
 ### Prerequisites (Optional)
 
@@ -73,7 +86,7 @@ yo pptb
 yo pptb my-tool
 ```
 
-Follow the prompts to generate your tool structure:
+Follow the prompts to generate your tool. This will lead you through chosing an appropriate framework and setting up the project structure.
 
 ```
 my-tool/
@@ -106,67 +119,69 @@ npm install --save-dev @pptb/types
 ### Implement Your Tool
 
 **index.html:**
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Tool</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div id="app">
-    <h1>My Power Platform Tool</h1>
-    <div id="connection-info"></div>
-    <button id="test-btn">Test API</button>
-    <div id="output"></div>
-  </div>
-  <script src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Tool</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <h1>My Power Platform Tool</h1>
+      <div id="connection-info"></div>
+      <button id="test-btn">Test API</button>
+      <div id="output"></div>
+    </div>
+    <script src="app.js"></script>
+  </body>
 </html>
 ```
 
 **app.ts:**
+
 ```typescript
 /// <reference types="@pptb/types" />
 
 async function initialize() {
   try {
     // Get active connection
-    const connection = await toolboxAPI.connections.getActiveConnection();
-    
+    const connection = await toolboxAPI.connections.getActiveConnection()
+
     if (connection) {
-      document.getElementById('connection-info')!.textContent = 
-        `Connected to: ${connection.name} (${connection.environment})`;
+      document.getElementById('connection-info')!.textContent =
+        `Connected to: ${connection.name} (${connection.environment})`
     }
-    
+
     // Subscribe to events
     toolboxAPI.events.on((event, payload) => {
-      console.log('Event received:', payload.event, payload.data);
-      
+      console.log('Event received:', payload.event, payload.data)
+
       if (payload.event === 'connection:updated') {
-        initialize();
+        initialize()
       }
-    });
-    
+    })
+
     // Show notification
     await toolboxAPI.utils.showNotification({
       title: 'Tool Loaded',
       body: 'My tool is ready!',
       type: 'success',
-      duration: 3000
-    });
+      duration: 3000,
+    })
   } catch (error) {
-    console.error('Initialization error:', error);
+    console.error('Initialization error:', error)
   }
 }
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
+  document.addEventListener('DOMContentLoaded', initialize)
 } else {
-  initialize();
+  initialize()
 }
 ```
 
@@ -175,11 +190,13 @@ if (document.readyState === 'loading') {
 ### Local Development
 
 1. **Build your tool:**
+
    ```bash
    npm run build
    ```
 
 2. **Start watch mode** (optional but recommended):
+
    ```bash
    npm run build -- --watch
    ```
@@ -255,7 +272,7 @@ Visit the [Tool Submission Form](https://github.com/PowerPlatformToolBox/pptb-we
 
 ## Next Steps
 
-<div className="not-prose mb-16 mt-6 flex gap-3">
+<div className="not-prose mt-6 mb-16 flex gap-3">
   <Button href="/tool-development/api-reference" arrow="right">
     <>API Reference</>
   </Button>
