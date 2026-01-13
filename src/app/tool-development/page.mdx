@@ -17,7 +17,7 @@ export const sections = [
 
 Power Platform ToolBox provides a secure, extensible platform for creating custom tools as web applications. This guide will help you build, test, and publish your own tools. {{ className: 'lead' }}
 
-## Overview
+## Overview {{ anchor: true }}
 
 Tools are web applications that run in isolated environments and communicate with the PPTB host through secure APIs:
 
@@ -27,7 +27,7 @@ Tools are web applications that run in isolated environments and communicate wit
 - **Context-Aware**: Tool ID and connection context automatically managed
 - **Type-Safe**: Full TypeScript support with `@pptb/types` package
 
-## API Architecture
+## API Architecture {{ anchor: true }}
 
 Tools have access to two main APIs:
 
@@ -50,7 +50,7 @@ Complete HTTP client for Dataverse:
 - **Metadata** operations
 - **Execute** actions and functions
 
-## Quick Start
+## Quick Start {{ anchor: true }}
 
 <Note>
   This guide assumes basic knowledge of web development with HTML, CSS, and
@@ -185,7 +185,7 @@ if (document.readyState === 'loading') {
 }
 ```
 
-## Testing Your Tool
+## Testing Your Tool {{ anchor: true }}
 
 ### Local Development
 
@@ -218,7 +218,7 @@ if (document.readyState === 'loading') {
    - Close the tool tab in ToolBox
    - Reopen from sidebar to see changes
 
-## Publishing Your Tool
+## Publishing Your Tool {{ anchor: true }}
 
 ### 1. Build your tool
 
@@ -270,7 +270,7 @@ Visit the [Tool Submission Form](https://github.com/PowerPlatformToolBox/pptb-we
 - GitHub repository URL
 - Tags/categories
 
-## Next Steps
+## Next Steps {{ anchor: true }}
 
 <div className="not-prose mt-6 mb-16 flex gap-3">
   <Button href="/tool-development/api-reference" arrow="right">

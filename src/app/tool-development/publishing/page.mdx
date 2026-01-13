@@ -22,7 +22,7 @@ export const sections = [
 
 Once you've tested your tool locally and are ready to share it with the community, follow this guide to publish it to npm and submit it to the ToolBox registry. {{ className: 'lead' }}
 
-## Prerequisites
+## Prerequisites {{ anchor: true }}
 
 Before publishing, ensure your tool:
 
@@ -33,7 +33,7 @@ Before publishing, ensure your tool:
 - ✅ Has appropriate license (open source recommended)
 - ✅ Has documentation (README.md)
 
-## Step 1: Prepare Your Package
+## Step 1: Prepare Your Package {{ anchor: true }}
 
 ### Update package.json
 
@@ -86,7 +86,7 @@ Ensure all required fields are present:
   </Property>
 </Properties>
 
-## Step 2: Build Your Tool
+## Step 2: Build Your Tool {{ anchor: true }}
 
 Build your tool to create the distributable files:
 
@@ -99,7 +99,7 @@ Verify that your `dist/` directory contains:
 - All compiled JavaScript/CSS files
 - Any required assets (images, icons, etc.)
 
-## Step 3: Finalize Package
+## Step 3: Finalize Package {{ anchor: true }}
 
 Run the finalization script to prepare your package:
 
@@ -109,7 +109,7 @@ npm run finalize-package
 
 This ensures your package is ready for npm with correct file structure and dependencies.
 
-## Step 4: Publish to npm
+## Step 4: Publish to npm {{ anchor: true }}
 
 ### First-Time Setup
 
@@ -144,7 +144,7 @@ npm view @your-org/your-tool-name
 
 Or visit: `https://www.npmjs.com/package/@your-org/your-tool-name`
 
-## Step 5: Test Published Version
+## Step 5: Test Published Version {{ anchor: true }}
 
 Before submitting to the registry, test your published npm package:
 
@@ -155,7 +155,7 @@ Before submitting to the registry, test your published npm package:
    - Click **Install**
 4. **Test thoroughly** to ensure everything works as expected
 
-## Step 6: Submit to ToolBox Registry
+## Step 6: Submit to ToolBox Registry {{ anchor: true }}
 
 Once your tool is working correctly from npm:
 
@@ -208,7 +208,7 @@ Maintainers will review your submission for:
 
 **Review typically takes 48-72 hours.**
 
-## Versioning and Updates
+## Versioning and Updates {{ anchor: true }}
 
 ### Semantic Versioning
 
@@ -246,7 +246,7 @@ npm publish --access public
   The ToolBox registry automatically syncs with npm. Users will receive update notifications when new versions are published.
 </Note>
 
-## Best Practices
+## Best Practices {{ anchor: true }}
 
 ### Before Publishing
 
@@ -274,7 +274,7 @@ npm publish --access public
 - ⚠️ Don't access sensitive system resources
 - ⚠️ Follow principle of least privilege
 
-## Troubleshooting
+## Troubleshooting {{ anchor: true }}
 
 ### npm publish fails
 

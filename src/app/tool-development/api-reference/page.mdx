@@ -20,7 +20,7 @@ Comprehensive reference for the ToolBox API and Dataverse API available to all t
   ```bash npm install --save-dev @pptb/types ```
 </Note>
 
-## ToolBox API
+## ToolBox API {{ anchor: true }}
 
 The ToolBox API provides access to platform features and utilities.
 
@@ -82,7 +82,7 @@ To enable this feature, you must update the package.json file to indicate your t
   ],
   // This section enables multiple connections
   "features": {
-    "multi-connection": true
+    "multiConnection": "required" or "optional"
   },
 ```
 
@@ -192,6 +192,49 @@ if (filePath) {
 ```
 
 **Returns:** `Promise<string | null>` - File path or null if cancelled
+
+#### `toolboxAPI.utils.selectPath(options?)`
+
+Open a native dialog to select either a file or a folder and return the chosen path.
+
+```typescript
+// Select a folder
+const folderPath = await toolboxAPI.utils.selectPath({
+  type: 'folder',
+  title: 'Select Export Folder',
+})
+
+if (folderPath) {
+  console.log('Selected folder:', folderPath)
+} else {
+  console.log('Selection cancelled')
+}
+```
+
+```typescript
+// Select a file
+const filePath = await toolboxAPI.utils.selectPath({
+  type: 'file',
+  title: 'Select Configuration File',
+  filters: [
+    { name: 'JSON Files', extensions: ['json'] },
+    { name: 'All Files', extensions: ['*'] },
+  ],
+})
+
+if (filePath) {
+  console.log('Selected file:', filePath)
+}
+```
+
+**Parameters:**
+
+- `options` - Optional configuration object
+  - `type`: `'file' | 'folder'` - Type of selection dialog
+  - `title`: `string` - Dialog window title
+  - `filters`: `Array<{ name: string; extensions: string[] }>` - File filters (file dialogs only)
+
+**Returns:** `Promise<string | null>` - Selected path or null if cancelled
 
 #### `toolboxAPI.utils.getCurrentTheme()`
 
@@ -373,7 +416,7 @@ toolboxAPI.events.on((event, payload) => {
 - `tool:activated` - Your tool tab activated
 - `tool:deactivated` - Your tool tab deactivated
 
-## Dataverse API
+## Dataverse API {{ anchor: true }}
 
 Complete HTTP client for interacting with Microsoft Dataverse.
 
@@ -540,7 +583,7 @@ const result = await dataverseAPI.executeFunction('new_CustomFunction', {
 console.log('Function result:', result)
 ```
 
-## Error Handling
+## Error Handling {{ anchor: true }}
 
 All API calls may throw errors. Always use try-catch blocks:
 
@@ -560,7 +603,7 @@ try {
 }
 ```
 
-## Next Steps
+## Next Steps {{ anchor: true }}
 
 <div className="not-prose mt-6 mb-16 flex gap-3">
   <Button href="/tool-development/examples" arrow="right">

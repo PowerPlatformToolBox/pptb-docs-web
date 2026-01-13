@@ -4,11 +4,12 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+import { EditLink } from '@/components/EditLink'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
 import { Navigation } from '@/components/Navigation'
-import { EditLink } from '@/components/EditLink'
 import { SectionProvider, type Section } from '@/components/SectionProvider'
+import { TableOfContents } from '@/components/TableOfContents'
 import Image from 'next/image'
 
 export function Layout({
@@ -47,7 +48,10 @@ export function Layout({
           <div className="absolute top-18 right-2 sm:right-2 lg:fixed lg:top-18 lg:right-4 lg:z-30">
             <EditLink />
           </div>
-          <main className="flex-auto">{children}</main>
+          <div className="flex flex-1">
+            <main className="min-w-0 flex-auto">{children}</main>
+            <TableOfContents />
+          </div>
           <Footer />
         </div>
       </div>

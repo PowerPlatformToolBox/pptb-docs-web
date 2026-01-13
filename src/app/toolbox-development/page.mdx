@@ -24,7 +24,7 @@ export const sections = [
 
 Learn how to set up your development environment and contribute to the Power Platform ToolBox platform itself. {{ className: 'lead' }}
 
-## Overview
+## Overview {{ anchor: true }}
 
 Power Platform ToolBox is built with:
 
@@ -36,7 +36,7 @@ Power Platform ToolBox is built with:
 
 The application follows a modular architecture with clear separation between main process, renderer process, and API layers.
 
-## Prerequisites
+## Prerequisites {{ anchor: true }}
 
 Before you begin, ensure you have:
 
@@ -58,7 +58,7 @@ brew install pnpm
 winget install pnpm
 ```
 
-## Getting Started
+## Getting Started {{ anchor: true }}
 
 ### 1. Fork and Clone
 
@@ -83,7 +83,7 @@ pnpm run dev
 
 This starts the application in development mode with hot module replacement (HMR).
 
-## Project Structure
+## Project Structure {{ anchor: true }}
 
 ```
 desktop-app/
@@ -106,7 +106,7 @@ desktop-app/
 └── tsconfig.json       # TypeScript configuration
 ```
 
-## Development Workflow
+## Development Workflow {{ anchor: true }}
 
 ### Running Tests
 
@@ -148,7 +148,7 @@ pnpm run package:linux
    - Use browser debugging tools
    - Check Console for logs
 
-## Architecture
+## Architecture {{ anchor: true }}
 
 ### Main Process
 
@@ -177,7 +177,7 @@ Event-driven communication:
 - dataverseAPI - Dataverse HTTP client
 - IPC communication via contextBridge
 
-## Contributing
+## Contributing {{ anchor: true }}
 
 ### Branch Strategy
 
@@ -273,7 +273,7 @@ When creating a PR, ensure you complete:
   **Important:** All PRs must target the **`dev`** branch. PRs targeting `main` will be closed.
 </Note>
 
-## Coding Standards
+## Coding Standards {{ anchor: true }}
 
 ### TypeScript
 
@@ -291,7 +291,7 @@ When creating a PR, ensure you complete:
 - Keep functions small and focused
 - Add JSDoc comments for public APIs
 
-## Release Process
+## Release Process {{ anchor: true }}
 
 The project uses automated releases:
 
@@ -306,7 +306,7 @@ The project uses automated releases:
 - Version format: `1.0.0`
 - Published to GitHub Releases
 
-## Documentation
+## Documentation {{ anchor: true }}
 
 When adding features, update:
 
@@ -316,7 +316,7 @@ When adding features, update:
 4. **Inline comments** - Complex logic
 5. **Type definitions** - Update `packages/types/` and publish to npm
 
-## Testing
+## Testing {{ anchor: true }}
 
 Currently establishing testing infrastructure:
 
@@ -331,7 +331,7 @@ Currently establishing testing infrastructure:
 - **[Tool Development Guide](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/docs/TOOL_DEV.md)** - For tool developers
 - **[Contributing Guide](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/CONTRIBUTING.md)** - Full contribution guidelines
 
-## Getting Help
+## Getting Help {{ anchor: false }}
 
 Need assistance?
 
@@ -339,7 +339,7 @@ Need assistance?
 - **Issues:** [Report bugs](https://github.com/PowerPlatformToolBox/desktop-app/issues)
 - **Code of Conduct:** [Read our standards](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/CODE_OF_CONDUCT.md)
 
-## Next Steps
+## Next Steps {{ anchor: true }}
 
 <div className="not-prose mb-16 mt-6 flex gap-3">
   <Button href="/toolbox-development/architecture" arrow="right">
