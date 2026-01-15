@@ -17,7 +17,7 @@ export const sections = [
 Comprehensive reference for the ToolBox API and Dataverse API available to all tools running in Power Platform ToolBox. {{ className: 'lead' }}
 
 <Note>
-  For complete (and upto date) TypeScript definitions, install the `@pptb/types`
+  For complete (and up to date) TypeScript definitions, install the `@pptb/types`
   package: ```bash npm install --save-dev @pptb/types ```
 </Note>
 
@@ -537,16 +537,16 @@ await dataverseAPI.delete(
 Creates multiple records in Dataverse  
 **Parameters:**  
 `entityLogicalName` Logical name of the entity  
-`records` Array of record data to update, each including the "id" property and the "odata.type" property  
+`records` Array of record data to create, each including the "@odata.type" property  
 `connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary').  
 Defaults to 'primary'.  
-**Returns:** Array of strings representing the created record IDs
+**Returns:** `Promise<string[]>` Array of strings representing the created record IDs
 
 ```typescript
 const results = await dataverseAPI.createMultiple('account', [
-         *     { name: 'Contoso Ltd', "@odata.type": "Microsoft.Dynamics.CRM.account" },
-         *     { name: 'Fabrikam Inc', "@odata.type": "Microsoft.Dynamics.CRM.account" }
-         * ]);
+  { name: 'Contoso Ltd', '@odata.type': 'Microsoft.Dynamics.CRM.account' },
+  { name: 'Fabrikam Inc', '@odata.type': 'Microsoft.Dynamics.CRM.account' },
+])
 ```
 
 #### `dataverseAPI.updateMultiple(entityLogicalName, records, connectionTarget?)`
@@ -554,15 +554,24 @@ const results = await dataverseAPI.createMultiple('account', [
 Updates multiple records in Dataverse  
 **Parameters:**  
 `entityLogicalName` Logical name of the entity  
-`records` Array of record data to update, each including the "id" property and the "odata.type" property  
+`records` Array of record data to update, each including the "id" property and the "@odata.type" property  
 `connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary').  
-Defaults to 'primary'.
+Defaults to 'primary'.  
+**Returns:** `Promise<void>` Successful completion
 
 ```typescript
- await dataverseAPI.updateMultiple('account', [
-         *     { accountid: 'guid-1', name: 'Updated Name 1', "@odata.type": "Microsoft.Dynamics.CRM.account" },
-         *     { accountid: 'guid-2', name: 'Updated Name 2', "@odata.type": "Microsoft.Dynamics.CRM.account" }
-         * ]);
+await dataverseAPI.updateMultiple('account', [
+  {
+    accountid: 'guid-1',
+    name: 'Updated Name 1',
+    '@odata.type': 'Microsoft.Dynamics.CRM.account',
+  },
+  {
+    accountid: 'guid-2',
+    name: 'Updated Name 2',
+    '@odata.type': 'Microsoft.Dynamics.CRM.account',
+  },
+])
 ```
 
 ### Queries
@@ -606,36 +615,35 @@ result.value.forEach((account) => {
 Retrieve multiple records with OData query options.
 
 **Parameters:**  
-`odataQuery: string` OData query string with parameters like $select, $filter, $orderby, $top, $skip, $expand
+`odataQuery: string` OData query string with parameters like $select, $filter, $orderby, $top, $skip, $expand  
 `connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
-**Returns:** `Promise<{ value: Record<string, unknown>[] }` Object with value array containing query results
+**Returns:** `Promise<{ value: Record<string, unknown>[] }>` Object with value array containing query results
 
 ```typescript
-
 // Get top 10 active accounts with specific fields
 const result = await dataverseAPI.queryData(
-    'accounts?$select=name,emailaddress1,telephone1&$filter=statecode eq 0&$orderby=name&$top=10'
-);
-console.log(`Found ${result.value.length} records`);
-result.value.forEach(record => {
-    console.log(`${record.name} - ${record.emailaddress1}`);
-});
+  'accounts?$select=name,emailaddress1,telephone1&$filter=statecode eq 0&$orderby=name&$top=10',
+)
+console.log(`Found ${result.value.length} records`)
+result.value.forEach((record) => {
+  console.log(`${record.name} - ${record.emailaddress1}`)
+})
 
-   @example
 // Query with expand to include related records
-  const result = await dataverseAPI.queryData(
-      'accounts?$select=name,accountid&$expand=contact_customer_accounts($select=fullname,emailaddress1)&$top=5'
-  );
-
+const result = await dataverseAPI.queryData(
+  'accounts?$select=name,accountid&$expand=contact_customer_accounts($select=fullname,emailaddress1)&$top=5',
+)
 
 // Simple query with just a filter
- const result = await dataverseAPI.queryData(
-  'contacts?$filter=contains(fullname, 'Smith')&$top=20'
-);
+const result = await dataverseAPI.queryData(
+  `contacts?$filter=contains(fullname, 'Smith')&$top=20`,
+)
 
 // Multi-connection tool using secondary connection
-const result = await dataverseAPI.queryData('contacts?$filter=statecode eq 0', 'secondary');
-
+const result = await dataverseAPI.queryData(
+  'contacts?$filter=statecode eq 0',
+  'secondary',
+)
 ```
 
 ### Metadata
@@ -644,37 +652,50 @@ const result = await dataverseAPI.queryData('contacts?$filter=statecode eq 0', '
 
 Get entity metadata.  
 **Parameters:**  
-`entityLogicalName`: Logical name or entity id of the entity  
-`searchByLogicalName`: Boolean indicating whether to search by logical name (true) or metadata ID (false)  
-`selectColumns`: Optional array of column names to retrieve (retrieves all if not specified)
-`connectionTarget`: Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
-**Returns:** Object containing entity metadata
+`entityLogicalName: string` Logical name or entity id of the entity  
+`searchByLogicalName?: boolean` Boolean indicating whether to search by logical name (true) or metadata ID (false)  
+`selectColumns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<any>` Object containing entity metadata
 
 ```typescript
-const metadata = await dataverseAPI.getEntityMetadata('account', true, ['LogicalName', 'DisplayName', 'EntitySetName']);
-console.log('Logical Name:', metadata.LogicalName);
-console.log('Display Name:', metadata.DisplayName?.LocalizedLabels[0]?.Label); \*
+const metadata = await dataverseAPI.getEntityMetadata('account', true, [
+  'LogicalName',
+  'DisplayName',
+  'EntitySetName',
+])
+console.log('Logical Name:', metadata.LogicalName)
+console.log('Display Name:', metadata.DisplayName?.LocalizedLabels[0]?.Label)
 
 // Get entity metadata by metadata ID
-const metadata = await dataverseAPI.getEntityMetadata('00000000-0000-0000-0000-000000000001', false, ['LogicalName', 'DisplayName']);
-console.log('Entity Metadata ID:', metadata.MetadataId);
-console.log('Logical Name:', metadata.LogicalName);
-console.log('Display Name:', metadata.DisplayName?.LocalizedLabels[0]?.Label); \*
+const metadata = await dataverseAPI.getEntityMetadata(
+  '00000000-0000-0000-0000-000000000001',
+  false,
+  ['LogicalName', 'DisplayName'],
+)
+console.log('Entity Metadata ID:', metadata.MetadataId)
+console.log('Logical Name:', metadata.LogicalName)
+console.log('Display Name:', metadata.DisplayName?.LocalizedLabels[0]?.Label)
 
 // Multi-connection tool using secondary connection
-const metadata = await dataverseAPI.getEntityMetadata('account', true, ['LogicalName'], 'secondary');
-console.log('Logical Name from secondary connection:', metadata.LogicalName);
+const metadata = await dataverseAPI.getEntityMetadata(
+  'account',
+  true,
+  ['LogicalName'],
+  'secondary',
+)
+console.log('Logical Name from secondary connection:', metadata.LogicalName)
 ```
 
 #### `dataverseAPI.getEntityRelatedMetadata(entityLogicalName, relatedPath, selectColumns?, connectionTarget?)`
 
 Get related metadata for a specific entity (attributes, relationships, etc.)  
 **Parameters:**  
-`entityLogicalName` Logical name of the entity
-`relatedPath` Path after EntityDefinitions(LogicalName='name') (e.g., 'Attributes', 'OneToManyRelationships', 'ManyToOneRelationships', 'ManyToManyRelationships', 'Keys')  
-`selectColumns` Optional array of column names to retrieve (retrieves all if not specified)  
-`connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.
-**Returns:** Object with value array containing related metadata
+`entityLogicalName: string` Logical name of the entity  
+`relatedPath: string` Path after EntityDefinitions(LogicalName='name') (e.g., 'Attributes', 'OneToManyRelationships', 'ManyToOneRelationships', 'ManyToManyRelationships', 'Keys')  
+`selectColumns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: any[] }>` Object with value array containing related metadata
 
 ```typescript
 // Get all attributes for an entity
@@ -711,11 +732,11 @@ console.log('Attributes from secondary connection:', attributes.value)
 
 #### `dataverseAPI.getAllEntitiesMetadata(selectColumns?, connectionTarget?)`
 
-Get metadata for all entities
-**Parameters:**
-`selectColumns` Optional array of column names to retrieve (retrieves LogicalName, DisplayName, MetadataId by default)
-`connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.
-**Returns** Object with value array containing all entity metadata
+Get metadata for all entities  
+**Parameters:**  
+`selectColumns?: string[]` Optional array of column names to retrieve (retrieves LogicalName, DisplayName, MetadataId by default)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: any[] }>` Object with value array containing all entity metadata
 
 ```typescript
 const allEntities = await dataverseAPI.getAllEntitiesMetadata([
@@ -743,9 +764,9 @@ Get the entity set name for a given logical name. No connectionTarget needed.
 This will work in most scenarios but if you have custom entities with non-standard pluralization
 you may need to retrieve the metadata instead.
 
-**Parameters:**
-`logicalName`: Logical name of the entity
-**Returns:** Entity set name as a string
+**Parameters:**  
+`logicalName: string` Logical name of the entity  
+**Returns:** `Promise<string>` Entity set name as a string
 
 ```typescript
 const tableSetName = await dataverseAPI.getEntitySetName('contact')
@@ -757,9 +778,9 @@ console.log('Entity Set Name for contact:', tableSetName) // Outputs: contacts
 
 Get solutions from the environment  
 **Parameters:**  
-`selectColumns` Required array of column names to retrieve (must contain at least one column)  
-`connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
-**Returns** Object with value array containing solutions
+`selectColumns: string[]` Required array of column names to retrieve (must contain at least one column)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: any[] }>` Object with value array containing solutions
 
 ```typescript
 const solutions = await dataverseAPI.getSolutions([
@@ -807,12 +828,12 @@ const result = await dataverseAPI.executeFunction('new_CustomFunction', {
 console.log('Function result:', result)
 ```
 
-#### `publishCustomizations: (tableLogicalName?: string, connectionTarget?: "primary" | "secondary")`
+#### `dataverseAPI.publishCustomizations(tableLogicalName?, connectionTarget?)`
 
 Publish customizations for the current environment.  
-**Parameters:**
-`tableLogicalName` - Optional table (entity) logical name to publish. If omitted, all pending customizations are published.  
-`connectionTarget` - Optional connection target for multi-connection tools ('primary' or 'secondary). Defaults to 'primary'.
+**Parameters:**  
+`tableLogicalName?: string` Optional table (entity) logical name to publish. If omitted, all pending customizations are published.  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.
 **Returns:** `Promise<void>` Successful completion
 
 ```typescript
@@ -827,7 +848,7 @@ await dataverseAPI.publishCustomizations('account', 'secondary')
 
 The settings API allows tool specific settings to be stored and retrieved between sessions.
 
-#### `getAll: ()`
+#### `toolboxAPI.settings.getAll()`
 
 Retrieve all settings for your tool.  
 **Returns:** `Promise<Record<string, any>>` Object containing all settings key-value pairs
@@ -837,11 +858,11 @@ const settings = await toolboxAPI.settings.getAll()
 console.log('All settings:', JSON.stringify(settings))
 ```
 
-#### `get: (key: string)`
+#### `toolboxAPI.settings.get(key)`
 
 Retrieve a specific setting by key.  
 **Parameters:**  
-`key: string` - The setting key to retrieve  
+`key: string` The setting key to retrieve  
 **Returns:** `Promise<any>` Value of the setting or undefined if not found
 
 ```typescript
@@ -849,23 +870,23 @@ const pageSize = await toolboxAPI.settings.get('pageSize')
 console.log('Page Size setting:', pageSize)
 ```
 
-#### `set: (key: string, value: any)`
+#### `toolboxAPI.settings.set(key, value)`
 
-Set a specific setting by key.
+Set a specific setting by key.  
 **Parameters:**  
-`key: string` - The setting key to set
-`value: any` - The value to store for the setting
+`key: string` The setting key to set  
+`value: any` The value to store for the setting  
 **Returns:** `Promise<void>` Successful completion
 
 ```typescript
 await toolboxAPI.settings.set('pageSize', 50)
 ```
 
-#### `setAll: (settings: Record<string, any>)`
+#### `toolboxAPI.settings.setAll(settings)`
 
 Set multiple settings at once.  
 **Parameters:**  
-`settings: Record<string, any>` - Object containing key-value pairs to set
+`settings: Record<string, any>` Object containing key-value pairs to set  
 **Returns:** `Promise<void>` Successful completion
 
 ```typescript
