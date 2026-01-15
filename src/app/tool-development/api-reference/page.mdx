@@ -391,17 +391,19 @@ Subscribe to events relevant to your tool.
 
 ```typescript
 toolboxAPI.events.on((event, payload) => {
-  console.log('Event:', payload.event, 'Data:', payload.data)
+  console.log('Event:', event, 'Data:', payload)
 
-  switch (payload.event) {
+  switch (event) {
     case 'connection:updated':
       refreshConnectionInfo()
       break
     case 'connection:activated':
-      handleConnectionActivated(payload.data)
+      handleConnectionActivated(payload)
       break
-    case 'theme:changed':
-      applyTheme(payload.data.theme)
+    case 'settings:updated':
+      if (payload && payload.theme) {
+        applyTheme(payload.theme)
+      }
       break
   }
 })
@@ -412,7 +414,7 @@ toolboxAPI.events.on((event, payload) => {
 - `connection:updated` - Active connection changed
 - `connection:activated` - Connection activated
 - `connection:deactivated` - Connection deactivated
-- `theme:changed` - Theme switched
+- `settings:updated` - Settings, including Theme has been updated
 - `tool:activated` - Your tool tab activated
 - `tool:deactivated` - Your tool tab deactivated
 
