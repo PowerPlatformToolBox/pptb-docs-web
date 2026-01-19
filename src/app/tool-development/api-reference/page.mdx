@@ -121,14 +121,12 @@ interface DataverseConnection {
 When interacting with dataverse and you want to use the secondary connection, pass the connectionTarget parameter as 'secondary'. ConnectionTarget is optional and defaults to 'primary'.
 
 ```typescript
-// Example useage of dataverseAPI using secondary connection
+// Example usage of dataverseAPI using secondary connection
 const myTables = await dataverseAPI.getAllEntitiesMetadata(
   ['logicalName'],
   'secondary',
 )
 ```
-
-###
 
 ### Utils
 
