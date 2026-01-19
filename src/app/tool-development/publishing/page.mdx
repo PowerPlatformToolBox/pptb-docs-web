@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Publishing Your Tool',
-  description: 'Learn how to package, publish to npm, and submit your tool to the Power Platform ToolBox registry',
+  description:
+    'Learn how to package, publish to npm, and submit your tool to the Power Platform ToolBox registry',
 }
 
 export const sections = [
@@ -9,8 +10,14 @@ export const sections = [
   { title: 'Step 2: Build Your Tool', id: 'step-2-build-your-tool' },
   { title: 'Step 3: Finalize Package', id: 'step-3-finalize-package' },
   { title: 'Step 4: Publish to npm', id: 'step-4-publish-to-npm' },
-  { title: 'Step 5: Test Published Version', id: 'step-5-test-published-version' },
-  { title: 'Step 6: Submit to ToolBox Registry', id: 'step-6-submit-to-toolbox-registry' },
+  {
+    title: 'Step 5: Test Published Version',
+    id: 'step-5-test-published-version',
+  },
+  {
+    title: 'Step 6: Submit to ToolBox Registry',
+    id: 'step-6-submit-to-toolbox-registry',
+  },
   { title: 'Versioning and Updates', id: 'versioning-and-updates' },
   { title: 'Best Practices', id: 'best-practices' },
   { title: 'Troubleshooting', id: 'troubleshooting' },
@@ -46,28 +53,42 @@ Ensure all required fields are present:
   "displayName": "Your Tool Name",
   "description": "Clear, concise description of what your tool does",
   "main": "index.html",
-  "author": "Your Name <your.email@example.com>",
   "license": "MIT",
-  "keywords": [
-    "powerplatform",
-    "dataverse",
-    "toolbox",
-    "power-apps"
+  "contributors": [
+    {
+      "name": "Your Name",
+      "url": "https://yourwebsite.com"
+    },
+    {
+      "name": "Additional Contributor(s)"
+    }
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/your-tool"
+  "configurations": {
+    //Where your tool's source code lives and is used in the help menu of the app
+    "repository": "https://github.com/yourusername/your-tool",
+    //Optional
+    "website": "https://the tool website or documentation URL",
+    // This is used to display the README in ToolBox, and must be hosted
+    // on raw.githubusercontent.com (optional but recommended)
+    "readmeUrl": "https://raw.githubusercontent.com/yourusername/your-tool/refs/heads/main/README.md"
   },
-  "homepage": "https://github.com/yourusername/your-tool#readme",
-  "bugs": {
-    "url": "https://github.com/yourusername/your-tool/issues"
+  "cspExceptions": {
+    //This is an optional section, do not include unless your tool needs to connect to more than dataverse endpoints
+    "connect-src": [
+      "websites that your tool needs to connect to, e.g.: www.api.example.com"
+    ]
+  },
+  "features": {
+    // Optional section to declare special features your tool needs
+    "multiConnection": "optional" // or "required" if your tool needs multiple connections
   }
 }
 ```
 
 <Properties>
   <Property name="name" type="string" required>
-    Package name (use scoped naming: `@org/tool-name`)
+    Package name (use scoped naming to differentiate your tool from others:
+    `@org/tool-name`)
   </Property>
   <Property name="displayName" type="string" required>
     Human-readable name shown in ToolBox
@@ -78,11 +99,22 @@ Ensure all required fields are present:
   <Property name="main" type="string" required>
     Entry point file (usually `index.html`)
   </Property>
-  <Property name="keywords" type="array" required>
-    Tags for discoverability (include `powerplatform`, `dataverse`, `toolbox`)
+  <Property name="contributors" type="array" required>
+    List of authors/contributors with names and optional URLs
   </Property>
-  <Property name="repository" type="object" required>
-    GitHub repository URL for source code review
+  <Property name="license" type="string" required>
+    License type (e.g., MIT, Apache-2.0) Must be an approved open-source
+    license: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, GPL-2.0, GPL-3.0,
+    LGPL-3.0, ISC, or AGPL-3.0-only (required)
+  </Property>
+  <Property name="configurations" type="object" required>
+    Repository URL and optional website/documentation links
+  </Property>
+  <Property name="cspExceptions" type="object" optional>
+    Content Security Policy exceptions if needed
+  </Property>
+  <Property name="features" type="object">
+    Special features your tool requires (e.g., multiConnection)
   </Property>
 </Properties>
 
@@ -95,6 +127,7 @@ npm run build
 ```
 
 Verify that your `dist/` directory contains:
+
 - `index.html` (entry point)
 - All compiled JavaScript/CSS files
 - Any required assets (images, icons, etc.)
@@ -131,7 +164,8 @@ npm publish
 ```
 
 <Note>
-  **Scoped packages** (e.g., `@myorg/tool-name`) require the `--access public` flag to be publicly accessible.
+  **Scoped packages** (e.g., `@myorg/tool-name`) require the `--access public`
+  flag to be publicly accessible.
 </Note>
 
 ### Verify Publication
@@ -161,29 +195,15 @@ Once your tool is working correctly from npm:
 
 ### Fill Out the Tool Submission Form
 
-Visit the [Tool Submission Form](https://github.com/PowerPlatformToolBox/pptb-web/issues/new?template=tool-submission.yml) and provide:
+Visit the [Tool Submission Form](https://www.powerplatformtoolbox.com/submit-tool) (you need to login) and provide:
 
 <Properties>
   <Property name="npm Package Name" type="string" required>
     Your published npm package name (e.g., `@your-org/tool-name`)
   </Property>
-  <Property name="Display Name" type="string" required>
-    How your tool appears in ToolBox
-  </Property>
-  <Property name="Description" type="string" required>
-    Brief description of functionality (markdown supported)
-  </Property>
-  <Property name="Author Name/Organization" type="string" required>
-    Your name or organization
-  </Property>
-  <Property name="GitHub Repository URL" type="string" required>
-    Link to source code for security review
-  </Property>
-  <Property name="Homepage/Documentation URL" type="string">
-    Optional link to documentation or homepage
-  </Property>
+
   <Property name="Tags/Categories" type="array" required>
-    Select from: Data Management, Development, Utilities, Reporting, Administration
+    Select up to 3 from: Comparisons, Data, Development, Diagrams, Documentation, Environments, Migration, Solutions, Troubleshooting and Users & Security
   </Property>
 </Properties>
 
@@ -192,7 +212,7 @@ Visit the [Tool Submission Form](https://github.com/PowerPlatformToolBox/pptb-we
 After submission, automated checks will validate:
 
 - ✅ npm package exists and is accessible
-- ✅ Package follows naming conventions
+- ✅ Package contains appropriate metadata
 - ✅ License is appropriate (open source preferred)
 - ✅ No known security vulnerabilities
 - ✅ Package structure is correct
@@ -215,11 +235,13 @@ Maintainers will review your submission for:
 Follow [Semantic Versioning](https://semver.org/):
 
 - **Patch** (1.0.`X`): Bug fixes
+
   ```bash
   npm version patch
   ```
 
 - **Minor** (1.`X`.0): New features (backward compatible)
+
   ```bash
   npm version minor
   ```
@@ -243,7 +265,8 @@ npm publish --access public
 ```
 
 <Note>
-  The ToolBox registry automatically syncs with npm. Users will receive update notifications when new versions are published.
+  The ToolBox registry automatically syncs with npm. Users will receive update
+  notifications when new versions are published.
 </Note>
 
 ## Best Practices {{ anchor: true }}
@@ -281,6 +304,7 @@ npm publish --access public
 **Error:** `You must be logged in to publish packages.`
 
 **Solution:**
+
 ```bash
 npm login
 # Re-try publish
@@ -293,6 +317,7 @@ npm login
 ### Tool not appearing in registry
 
 **Check:**
+
 1. Ensure automated validation passed
 2. Check submission issue for maintainer feedback
 3. Verify npm package is publicly accessible
@@ -301,6 +326,7 @@ npm login
 ### Users reporting issues
 
 **Steps:**
+
 1. Reproduce the issue in debug mode
 2. Fix in your local version
 3. Update version number
@@ -309,7 +335,7 @@ npm login
 
 ## Next Steps
 
-<div className="not-prose mb-16 mt-6 flex gap-3">
+<div className="not-prose mt-6 mb-16 flex gap-3">
   <Button href="/tool-development/best-practices" arrow="right">
     <>Best Practices</>
   </Button>
