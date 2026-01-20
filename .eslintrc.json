@@ -1,6 +1,6 @@
 {
-  "extends": [
-    "next/core-web-vitals",
-    "next/typescript"
-  ]
+  "rules": {
+    "prefer-const": "warn"
+  },
+  "extends": ["next/core-web-vitals", "next/typescript"]
 }
