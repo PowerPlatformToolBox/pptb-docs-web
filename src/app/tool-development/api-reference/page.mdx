@@ -710,17 +710,17 @@ const solutions = await dataverseAPI.getSolutions(['uniquename'], 'secondary')
 Execute a custom action or function using a unified interface. Supports both bound (entity-specific) and unbound (global) operations.
 
 **Parameters:**  
-`options.entityName: string` - Logical name of the entity (required for bound operations)  
-`options.entityId: string` - GUID of the record (required for bound operations)  
-`options.operationName: string` - Name of the action/function  
-`options.operationType: 'action' | 'function'` - Type of operation  
-`options.parameters: Record<string, any>` - Operation parameters (optional)  
-`connectionTarget?: 'primary' | 'secondary'` - Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
-**Returns:** `Promise<Record<string, unknown>>` - Operation result
+`options.entityName: string` Logical name of the entity (required for bound operations)  
+`options.entityId: string` GUID of the record (required for bound operations)  
+`options.operationName: string` Name of the action/function  
+`options.operationType: 'action' | 'function'` Type of operation  
+`options.parameters: Record<string, any>` Operation parameters (optional)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<Record<string, unknown>>` Operation result
 
 ```typescript
 // Bound action - operates on a specific entity record
-const result = await dataverseAPI.execute({
+const boundResult = await dataverseAPI.execute({
   entityName: 'systemuser',
   entityId: 'user-guid',
   operationName: 'SetBusinessSystemUser',
@@ -733,18 +733,16 @@ const result = await dataverseAPI.execute({
 })
 
 // Unbound function - global operation
-const result = await dataverseAPI.execute({
+const unboundResult = await dataverseAPI.execute({
   operationName: 'WhoAmI',
   operationType: 'function'
 })
 
 // Multi-connection tool using secondary connection
-const resultSecondary = await dataverseAPI.execute({
+const unboundResultSecondary = await dataverseAPI.execute({
   operationName: 'WhoAmI',
   operationType: 'function'
 }, 'secondary')
-
-console.log('Operation result:', result)
 ```
 
 ### Customizations
