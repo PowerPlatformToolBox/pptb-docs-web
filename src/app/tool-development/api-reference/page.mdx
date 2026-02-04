@@ -221,44 +221,6 @@ const [account, contact, opportunities] =
 console.log('All data fetched:', account, contact, opportunities)
 ```
 
-### Settings
-
-Store and retrieve tool-specific settings.
-
-#### `toolboxAPI.settings.get(key, defaultValue?)`
-
-Retrieve a setting value for your tool.
-
-```typescript
-const theme = await toolboxAPI.settings.get('theme', 'light')
-const pageSize = await toolboxAPI.settings.get('pageSize', 25)
-```
-
-#### `toolboxAPI.settings.set(key, value)`
-
-Save a setting value for your tool.
-
-```typescript
-await toolboxAPI.settings.set('theme', 'dark')
-await toolboxAPI.settings.set('pageSize', 50)
-```
-
-#### `toolboxAPI.settings.remove(key)`
-
-Remove a setting.
-
-```typescript
-await toolboxAPI.settings.remove('theme')
-```
-
-#### `toolboxAPI.settings.clear()`
-
-Clear all settings for your tool.
-
-```typescript
-await toolboxAPI.settings.clear()
-```
-
 ### Terminal
 
 Create and manage terminal sessions (context-aware to your tool).
@@ -743,30 +705,47 @@ const solutions = await dataverseAPI.getSolutions(['uniquename'], 'secondary')
 
 ### Actions & Functions
 
-#### `dataverseAPI.executeAction(actionName, parameters)`
+#### `dataverseAPI.execute(options, connectionTarget?)`
 
-Execute a custom action.
+Execute a custom action or function using a unified interface. Supports both bound (entity-specific) and unbound (global) operations.
 
-```typescript
-const result = await dataverseAPI.executeAction('new_CustomAction', {
-  InputParameter1: 'value1',
-  InputParameter2: 123,
-})
-
-console.log('Action result:', result)
-```
-
-#### `dataverseAPI.executeFunction(functionName, parameters)`
-
-Execute a custom function.
+**Parameters:**  
+`options.entityName: string` Logical name of the entity (required for bound operations)  
+`options.entityId: string` GUID of the record (required for bound operations)  
+`options.operationName: string` Name of the action/function  
+`options.operationType: 'action' | 'function'` Type of operation  
+`options.parameters: Record<string, any>` Operation parameters (optional)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<Record<string, unknown>>` Operation result
 
 ```typescript
-const result = await dataverseAPI.executeFunction('new_CustomFunction', {
-  Parameter1: 'value',
+// Bound action - operates on a specific entity record
+const boundResult = await dataverseAPI.execute({
+  entityName: 'systemuser',
+  entityId: 'user-guid',
+  operationName: 'SetBusinessSystemUser',
+  operationType: 'action',
+  parameters: {
+    BusinessUnit: 'businessunits(bu-guid)',
+    ReassignPrincipal: 'systemusers(user-guid)',
+    DoNotMoveAllRecords: true
+  }
 })
 
-console.log('Function result:', result)
+// Unbound function - global operation
+const unboundResult = await dataverseAPI.execute({
+  operationName: 'WhoAmI',
+  operationType: 'function'
+})
+
+// Multi-connection tool using secondary connection
+const unboundResultSecondary = await dataverseAPI.execute({
+  operationName: 'WhoAmI',
+  operationType: 'function'
+}, 'secondary')
 ```
+
+### Customizations
 
 #### `dataverseAPI.publishCustomizations(tableLogicalName?, connectionTarget?)`
 
