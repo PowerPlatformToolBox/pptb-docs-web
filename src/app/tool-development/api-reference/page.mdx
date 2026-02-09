@@ -1024,19 +1024,29 @@ await toolboxAPI.fileSystem.writeText(
 
 ### User-Interactive File Operations
 
-#### `toolboxAPI.fileSystem.saveFile(filename, content)`
+#### `toolboxAPI.fileSystem.saveFile(defaultPath, content, filters?)`
 
-Save content to a file with a user-selected location. Opens a native save dialog.
+Save string or binary content to a user-selected location via the native save dialog.
 
 <Note>
   **Migrated from Utils:** This function was previously `toolboxAPI.utils.saveFile()`. Update your code to use `toolboxAPI.fileSystem.saveFile()`.
 </Note>
 
 ```typescript
-const jsonData = { accounts: [], contacts: [] }
+// Save with custom filters
 const filePath = await toolboxAPI.fileSystem.saveFile(
-  'export.json',
-  JSON.stringify(jsonData, null, 2),
+  'react-export.json',
+  JSON.stringify(data, null, 2),
+  [
+    { name: 'JSON', extensions: ['json'] },
+    { name: 'Text', extensions: ['txt'] },
+  ],
+)
+
+// Save without filters (extensions inferred from the default path)
+const configPath = await toolboxAPI.fileSystem.saveFile(
+  'config.xml',
+  xmlContent,
 )
 
 if (filePath) {
@@ -1048,8 +1058,9 @@ if (filePath) {
 
 **Parameters:**
 
-- `filename`: `string` - Suggested filename for the save dialog
-- `content`: `string` - Content to save
+- `defaultPath`: `string` - Suggested initial path or filename shown in the dialog
+- `content`: `string | Buffer` - Data to save (text or binary)
+- `filters`: `FileDialogFilter[]` *(optional)* - Custom file type filters; inferred from `defaultPath` if omitted
 
 **Returns:** `Promise<string | null>` - File path or null if cancelled
 
