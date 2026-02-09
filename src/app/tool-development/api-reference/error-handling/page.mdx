@@ -1,0 +1,584 @@
+export const metadata = {
+  title: 'Error Handling',
+  description:
+    'Best practices for handling errors in Power Platform ToolBox tools',
+}
+
+export const sections = [
+  { title: 'Basic Error Handling', id: 'basic-error-handling' },
+  { title: 'API-Specific Errors', id: 'api-specific-errors' },
+  { title: 'User Feedback', id: 'user-feedback' },
+  { title: 'Best Practices', id: 'best-practices' },
+]
+
+# Error Handling
+
+All API calls may throw errors. This guide covers best practices for handling errors gracefully and providing meaningful feedback to users. {{ className: 'lead' }}
+
+## Basic Error Handling {{ anchor: true }}
+
+Always wrap API calls in try-catch blocks to handle potential errors:
+
+```typescript
+try {
+  const account = await dataverseAPI.retrieve('account', accountId)
+  // Process account
+} catch (error) {
+  console.error('Failed to retrieve account:', error)
+
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: error.message,
+    type: 'error',
+    duration: 0, // Persistent
+  })
+}
+```
+
+### Handling Multiple Operations
+
+When performing multiple operations, decide whether to stop on first error or continue:
+
+```typescript
+// Stop on first error
+async function importRecords(records) {
+  try {
+    for (const record of records) {
+      await dataverseAPI.create('account', record)
+    }
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Success',
+      body: `${records.length} records imported`,
+      type: 'success'
+    })
+  } catch (error) {
+    console.error('Import failed:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Import Failed',
+      body: error.message,
+      type: 'error'
+    })
+  }
+}
+```
+
+```typescript
+// Continue on errors and collect results
+async function importRecordsWithReport(records) {
+  const results = {
+    success: [],
+    failed: []
+  }
+  
+  for (const record of records) {
+    try {
+      const id = await dataverseAPI.create('account', record)
+      results.success.push({ record, id })
+    } catch (error) {
+      results.failed.push({ record, error: error.message })
+    }
+  }
+  
+  // Show summary
+  await toolboxAPI.utils.showNotification({
+    title: 'Import Complete',
+    body: `${results.success.length} succeeded, ${results.failed.length} failed`,
+    type: results.failed.length > 0 ? 'warning' : 'success'
+  })
+  
+  return results
+}
+```
+
+## API-Specific Errors {{ anchor: true }}
+
+### Dataverse API Errors
+
+Dataverse API errors typically include HTTP status codes and detailed messages:
+
+```typescript
+try {
+  await dataverseAPI.retrieve('account', invalidId)
+} catch (error) {
+  console.error('Dataverse error:', error)
+  
+  // Error object structure
+  // {
+  //   message: "Error message",
+  //   status: 404,
+  //   statusText: "Not Found"
+  // }
+  
+  let userMessage = 'Failed to retrieve record'
+  
+  if (error.status === 404) {
+    userMessage = 'Record not found'
+  } else if (error.status === 403) {
+    userMessage = 'You do not have permission to access this record'
+  } else if (error.status === 401) {
+    userMessage = 'Authentication failed. Please reconnect.'
+  }
+  
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: userMessage,
+    type: 'error'
+  })
+}
+```
+
+### Connection Errors
+
+Handle cases where no connection is available:
+
+```typescript
+async function fetchData() {
+  try {
+    const connection = await toolboxAPI.connections.getActiveConnection()
+    
+    if (!connection) {
+      await toolboxAPI.utils.showNotification({
+        title: 'No Connection',
+        body: 'Please connect to a Dataverse environment',
+        type: 'warning'
+      })
+      return
+    }
+    
+    // Proceed with data fetch
+    const data = await dataverseAPI.queryData('accounts?$top=10')
+    return data
+  } catch (error) {
+    console.error('Failed to fetch data:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Error',
+      body: 'Failed to fetch data from Dataverse',
+      type: 'error'
+    })
+  }
+}
+```
+
+### File System Errors
+
+Handle file system operations with specific error messages:
+
+```typescript
+async function loadConfiguration(filePath) {
+  try {
+    // Check if file exists
+    const exists = await toolboxAPI.fileSystem.exists(filePath)
+    
+    if (!exists) {
+      await toolboxAPI.utils.showNotification({
+        title: 'File Not Found',
+        body: `Configuration file not found at ${filePath}`,
+        type: 'warning'
+      })
+      return null
+    }
+    
+    // Read and parse file
+    const content = await toolboxAPI.fileSystem.readText(filePath)
+    const config = JSON.parse(content)
+    
+    return config
+  } catch (error) {
+    console.error('Failed to load configuration:', error)
+    
+    let message = 'Failed to load configuration file'
+    
+    if (error.name === 'SyntaxError') {
+      message = 'Configuration file contains invalid JSON'
+    } else if (error.message.includes('permission')) {
+      message = 'Permission denied. Check file permissions.'
+    }
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Error',
+      body: message,
+      type: 'error'
+    })
+    
+    return null
+  }
+}
+```
+
+## User Feedback {{ anchor: true }}
+
+### Notification Types
+
+Use appropriate notification types for different scenarios:
+
+```typescript
+// Success - Operation completed successfully
+await toolboxAPI.utils.showNotification({
+  title: 'Success',
+  body: 'Data exported successfully',
+  type: 'success',
+  duration: 3000
+})
+
+// Info - Informational message
+await toolboxAPI.utils.showNotification({
+  title: 'Info',
+  body: 'Processing 100 records...',
+  type: 'info',
+  duration: 5000
+})
+
+// Warning - Non-critical issue
+await toolboxAPI.utils.showNotification({
+  title: 'Warning',
+  body: 'Some records were skipped',
+  type: 'warning',
+  duration: 0 // Persistent
+})
+
+// Error - Critical failure
+await toolboxAPI.utils.showNotification({
+  title: 'Error',
+  body: 'Failed to connect to Dataverse',
+  type: 'error',
+  duration: 0 // Persistent
+})
+```
+
+### Loading States
+
+Show loading indicators for long-running operations:
+
+```typescript
+async function exportLargeDataset() {
+  try {
+    await toolboxAPI.utils.showLoading('Exporting data...')
+    
+    // Fetch data
+    const data = await dataverseAPI.queryData('accounts?$top=1000')
+    
+    // Process and save
+    const filePath = await toolboxAPI.fileSystem.saveFile(
+      'export.json',
+      JSON.stringify(data, null, 2)
+    )
+    
+    await toolboxAPI.utils.hideLoading()
+    
+    if (filePath) {
+      await toolboxAPI.utils.showNotification({
+        title: 'Export Complete',
+        body: `Data exported to ${filePath}`,
+        type: 'success'
+      })
+    }
+  } catch (error) {
+    await toolboxAPI.utils.hideLoading()
+    
+    console.error('Export failed:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Export Failed',
+      body: error.message,
+      type: 'error'
+    })
+  }
+}
+```
+
+### Progress Updates
+
+For operations with multiple steps, update the loading message:
+
+```typescript
+async function complexOperation() {
+  try {
+    await toolboxAPI.utils.showLoading('Step 1: Fetching accounts...')
+    const accounts = await dataverseAPI.queryData('accounts?$top=100')
+    
+    await toolboxAPI.utils.showLoading('Step 2: Fetching contacts...')
+    const contacts = await dataverseAPI.queryData('contacts?$top=100')
+    
+    await toolboxAPI.utils.showLoading('Step 3: Processing data...')
+    const processed = processData(accounts, contacts)
+    
+    await toolboxAPI.utils.showLoading('Step 4: Saving results...')
+    await saveResults(processed)
+    
+    await toolboxAPI.utils.hideLoading()
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Success',
+      body: 'Operation completed successfully',
+      type: 'success'
+    })
+  } catch (error) {
+    await toolboxAPI.utils.hideLoading()
+    
+    console.error('Operation failed:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Error',
+      body: error.message,
+      type: 'error'
+    })
+  }
+}
+```
+
+## Best Practices {{ anchor: true }}
+
+### 1. Always Use Try-Catch
+
+Never assume an API call will succeed:
+
+```typescript
+// Good
+try {
+  const data = await dataverseAPI.queryData('accounts')
+} catch (error) {
+  handleError(error)
+}
+
+// Bad
+const data = await dataverseAPI.queryData('accounts')
+```
+
+### 2. Log Errors for Debugging
+
+Always log errors with context:
+
+```typescript
+try {
+  await dataverseAPI.create('account', record)
+} catch (error) {
+  // Log with context
+  console.error('Failed to create account:', {
+    error: error.message,
+    record: record,
+    timestamp: new Date().toISOString()
+  })
+  
+  // Show user-friendly message
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: 'Failed to create account',
+    type: 'error'
+  })
+}
+```
+
+### 3. Provide Actionable Messages
+
+Tell users what went wrong and what they can do:
+
+```typescript
+// Good: Specific and actionable
+await toolboxAPI.utils.showNotification({
+  title: 'Connection Failed',
+  body: 'Could not connect to Dataverse. Please check your connection and try again.',
+  type: 'error'
+})
+
+// Bad: Vague
+await toolboxAPI.utils.showNotification({
+  title: 'Error',
+  body: 'Something went wrong',
+  type: 'error'
+})
+```
+
+### 4. Hide Technical Details
+
+Don't expose technical errors to users:
+
+```typescript
+try {
+  await dataverseAPI.create('account', record)
+} catch (error) {
+  // Good: User-friendly message
+  await toolboxAPI.utils.showNotification({
+    title: 'Failed to Create Record',
+    body: 'Unable to create the account. Please verify your data and try again.',
+    type: 'error'
+  })
+  
+  // Technical details go to console
+  console.error('Technical error:', error)
+}
+
+// Bad: Exposing technical details
+await toolboxAPI.utils.showNotification({
+  title: 'Error',
+  body: error.stack, // Don't show stack traces to users
+  type: 'error'
+})
+```
+
+### 5. Clean Up Resources
+
+Always clean up resources in finally blocks:
+
+```typescript
+let terminal
+
+try {
+  terminal = await toolboxAPI.terminal.create({ name: 'Build' })
+  await toolboxAPI.terminal.execute(terminal.id, 'npm install')
+} catch (error) {
+  console.error('Build failed:', error)
+  
+  await toolboxAPI.utils.showNotification({
+    title: 'Build Failed',
+    body: error.message,
+    type: 'error'
+  })
+} finally {
+  // Always close terminal
+  if (terminal) {
+    await toolboxAPI.terminal.close(terminal.id)
+  }
+  
+  // Always hide loading
+  await toolboxAPI.utils.hideLoading()
+}
+```
+
+### 6. Validate Input
+
+Validate user input before making API calls:
+
+```typescript
+async function createAccount(name, email) {
+  // Validate input
+  if (!name || name.trim() === '') {
+    await toolboxAPI.utils.showNotification({
+      title: 'Validation Error',
+      body: 'Account name is required',
+      type: 'warning'
+    })
+    return
+  }
+  
+  if (email && !isValidEmail(email)) {
+    await toolboxAPI.utils.showNotification({
+      title: 'Validation Error',
+      body: 'Please enter a valid email address',
+      type: 'warning'
+    })
+    return
+  }
+  
+  // Proceed with API call
+  try {
+    const id = await dataverseAPI.create('account', { name, emailaddress1: email })
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Success',
+      body: 'Account created successfully',
+      type: 'success'
+    })
+    
+    return id
+  } catch (error) {
+    console.error('Failed to create account:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Error',
+      body: 'Failed to create account',
+      type: 'error'
+    })
+  }
+}
+```
+
+### 7. Implement Retry Logic
+
+For transient errors, implement retry logic:
+
+```typescript
+async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+  let lastError
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await operation()
+    } catch (error) {
+      lastError = error
+      console.log(`Attempt ${i + 1} failed:`, error.message)
+      
+      if (i < maxRetries - 1) {
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)))
+      }
+    }
+  }
+  
+  // All retries failed
+  throw lastError
+}
+
+// Usage
+try {
+  const data = await retryOperation(
+    () => dataverseAPI.queryData('accounts?$top=10')
+  )
+} catch (error) {
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: 'Failed to fetch data after multiple attempts',
+    type: 'error'
+  })
+}
+```
+
+## Common Error Scenarios {{ anchor: true }}
+
+### HTTP Error Codes
+
+| Status | Meaning | User Message |
+|--------|---------|--------------|
+| 400 | Bad Request | Invalid request. Please check your data. |
+| 401 | Unauthorized | Authentication failed. Please reconnect. |
+| 403 | Forbidden | You don't have permission to perform this action. |
+| 404 | Not Found | Record not found. It may have been deleted. |
+| 429 | Too Many Requests | Too many requests. Please wait and try again. |
+| 500 | Internal Server Error | Server error. Please try again later. |
+| 503 | Service Unavailable | Service temporarily unavailable. Please try again later. |
+
+### Example Implementation
+
+```typescript
+async function handleDataverseError(error) {
+  const statusMessages = {
+    400: 'Invalid request. Please check your data.',
+    401: 'Authentication failed. Please reconnect.',
+    403: "You don't have permission to perform this action.",
+    404: 'Record not found. It may have been deleted.',
+    429: 'Too many requests. Please wait and try again.',
+    500: 'Server error. Please try again later.',
+    503: 'Service temporarily unavailable. Please try again later.'
+  }
+  
+  const message = statusMessages[error.status] || 'An unexpected error occurred'
+  
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: message,
+    type: 'error',
+    duration: 0
+  })
+}
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference" arrow="left">
+    <>Back to API Reference</>
+  </Button>
+  <Button href="/tool-development/best-practices" variant="outline">
+    <>Best Practices</>
+  </Button>
+</div>

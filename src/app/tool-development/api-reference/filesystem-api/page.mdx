@@ -1,0 +1,515 @@
+export const metadata = {
+  title: 'File System API',
+  description:
+    'Secure access to read and write files, manage directories, and interact with the local file system',
+}
+
+export const sections = [
+  { title: 'Reading Files', id: 'reading-files' },
+  { title: 'File System Queries', id: 'filesystem-queries' },
+  { title: 'Writing Files', id: 'writing-files' },
+  { title: 'User-Interactive Operations', id: 'user-interactive' },
+]
+
+# File System API
+
+The File System API provides secure access to read and write files, manage directories, and interact with the local file system. All functions include path validation for security. {{ className: 'lead' }}
+
+<Note>
+  **Migration Notice:** `saveFile()` and `selectPath()` have been migrated from `toolboxAPI.utils` to `toolboxAPI.fileSystem`. Update your code accordingly.
+</Note>
+
+## Reading Files {{ anchor: true }}
+
+### `toolboxAPI.fileSystem.readText(path)`
+
+Read a UTF-8 text file (useful for configs, JSON files, manifests, etc.).
+
+**Parameters:**
+
+- `path`: `string` - Absolute path to the file
+
+**Returns:** `Promise<string>` - File content as UTF-8 string
+
+```typescript
+try {
+  const configPath = '/path/to/config.json'
+  const content = await toolboxAPI.fileSystem.readText(configPath)
+  const config = JSON.parse(content)
+  console.log('Config loaded:', config)
+} catch (error) {
+  console.error('Failed to read config:', error)
+}
+```
+
+### `toolboxAPI.fileSystem.readBinary(path)`
+
+Read a binary file as a Buffer (useful for ZIPs, images for hashing/upload, etc.). Properly serializes over IPC.
+
+**Parameters:**
+
+- `path`: `string` - Absolute path to the file
+
+**Returns:** `Promise<Buffer>` - File content as Buffer
+
+```typescript
+try {
+  const imagePath = '/path/to/image.png'
+  const buffer = await toolboxAPI.fileSystem.readBinary(imagePath)
+  console.log('Image size:', buffer.length, 'bytes')
+  
+  // Use buffer for hashing, upload, or other operations
+  const hash = crypto.createHash('sha256').update(buffer).digest('hex')
+  console.log('Image hash:', hash)
+} catch (error) {
+  console.error('Failed to read image:', error)
+}
+```
+
+## File System Queries {{ anchor: true }}
+
+### `toolboxAPI.fileSystem.exists(path)`
+
+Lightweight check to verify if a file or directory exists before performing I/O operations.
+
+**Parameters:**
+
+- `path`: `string` - Absolute path to check
+
+**Returns:** `Promise<boolean>` - True if path exists, false otherwise
+
+```typescript
+const configPath = '/path/to/config.json'
+
+if (await toolboxAPI.fileSystem.exists(configPath)) {
+  const content = await toolboxAPI.fileSystem.readText(configPath)
+  console.log('Config exists and loaded')
+} else {
+  console.log('Config file not found, using defaults')
+}
+```
+
+### `toolboxAPI.fileSystem.stat(path)`
+
+Get metadata about a file or directory. Properly handles symlinks.
+
+**Parameters:**
+
+- `path`: `string` - Absolute path to the file or directory
+
+**Returns:** `Promise<FileStats>` - File/directory metadata
+
+```typescript
+const filePath = '/path/to/file.txt'
+const stats = await toolboxAPI.fileSystem.stat(filePath)
+
+console.log('Type:', stats.type) // 'file' or 'directory'
+console.log('Size:', stats.size, 'bytes')
+console.log('Modified:', new Date(stats.mtime))
+```
+
+**FileStats Interface:**
+
+```typescript
+interface FileStats {
+  type: 'file' | 'directory' // Type of the path
+  size: number // Size in bytes
+  mtime: number // Last modified timestamp (milliseconds since epoch)
+}
+```
+
+### `toolboxAPI.fileSystem.readDirectory(path)`
+
+List the contents of a directory. Returns only files and directories, excludes symlinks.
+
+**Parameters:**
+
+- `path`: `string` - Absolute path to the directory
+
+**Returns:** `Promise<DirectoryEntry[]>` - Array of directory entries
+
+```typescript
+const dirPath = '/path/to/directory'
+const contents = await toolboxAPI.fileSystem.readDirectory(dirPath)
+
+contents.forEach((item) => {
+  console.log(`${item.name} (${item.type})`)
+})
+
+// Filter for specific types
+const files = contents.filter((item) => item.type === 'file')
+const directories = contents.filter((item) => item.type === 'directory')
+
+console.log(`Found ${files.length} files and ${directories.length} directories`)
+```
+
+**DirectoryEntry Interface:**
+
+```typescript
+interface DirectoryEntry {
+  name: string // Name of the file or directory
+  type: 'file' | 'directory' // Type of the entry
+}
+```
+
+## Writing Files {{ anchor: true }}
+
+### `toolboxAPI.fileSystem.writeText(path, content)`
+
+Save text content to a file without a dialog prompt. Useful for automated exports and backups.
+
+**Parameters:**
+
+- `path`: `string` - Absolute path where the file should be saved
+- `content`: `string` - Text content to write
+
+**Returns:** `Promise<void>` - Successful completion
+
+```typescript
+const exportData = {
+  accounts: [],
+  contacts: [],
+  timestamp: new Date().toISOString(),
+}
+
+const exportPath = '/path/to/export.json'
+await toolboxAPI.fileSystem.writeText(
+  exportPath,
+  JSON.stringify(exportData, null, 2),
+)
+
+console.log('Export saved to:', exportPath)
+```
+
+### `toolboxAPI.fileSystem.createDirectory(path)`
+
+Create a directory recursively (creates parent directories as needed).
+
+**Parameters:**
+
+- `path`: `string` - Absolute path of the directory to create
+
+**Returns:** `Promise<void>` - Successful completion
+
+```typescript
+const backupDir = '/path/to/backups/2024/january'
+await toolboxAPI.fileSystem.createDirectory(backupDir)
+
+console.log('Directory created:', backupDir)
+
+// Now you can write files to this directory
+await toolboxAPI.fileSystem.writeText(
+  `${backupDir}/backup.json`,
+  JSON.stringify(data),
+)
+```
+
+## User-Interactive Operations {{ anchor: true }}
+
+### `toolboxAPI.fileSystem.saveFile(filename, content)`
+
+Save content to a file with a user-selected location. Opens a native save dialog.
+
+<Note>
+  **Migrated from Utils:** This function was previously `toolboxAPI.utils.saveFile()`. Update your code to use `toolboxAPI.fileSystem.saveFile()`.
+</Note>
+
+**Parameters:**
+
+- `filename`: `string` - Suggested filename for the save dialog
+- `content`: `string` - Content to save
+
+**Returns:** `Promise<string | null>` - File path or null if cancelled
+
+```typescript
+const jsonData = { accounts: [], contacts: [] }
+const filePath = await toolboxAPI.fileSystem.saveFile(
+  'export.json',
+  JSON.stringify(jsonData, null, 2),
+)
+
+if (filePath) {
+  console.log('File saved to:', filePath)
+  
+  await toolboxAPI.utils.showNotification({
+    title: 'Export Successful',
+    body: `Data exported to ${filePath}`,
+    type: 'success'
+  })
+} else {
+  console.log('Save cancelled')
+}
+```
+
+### `toolboxAPI.fileSystem.selectPath(options?)`
+
+Open a native dialog to select either a file or a folder and return the chosen path.
+
+<Note>
+  **Migrated from Utils:** This function was previously `toolboxAPI.utils.selectPath()`. Update your code to use `toolboxAPI.fileSystem.selectPath()`.
+</Note>
+
+**Parameters:**
+
+- `options` - Optional configuration object
+  - `type`: `'file' | 'folder'` - Type of selection dialog
+  - `title`: `string` - Dialog window title
+  - `filters`: `Array<{ name: string; extensions: string[] }>` - File filters (file dialogs only)
+
+**Returns:** `Promise<string | null>` - Selected path or null if cancelled
+
+```typescript
+// Select a folder
+const folderPath = await toolboxAPI.fileSystem.selectPath({
+  type: 'folder',
+  title: 'Select Export Folder',
+})
+
+if (folderPath) {
+  console.log('Selected folder:', folderPath)
+  // Save files to the selected folder
+  await toolboxAPI.fileSystem.writeText(
+    `${folderPath}/export.json`,
+    JSON.stringify(data)
+  )
+} else {
+  console.log('Selection cancelled')
+}
+```
+
+```typescript
+// Select a file
+const filePath = await toolboxAPI.fileSystem.selectPath({
+  type: 'file',
+  title: 'Select Configuration File',
+  filters: [
+    { name: 'JSON Files', extensions: ['json'] },
+    { name: 'All Files', extensions: ['*'] },
+  ],
+})
+
+if (filePath) {
+  console.log('Selected file:', filePath)
+  // Read the selected file
+  const content = await toolboxAPI.fileSystem.readText(filePath)
+  console.log('File content:', content)
+}
+```
+
+## Best Practices {{ anchor: true }}
+
+### Always Use Absolute Paths
+
+The File System API requires absolute paths for security:
+
+```typescript
+// Good: Absolute path
+const filePath = '/Users/john/Documents/export.json'
+await toolboxAPI.fileSystem.readText(filePath)
+
+// Bad: Relative path (will fail)
+const filePath = './export.json'
+await toolboxAPI.fileSystem.readText(filePath)
+```
+
+### Check File Existence
+
+Always check if a file exists before reading:
+
+```typescript
+const configPath = '/path/to/config.json'
+
+if (await toolboxAPI.fileSystem.exists(configPath)) {
+  const content = await toolboxAPI.fileSystem.readText(configPath)
+  // Process content
+} else {
+  // Use defaults or prompt user
+  console.log('Config not found, using defaults')
+}
+```
+
+### Handle Errors Gracefully
+
+Wrap file operations in try-catch blocks:
+
+```typescript
+try {
+  const content = await toolboxAPI.fileSystem.readText(filePath)
+  return JSON.parse(content)
+} catch (error) {
+  console.error('Failed to read file:', error)
+  
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: 'Failed to read configuration file',
+    type: 'error'
+  })
+  
+  return null
+}
+```
+
+### Create Directories Before Writing
+
+Ensure directories exist before writing files:
+
+```typescript
+const exportDir = '/path/to/exports'
+const exportFile = `${exportDir}/data.json`
+
+// Create directory if it doesn't exist
+await toolboxAPI.fileSystem.createDirectory(exportDir)
+
+// Now write the file
+await toolboxAPI.fileSystem.writeText(exportFile, JSON.stringify(data))
+```
+
+### Use Proper Encodings
+
+Use `readText` for text files and `readBinary` for binary files:
+
+```typescript
+// Good: Text files
+const jsonContent = await toolboxAPI.fileSystem.readText('/path/to/config.json')
+const xmlContent = await toolboxAPI.fileSystem.readText('/path/to/data.xml')
+
+// Good: Binary files
+const imageBuffer = await toolboxAPI.fileSystem.readBinary('/path/to/image.png')
+const zipBuffer = await toolboxAPI.fileSystem.readBinary('/path/to/archive.zip')
+```
+
+## Examples {{ anchor: true }}
+
+### Export Data with User Selection
+
+```typescript
+async function exportData(data) {
+  try {
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/:/g, '-')
+    const filename = `export-${timestamp}.json`
+    
+    // Let user choose where to save
+    const filePath = await toolboxAPI.fileSystem.saveFile(
+      filename,
+      JSON.stringify(data, null, 2)
+    )
+    
+    if (filePath) {
+      await toolboxAPI.utils.showNotification({
+        title: 'Export Successful',
+        body: `Data exported to ${filePath}`,
+        type: 'success'
+      })
+    }
+  } catch (error) {
+    console.error('Export failed:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Export Failed',
+      body: error.message,
+      type: 'error'
+    })
+  }
+}
+```
+
+### Import Configuration File
+
+```typescript
+async function importConfig() {
+  try {
+    // Let user select a config file
+    const filePath = await toolboxAPI.fileSystem.selectPath({
+      type: 'file',
+      title: 'Select Configuration File',
+      filters: [
+        { name: 'JSON Files', extensions: ['json'] },
+      ]
+    })
+    
+    if (!filePath) {
+      console.log('Import cancelled')
+      return null
+    }
+    
+    // Read and parse the file
+    const content = await toolboxAPI.fileSystem.readText(filePath)
+    const config = JSON.parse(content)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Import Successful',
+      body: 'Configuration loaded successfully',
+      type: 'success'
+    })
+    
+    return config
+  } catch (error) {
+    console.error('Import failed:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Import Failed',
+      body: 'Failed to load configuration file',
+      type: 'error'
+    })
+    
+    return null
+  }
+}
+```
+
+### Batch Export to Directory
+
+```typescript
+async function batchExport(datasets) {
+  try {
+    // Let user select export directory
+    const exportDir = await toolboxAPI.fileSystem.selectPath({
+      type: 'folder',
+      title: 'Select Export Directory'
+    })
+    
+    if (!exportDir) {
+      console.log('Export cancelled')
+      return
+    }
+    
+    // Create timestamped subdirectory
+    const timestamp = new Date().toISOString().split('T')[0]
+    const batchDir = `${exportDir}/export-${timestamp}`
+    await toolboxAPI.fileSystem.createDirectory(batchDir)
+    
+    // Export each dataset
+    for (const [name, data] of Object.entries(datasets)) {
+      const filePath = `${batchDir}/${name}.json`
+      await toolboxAPI.fileSystem.writeText(
+        filePath,
+        JSON.stringify(data, null, 2)
+      )
+    }
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Batch Export Complete',
+      body: `${Object.keys(datasets).length} files exported to ${batchDir}`,
+      type: 'success'
+    })
+  } catch (error) {
+    console.error('Batch export failed:', error)
+    
+    await toolboxAPI.utils.showNotification({
+      title: 'Export Failed',
+      body: error.message,
+      type: 'error'
+    })
+  }
+}
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference/error-handling" arrow="right">
+    <>Error Handling</>
+  </Button>
+  <Button href="/tool-development/api-reference/settings-api" variant="outline">
+    <>Settings API</>
+  </Button>
+</div>

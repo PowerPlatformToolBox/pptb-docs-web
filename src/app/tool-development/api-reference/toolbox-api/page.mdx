@@ -1,0 +1,283 @@
+export const metadata = {
+  title: 'ToolBox API',
+  description:
+    'Complete reference for the ToolBox API - connections, utilities, and terminal management',
+}
+
+export const sections = [
+  { title: 'Connections', id: 'connections' },
+  { title: 'Secondary Connections', id: 'secondary-connections' },
+  { title: 'Utils', id: 'utils' },
+  { title: 'Terminal', id: 'terminal' },
+]
+
+# ToolBox API
+
+The ToolBox API provides access to platform features and utilities. {{ className: 'lead' }}
+
+<Note>
+  For complete TypeScript definitions, install the `@pptb/types` package: ```bash npm install --save-dev @pptb/types ```
+</Note>
+
+## Connections {{ anchor: true }}
+
+Get information about the active Dataverse connection(s).
+
+### `toolboxAPI.connections.getActiveConnection()`
+
+Returns the currently active connection or null if none is selected.
+
+```typescript
+const connection = await toolboxAPI.connections.getActiveConnection()
+
+if (connection) {
+  console.log('Connected to:', connection.name)
+  console.log('Environment:', connection.environment)
+  console.log('API URL:', connection.apiUrl)
+} else {
+  console.log('No active connection')
+}
+```
+
+**Returns:** `Promise<DataverseConnection | null>`
+
+```typescript
+interface DataverseConnection {
+  id: string // Unique identifier of the connection
+  name: string // Friendly name of the connection
+  url: string // Base URL of the Dataverse instance
+  environment: string // Dev | Test | UAT | Prod - Defines the type as established by the user
+  clientId: string // Application (client) ID used for authentication
+  tenantId: string // Tenant ID of the Azure AD tenant
+  createdAt: string // ISO date string of when the connection was created
+  lastUsedAt: string // ISO date string of when the connection was last used
+}
+```
+
+## Secondary Connections {{ anchor: true }}
+
+As a tool developer, you may require access to a second Dataverse connections. This can be useful for copying data or configuration between environments.
+
+To enable this feature, you must update the package.json file to indicate your tool requires multiconnections.
+
+```json
+{
+  "name": "@toolname",
+  "version": "0.1.10",
+  "displayName": " My Awesome Tool",
+  "description": "A Power Platform Tool Box tool to do awesome things",
+  "main": "index.html",
+  "contributors": [
+    "Awesome Developer "
+  ],
+  // Other properties...
+  // This section enables multiple connections
+  "features": {
+    "multiConnection": "required" or "optional"
+  },
+```
+
+When the user opens your tool, they are presented with the option to connect to a primary and secondary environment.
+
+### `toolboxAPI.connections.getSecondaryConnection()`
+
+Returns the currently active secoondary connection or null if none is configured.
+
+```typescript
+const secondaryConnection =
+  await toolboxAPI.connections.getSecondaryConnection()
+
+if (secondaryConnection) {
+  console.log('Connected to:', secondaryConnection.name)
+  console.log('Environment:', secondaryConnection.environment)
+  console.log('API URL:', secondaryConnection.apiUrl)
+} else {
+  console.log('No active secondary connection')
+}
+```
+
+**Returns:** `Promise<DataverseConnection | null>`
+
+```typescript
+interface DataverseConnection {
+  id: string // Unique identifier of the connection
+  name: string // Friendly name of the connection
+  url: string // Base URL of the Dataverse instance
+  environment: string // Dev | Test | UAT | Prod - Defines the type as established by the user
+  clientId: string // Application (client) ID used for authentication
+  tenantId: string // Tenant ID of the Azure AD tenant
+  createdAt: string // ISO date string of when the connection was created
+  lastUsedAt: string // ISO date string of when the connection was last used
+}
+```
+
+When interacting with dataverse and you want to use the secondary connection, pass the connectionTarget parameter as 'secondary'. ConnectionTarget is optional and defaults to 'primary'.
+
+```typescript
+// Example usage of dataverseAPI using secondary connection
+const myTables = await dataverseAPI.getAllEntitiesMetadata(
+  ['logicalName'],
+  'secondary',
+)
+```
+
+## Utils {{ anchor: true }}
+
+Utility functions for notifications, clipboard, and more.
+
+<Note>
+  **Breaking Change:** `saveFile()` and `selectPath()` have been migrated to the File System API. See [File System API](/tool-development/api-reference/filesystem-api) for details.
+</Note>
+
+### `toolboxAPI.utils.showNotification(options)`
+
+Display a notification to the user.
+
+```typescript
+await toolboxAPI.utils.showNotification({
+  title: 'Success',
+  body: 'Operation completed successfully',
+  type: 'success', // 'info' | 'success' | 'warning' | 'error'
+  duration: 3000, // Auto-dismiss after 3 seconds
+})
+```
+
+**Parameters:**
+
+- `options` - Notification configuration object
+
+**Types:**
+
+- `type`: `'info' | 'success' | 'warning' | 'error'`
+- `duration`: Number in milliseconds (0 = persistent)
+
+### `toolboxAPI.utils.copyToClipboard(text)`
+
+Copy text to the system clipboard.
+
+```typescript
+const data = JSON.stringify({ accounts: [], contacts: [] }, null, 2)
+await toolboxAPI.utils.copyToClipboard(data)
+
+await toolboxAPI.utils.showNotification({
+  title: 'Copied',
+  body: 'Data copied to clipboard',
+  type: 'success',
+})
+```
+
+### `toolboxAPI.utils.getCurrentTheme()`
+
+Get the current application theme.
+
+```typescript
+const theme = await toolboxAPI.utils.getCurrentTheme()
+document.body.classList.add(`theme-${theme}`)
+```
+
+**Returns:** `Promise<'light' | 'dark'>`
+
+### `toolboxAPI.utils.showLoading(message)` / `hideLoading()`
+
+Show/hide a loading overlay.
+
+```typescript
+await toolboxAPI.utils.showLoading('Fetching data from Dataverse...')
+
+try {
+  // Perform long-running operations
+  const data = await fetchLargeDataset()
+  processData(data)
+
+  await toolboxAPI.utils.showNotification({
+    title: 'Success',
+    body: 'Data processed successfully',
+    type: 'success',
+  })
+} finally {
+  await toolboxAPI.utils.hideLoading()
+}
+```
+
+### `toolboxAPI.utils.executeParallel(...promises)`
+
+Execute multiple async operations in parallel.
+
+```typescript
+const [account, contact, opportunities] =
+  await toolboxAPI.utils.executeParallel(
+    dataverseAPI.retrieve('account', accountId, ['name']),
+    dataverseAPI.retrieve('contact', contactId, ['fullname']),
+    dataverseAPI.fetchXmlQuery(opportunityFetchXml),
+  )
+
+console.log('All data fetched:', account, contact, opportunities)
+```
+
+## Terminal {{ anchor: true }}
+
+Create and manage terminal sessions (context-aware to your tool).
+
+### `toolboxAPI.terminal.create(options)`
+
+Create a new terminal.
+
+```typescript
+const terminal = await toolboxAPI.terminal.create({
+  name: 'Build Terminal',
+  cwd: '/path/to/project',
+  env: {
+    NODE_ENV: 'production',
+  },
+})
+
+console.log('Terminal created:', terminal.id)
+```
+
+### `toolboxAPI.terminal.execute(terminalId, command)`
+
+Execute a command in a terminal.
+
+```typescript
+const result = await toolboxAPI.terminal.execute(terminal.id, 'npm install')
+
+if (result.exitCode === 0) {
+  console.log('Command completed successfully')
+} else {
+  console.error('Command failed:', result.error)
+}
+```
+
+### `toolboxAPI.terminal.setVisibility(terminalId, visible)`
+
+Show or hide a terminal's UI panel.
+
+```typescript
+await toolboxAPI.terminal.setVisibility(terminal.id, true)
+```
+
+### `toolboxAPI.terminal.list()`
+
+List all terminals created by your tool.
+
+```typescript
+const terminals = await toolboxAPI.terminal.list()
+console.log(`This tool has ${terminals.length} terminals`)
+```
+
+### `toolboxAPI.terminal.close(terminalId)`
+
+Close a terminal.
+
+```typescript
+await toolboxAPI.terminal.close(terminal.id)
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference/events" arrow="right">
+    <>Events API</>
+  </Button>
+  <Button href="/tool-development/api-reference/dataverse-api" variant="outline">
+    <>Dataverse API</>
+  </Button>
+</div>

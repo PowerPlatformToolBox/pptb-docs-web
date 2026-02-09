@@ -1,0 +1,291 @@
+export const metadata = {
+  title: 'Settings API',
+  description:
+    'Store and retrieve tool-specific settings that persist between sessions',
+}
+
+export const sections = [
+  { title: 'Reading Settings', id: 'reading-settings' },
+  { title: 'Writing Settings', id: 'writing-settings' },
+  { title: 'Best Practices', id: 'best-practices' },
+]
+
+# Settings API
+
+The Settings API allows tool-specific settings to be stored and retrieved between sessions. {{ className: 'lead' }}
+
+## Reading Settings {{ anchor: true }}
+
+### `toolboxAPI.settings.getAll()`
+
+Retrieve all settings for your tool.
+
+**Returns:** `Promise<Record<string, any>>` Object containing all settings key-value pairs
+
+```typescript
+const settings = await toolboxAPI.settings.getAll()
+console.log('All settings:', JSON.stringify(settings))
+
+// Example output:
+// {
+//   "pageSize": 50,
+//   "defaultColor": "blue",
+//   "showAdvancedOptions": true,
+//   "lastUsedFilter": "active"
+// }
+```
+
+### `toolboxAPI.settings.get(key)`
+
+Retrieve a specific setting by key.
+
+**Parameters:**
+
+- `key: string` - The setting key to retrieve
+
+**Returns:** `Promise<any>` Value of the setting or undefined if not found
+
+```typescript
+const pageSize = await toolboxAPI.settings.get('pageSize')
+console.log('Page Size setting:', pageSize) // Output: 50
+
+// Handle missing settings with defaults
+const pageSize = await toolboxAPI.settings.get('pageSize') || 25
+const theme = await toolboxAPI.settings.get('theme') || 'light'
+```
+
+## Writing Settings {{ anchor: true }}
+
+### `toolboxAPI.settings.set(key, value)`
+
+Set a specific setting by key.
+
+**Parameters:**
+
+- `key: string` - The setting key to set
+- `value: any` - The value to store for the setting (will be serialized to JSON)
+
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+await toolboxAPI.settings.set('pageSize', 50)
+await toolboxAPI.settings.set('defaultColor', 'blue')
+await toolboxAPI.settings.set('showAdvancedOptions', true)
+
+// Store complex objects
+await toolboxAPI.settings.set('lastFilter', {
+  type: 'status',
+  value: 'active',
+  appliedAt: new Date().toISOString()
+})
+```
+
+### `toolboxAPI.settings.setAll(settings)`
+
+Set multiple settings at once.
+
+**Parameters:**
+
+- `settings: Record<string, any>` - Object containing key-value pairs to set
+
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+await toolboxAPI.settings.setAll({
+  defaultColor: 'blue',
+  pageSize: 50,
+  showAdvancedOptions: true,
+  lastUsedFilter: 'active'
+})
+```
+
+## Best Practices {{ anchor: true }}
+
+### Use Meaningful Keys
+
+Use descriptive, namespaced keys to avoid conflicts:
+
+```typescript
+// Good: Descriptive keys
+await toolboxAPI.settings.set('ui.pageSize', 50)
+await toolboxAPI.settings.set('ui.theme', 'dark')
+await toolboxAPI.settings.set('data.cacheExpiry', 3600)
+
+// Bad: Vague keys
+await toolboxAPI.settings.set('size', 50)
+await toolboxAPI.settings.set('value', 'dark')
+```
+
+### Provide Default Values
+
+Always provide fallback values when reading settings:
+
+```typescript
+// Good: Default values
+const pageSize = await toolboxAPI.settings.get('pageSize') || 25
+const theme = await toolboxAPI.settings.get('theme') || 'light'
+
+// Even better: Use a defaults object
+const DEFAULTS = {
+  pageSize: 25,
+  theme: 'light',
+  showWelcome: true
+}
+
+async function getSetting(key) {
+  const value = await toolboxAPI.settings.get(key)
+  return value !== undefined ? value : DEFAULTS[key]
+}
+```
+
+### Validate Settings
+
+Validate settings before using them:
+
+```typescript
+async function getPageSize() {
+  const pageSize = await toolboxAPI.settings.get('pageSize')
+  
+  // Validate the value
+  if (typeof pageSize === 'number' && pageSize > 0 && pageSize <= 100) {
+    return pageSize
+  }
+  
+  // Return default if invalid
+  return 25
+}
+```
+
+### Batch Updates
+
+When updating multiple settings, use `setAll()` for better performance:
+
+```typescript
+// Good: Batch update
+await toolboxAPI.settings.setAll({
+  pageSize: 50,
+  sortColumn: 'name',
+  sortDirection: 'asc',
+  filters: { status: 'active' }
+})
+
+// Bad: Multiple individual updates
+await toolboxAPI.settings.set('pageSize', 50)
+await toolboxAPI.settings.set('sortColumn', 'name')
+await toolboxAPI.settings.set('sortDirection', 'asc')
+await toolboxAPI.settings.set('filters', { status: 'active' })
+```
+
+### Store Only User Preferences
+
+Store only user preferences, not application state or temporary data:
+
+```typescript
+// Good: User preferences
+await toolboxAPI.settings.set('defaultView', 'grid')
+await toolboxAPI.settings.set('itemsPerPage', 50)
+
+// Bad: Temporary/application state (use local state instead)
+await toolboxAPI.settings.set('currentPageNumber', 3)
+await toolboxAPI.settings.set('selectedItems', [1, 2, 3])
+```
+
+### Handle Errors
+
+Always handle potential errors when working with settings:
+
+```typescript
+try {
+  await toolboxAPI.settings.set('pageSize', 50)
+} catch (error) {
+  console.error('Failed to save setting:', error)
+  await toolboxAPI.utils.showNotification({
+    title: 'Error',
+    body: 'Failed to save preferences',
+    type: 'error'
+  })
+}
+```
+
+## Examples {{ anchor: true }}
+
+### Save and Load Form Preferences
+
+```typescript
+// Save form state
+async function saveFormPreferences(formData) {
+  await toolboxAPI.settings.setAll({
+    'form.defaultEnvironment': formData.environment,
+    'form.showAdvanced': formData.showAdvanced,
+    'form.autoRefresh': formData.autoRefresh
+  })
+}
+
+// Load form state
+async function loadFormPreferences() {
+  const settings = await toolboxAPI.settings.getAll()
+  
+  return {
+    environment: settings['form.defaultEnvironment'] || 'production',
+    showAdvanced: settings['form.showAdvanced'] || false,
+    autoRefresh: settings['form.autoRefresh'] || true
+  }
+}
+```
+
+### Theme Preference
+
+```typescript
+// Apply and save theme preference
+async function setTheme(theme) {
+  // Apply theme to UI
+  document.body.classList.remove('theme-light', 'theme-dark')
+  document.body.classList.add(`theme-${theme}`)
+  
+  // Save preference
+  await toolboxAPI.settings.set('ui.theme', theme)
+}
+
+// Load theme on startup
+async function loadTheme() {
+  const theme = await toolboxAPI.settings.get('ui.theme') || 'light'
+  document.body.classList.add(`theme-${theme}`)
+}
+```
+
+### Data Grid Preferences
+
+```typescript
+// Save grid configuration
+async function saveGridConfig(config) {
+  await toolboxAPI.settings.setAll({
+    'grid.pageSize': config.pageSize,
+    'grid.sortColumn': config.sortColumn,
+    'grid.sortDirection': config.sortDirection,
+    'grid.visibleColumns': config.visibleColumns,
+    'grid.density': config.density
+  })
+}
+
+// Load grid configuration
+async function loadGridConfig() {
+  const settings = await toolboxAPI.settings.getAll()
+  
+  return {
+    pageSize: settings['grid.pageSize'] || 25,
+    sortColumn: settings['grid.sortColumn'] || 'name',
+    sortDirection: settings['grid.sortDirection'] || 'asc',
+    visibleColumns: settings['grid.visibleColumns'] || ['name', 'status', 'date'],
+    density: settings['grid.density'] || 'comfortable'
+  }
+}
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference/filesystem-api" arrow="right">
+    <>File System API</>
+  </Button>
+  <Button href="/tool-development/api-reference" variant="outline">
+    <>API Reference Home</>
+  </Button>
+</div>

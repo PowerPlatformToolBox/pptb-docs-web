@@ -1,0 +1,1177 @@
+export const metadata = {
+  title: 'Dataverse API',
+  description:
+    'Complete HTTP client for interacting with Microsoft Dataverse - CRUD operations, queries, metadata, and schema management',
+}
+
+export const sections = [
+  { title: 'CRUD Operations', id: 'crud-operations' },
+  { title: 'Relationship Associations', id: 'relationship-associations' },
+  { title: 'Queries', id: 'queries' },
+  { title: 'Metadata', id: 'metadata' },
+  { title: 'Helper Methods', id: 'helper-methods' },
+  { title: 'Entity Operations', id: 'entity-operations' },
+  { title: 'Attribute Operations', id: 'attribute-operations' },
+  { title: 'Polymorphic Lookups', id: 'polymorphic-lookups' },
+  { title: 'Relationship Operations', id: 'relationship-operations' },
+  { title: 'Global Option Sets', id: 'global-option-sets' },
+  { title: 'Option Value Operations', id: 'option-value-operations' },
+  { title: 'Actions & Functions', id: 'actions-functions' },
+  { title: 'Customizations', id: 'customizations' },
+]
+
+# Dataverse API
+
+Complete HTTP client for interacting with Microsoft Dataverse. {{ className: 'lead' }}
+
+<Note>
+  For complete TypeScript definitions, install the `@pptb/types` package: ```bash npm install --save-dev @pptb/types ```
+</Note>
+
+## CRUD Operations {{ anchor: true }}
+
+Each method accepts an optional `connectionTarget` parameter to specify which connection to use (`'primary' | 'secondary'`). Defaults to `'primary'`.
+
+### `dataverseAPI.create(entityName, record, connectionTarget?)`
+
+Creates a new record in the primary or secondary dataverse.  
+**Parameters:**  
+`entityName: string` Logical name of the entity  
+`record: Record<string, unknown>` Object containing the record data to create  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<string>` String representing the created record ID
+
+```typescript
+// Create account using primary connection
+const accountId = await dataverseAPI.create('account', {
+  name: 'Contoso Ltd',
+  telephone1: '555-1234',
+  websiteurl: 'https://contoso.com',
+})
+console.log('Created account:', accountId)
+
+// Create contact using secondary connection
+const contactId = await dataverseAPI.create(
+  'contact',
+  {
+    firstname: 'Dave',
+  },
+  'secondary',
+)
+console.log('Created contact in secondary connection:', contactId)
+```
+
+### `dataverseAPI.retrieve(entityLogicalName, id, columns?, connectionTarget?)`
+
+Retrieve a single record.
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity
+`id: string` GUID of the record to retrieve  
+`columns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<Record<string, any>>` Object representing the retrieved record
+
+```typescript
+// Retrieve an account record using the primary connection
+const account = await dataverseAPI.retrieve('account', accountId, [
+  'name',
+  'telephone1',
+  'emailaddress1',
+])
+
+console.log('Account name:', account.name)
+
+// Retrieve all fields for a contact record using the secondary connection
+// Best practice to only retrieve needed columns to optimize performance
+const contact = await dataverseAPI.retrieve(
+  'contact',
+  contactId,
+  undefined,
+  'secondary',
+)
+console.log('Contact name:', contact.fullname)
+```
+
+### `dataverseAPI.update(entityLogicalName, id, record, connectionTarget?)`
+
+Update an existing record.  
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`id: string` GUID of the record to update  
+`record: Record<string, unknown>` Object containing the record data to update  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+/// Updating an account record using the primary connection
+await dataverseAPI.update('account', accountId, {
+  telephone1: '555-5678',
+  websiteurl: 'https://www.contoso.com',
+})
+
+/// Updating a contact record using the secondary connection
+await dataverseAPI.update(
+  'contact',
+  contactId,
+  { firstname: 'David', lastname: 'Smith' },
+  'secondary',
+)
+```
+
+### `dataverseAPI.delete(entityLogicalName, id, connectionTarget?)`
+
+Deletes a record.  
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`id: string` GUID of the record to delete  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+/// Deleting an account record using the primary connection
+await dataverseAPI.delete('account', 'e15a8347-f958-4c20-b964-a8d7105f645f')
+
+/// Deleting a contact record using the secondary connection
+await dataverseAPI.delete(
+  'contact',
+  'e15a8347-f958-4f20-b964-a8d7105f645f',
+  'secondary',
+)
+```
+
+### `dataverseAPI.createMultiple(entityLogicalName, records, connectionTarget?)`
+
+Creates multiple records in Dataverse  
+**Parameters:**  
+`entityLogicalName` Logical name of the entity  
+`records` Array of record data to create, each including the "@odata.type" property  
+`connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary').  
+Defaults to 'primary'.  
+**Returns:** `Promise<string[]>` Array of strings representing the created record IDs
+
+```typescript
+const results = await dataverseAPI.createMultiple('account', [
+  { name: 'Contoso Ltd', '@odata.type': 'Microsoft.Dynamics.CRM.account' },
+  { name: 'Fabrikam Inc', '@odata.type': 'Microsoft.Dynamics.CRM.account' },
+])
+```
+
+### `dataverseAPI.updateMultiple(entityLogicalName, records, connectionTarget?)`
+
+Updates multiple records in Dataverse  
+**Parameters:**  
+`entityLogicalName` Logical name of the entity  
+`records` Array of record data to update, each including the "id" property and the "@odata.type" property  
+`connectionTarget` Optional connection target for multi-connection tools ('primary' or 'secondary').  
+Defaults to 'primary'.  
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+await dataverseAPI.updateMultiple('account', [
+  {
+    accountid: 'guid-1',
+    name: 'Updated Name 1',
+    '@odata.type': 'Microsoft.Dynamics.CRM.account',
+  },
+  {
+    accountid: 'guid-2',
+    name: 'Updated Name 2',
+    '@odata.type': 'Microsoft.Dynamics.CRM.account',
+  },
+])
+```
+
+## Relationship Associations {{ anchor: true }}
+
+### `dataverseAPI.associate(primaryEntityName, primaryEntityId, relationshipName, relatedEntityName, relatedEntityId, connectionTarget?)`
+
+Associate two records in a many-to-many relationship.
+
+**Parameters:**  
+`primaryEntityName: string` Logical name of the primary entity (e.g., 'systemuser', 'team')  
+`primaryEntityId: string` GUID of the primary record  
+`relationshipName: string` Logical name of the N-to-N relationship (e.g., 'systemuserroles_association', 'teammembership_association')  
+`relatedEntityName: string` Logical name of the related entity (e.g., 'role', 'systemuser')  
+`relatedEntityId: string` GUID of the related record  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+// Assign a security role to a user
+await dataverseAPI.associate(
+  'systemuser',
+  'user-guid-here',
+  'systemuserroles_association',
+  'role',
+  'role-guid-here',
+)
+
+// Add a user to a team
+await dataverseAPI.associate(
+  'team',
+  'team-guid-here',
+  'teammembership_association',
+  'systemuser',
+  'user-guid-here',
+)
+
+// Multi-connection tool using secondary connection
+await dataverseAPI.associate(
+  'systemuser',
+  'user-guid',
+  'systemuserroles_association',
+  'role',
+  'role-guid',
+  'secondary',
+)
+```
+
+### `dataverseAPI.disassociate(primaryEntityName, primaryEntityId, relationshipName, relatedEntityId, connectionTarget?)`
+
+Disassociate two records in a many-to-many relationship.
+
+**Parameters:**  
+`primaryEntityName: string` Logical name of the primary entity (e.g., 'systemuser', 'team')  
+`primaryEntityId: string` GUID of the primary record  
+`relationshipName: string` Logical name of the N-to-N relationship (e.g., 'systemuserroles_association', 'teammembership_association')  
+`relatedEntityId: string` GUID of the related record to disassociate  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+// Remove a security role from a user
+await dataverseAPI.disassociate(
+  'systemuser',
+  'user-guid-here',
+  'systemuserroles_association',
+  'role-guid-here',
+)
+
+// Remove a user from a team
+await dataverseAPI.disassociate(
+  'team',
+  'team-guid-here',
+  'teammembership_association',
+  'user-guid-here',
+)
+
+// Multi-connection tool using secondary connection
+await dataverseAPI.disassociate(
+  'systemuser',
+  'user-guid',
+  'systemuserroles_association',
+  'role-guid',
+  'secondary',
+)
+```
+
+## Queries {{ anchor: true }}
+
+### `dataverseAPI.fetchXmlQuery(fetchXml, connectionTarget?)`
+
+Execute a FetchXML query.  
+**Parameters:**  
+`fetchXml: string` FetchXML query string  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection  
+**Returns:** `Promise<FetchXmlResult>` Object with value array containing query results, odata context and paging cookie
+
+**FetchXmlResult Type:**  
+`value: Record<string, unknown>[]` Array of records returned by the query  
+`@odata.context: string` OData context URL  
+`@Microsoft.Dynamics.CRM.fetchxmlpagingcookie?: string` Paging cookie for retrieving additional pages
+
+```typescript
+const fetchXml = `
+  <fetch top="10">
+    <entity name="account">
+      <attribute name="name" />
+      <attribute name="accountid" />
+      <filter>
+        <condition attribute="statecode" operator="eq" value="0" />
+      </filter>
+      <order attribute="name" />
+    </entity>
+  </fetch>
+`
+
+const result = await dataverseAPI.fetchXmlQuery(fetchXml)
+
+result.value.forEach((account) => {
+  console.log('Account:', account.name)
+})
+```
+
+### `dataverseAPI.queryData(odataQuery, connectionTarget?)`
+
+Retrieve multiple records with OData query options.
+
+**Parameters:**  
+`odataQuery: string` OData query string with parameters like $select, $filter, $orderby, $top, $skip, $expand  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: Record<string, unknown>[] }>` Object with value array containing query results
+
+```typescript
+// Get top 10 active accounts with specific fields
+const result = await dataverseAPI.queryData(
+  'accounts?$select=name,emailaddress1,telephone1&$filter=statecode eq 0&$orderby=name&$top=10',
+)
+console.log(`Found ${result.value.length} records`)
+result.value.forEach((record) => {
+  console.log(`${record.name} - ${record.emailaddress1}`)
+})
+
+// Query with expand to include related records
+const result = await dataverseAPI.queryData(
+  'accounts?$select=name,accountid&$expand=contact_customer_accounts($select=fullname,emailaddress1)&$top=5',
+)
+
+// Simple query with just a filter
+const result = await dataverseAPI.queryData(
+  `contacts?$filter=contains(fullname, 'Smith')&$top=20`,
+)
+
+// Multi-connection tool using secondary connection
+const result = await dataverseAPI.queryData(
+  'contacts?$filter=statecode eq 0',
+  'secondary',
+)
+```
+
+## Metadata {{ anchor: true }}
+
+### `dataverseAPI.getEntityMetadata(entityLogicalName, searchByLogicalName?, selectColumns?, connectionTarget?)`
+
+Get entity metadata.  
+**Parameters:**  
+`entityLogicalName: string` Logical name or entity id of the entity  
+`searchByLogicalName?: boolean` Boolean indicating whether to search by logical name (true) or metadata ID (false)  
+`selectColumns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<any>` Object containing entity metadata
+
+```typescript
+const metadata = await dataverseAPI.getEntityMetadata('account', true, [
+  'LogicalName',
+  'DisplayName',
+  'EntitySetName',
+])
+console.log('Logical Name:', metadata.LogicalName)
+console.log('Display Name:', metadata.DisplayName?.LocalizedLabels[0]?.Label)
+
+// Get entity metadata by metadata ID
+const metadata = await dataverseAPI.getEntityMetadata(
+  '00000000-0000-0000-0000-000000000001',
+  false,
+  ['LogicalName', 'DisplayName'],
+)
+console.log('Entity Metadata ID:', metadata.MetadataId)
+console.log('Logical Name:', metadata.LogicalName)
+console.log('Display Name:', metadata.DisplayName?.LocalizedLabels[0]?.Label)
+
+// Multi-connection tool using secondary connection
+const metadata = await dataverseAPI.getEntityMetadata(
+  'account',
+  true,
+  ['LogicalName'],
+  'secondary',
+)
+console.log('Logical Name from secondary connection:', metadata.LogicalName)
+```
+
+### `dataverseAPI.getEntityRelatedMetadata(entityLogicalName, relatedPath, selectColumns?, connectionTarget?)`
+
+Get related metadata for a specific entity (attributes, relationships, etc.)  
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`relatedPath: string` Path after EntityDefinitions(LogicalName='name') (e.g., 'Attributes', 'OneToManyRelationships', 'ManyToOneRelationships', 'ManyToManyRelationships', 'Keys')  
+`selectColumns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: any[] }>` Object with value array containing related metadata
+
+```typescript
+// Get all attributes for an entity
+const attributes = await dataverseAPI.getEntityRelatedMetadata(
+  'account',
+  'Attributes',
+)
+console.log('Attributes:', attributes.value)
+
+// Get specific attributes with select
+const attributes = await dataverseAPI.getEntityRelatedMetadata(
+  'account',
+  'Attributes',
+  ['LogicalName', 'DisplayName', 'AttributeType'],
+)
+console.log('Filtered attributes:', attributes.value)
+
+// Get one-to-many relationships
+const relationships = await dataverseAPI.getEntityRelatedMetadata(
+  'account',
+  'OneToManyRelationships',
+)
+console.log('One-to-many relationships:', relationships.value)
+
+// Multi-connection tool using secondary connection
+const attributes = await dataverseAPI.getEntityRelatedMetadata(
+  'account',
+  'Attributes',
+  ['LogicalName'],
+  'secondary',
+)
+console.log('Attributes from secondary connection:', attributes.value)
+```
+
+### `dataverseAPI.getAllEntitiesMetadata(selectColumns?, connectionTarget?)`
+
+Get metadata for all entities  
+**Parameters:**  
+`selectColumns?: string[]` Optional array of column names to retrieve (retrieves LogicalName, DisplayName, MetadataId by default)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: any[] }>` Object with value array containing all entity metadata
+
+```typescript
+const allEntities = await dataverseAPI.getAllEntitiesMetadata([
+  'LogicalName',
+  'DisplayName',
+  'EntitySetName',
+])
+console.log(`Total entities: ${allEntities.value.length}`)
+allEntities.value.forEach((entity) => {
+  console.log(
+    `${entity.LogicalName} - ${entity.DisplayName?.LocalizedLabels[0]?.Label}`,
+  )
+})
+
+// Multi-connection tool using secondary connection
+const allEntities = await dataverseAPI.getAllEntitiesMetadata(
+  ['LogicalName'],
+  'secondary',
+)
+```
+
+### `dataverseAPI.getEntitySetName(logicalName)`
+
+Get the entity set name for a given logical name. No connectionTarget needed.
+This will work in most scenarios but if you have custom entities with non-standard pluralization
+you may need to retrieve the metadata instead.
+
+**Parameters:**  
+`logicalName: string` Logical name of the entity  
+**Returns:** `Promise<string>` Entity set name as a string
+
+```typescript
+const tableSetName = await dataverseAPI.getEntitySetName('contact')
+
+console.log('Entity Set Name for contact:', tableSetName) // Outputs: contacts
+```
+
+### `dataverseAPI.getSolutions(selectColumns, connectionTarget?)`
+
+Get solutions from the environment  
+**Parameters:**  
+`selectColumns: string[]` Required array of column names to retrieve (must contain at least one column)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<{ value: any[] }>` Object with value array containing solutions
+
+```typescript
+const solutions = await dataverseAPI.getSolutions([
+  'solutionid',
+  'uniquename',
+  'friendlyname',
+  'version',
+  'ismanaged',
+])
+console.log(`Total solutions: ${solutions.value.length}`)
+solutions.value.forEach((solution) => {
+  console.log(
+    `${solution.friendlyname} (${solution.uniquename}) - v${solution.version}`,
+  )
+})
+
+// Multi-connection tool using secondary connection
+const solutions = await dataverseAPI.getSolutions(['uniquename'], 'secondary')
+```
+
+## Helper Methods {{ anchor: true }}
+
+Power Platform ToolBox provides comprehensive metadata operations to programmatically create, read, update, and delete Dataverse schema elements including entities, attributes, relationships, and option sets.
+
+<Note>
+  **Important:** Always call `dataverseAPI.publishCustomizations()` after making metadata changes to apply them to your environment.
+</Note>
+
+### `dataverseAPI.buildLabel(text, languageCode?)`
+
+Build a properly formatted Label object for use in metadata operations.
+
+**Parameters:**  
+`text: string` The label text  
+`languageCode?: number` Optional language code (defaults to 1033 for English)  
+**Returns:** `Label` Properly formatted label object
+
+```typescript
+// Create a simple label (English by default)
+const label = dataverseAPI.buildLabel('Customer Name')
+
+// Create label with specific language code
+const labelFrench = dataverseAPI.buildLabel('Nom du client', 1036)
+
+// Label structure returned:
+// {
+//   LocalizedLabels: [{ Label: "Customer Name", LanguageCode: 1033, IsManaged: false }],
+//   UserLocalizedLabel: { Label: "Customer Name", LanguageCode: 1033, IsManaged: false }
+// }
+```
+
+### `dataverseAPI.getAttributeODataType(attributeType)`
+
+Get the OData type name for a given attribute type. Useful when creating attribute definitions.
+
+**Parameters:**  
+`attributeType: string` Attribute type enum value (e.g., 'String', 'Integer', 'Decimal', 'Boolean', 'DateTime', 'Lookup', 'Picklist', etc.)  
+**Returns:** `Promise<string>` OData type name (e.g., 'Microsoft.Dynamics.CRM.StringAttributeMetadata')
+
+```typescript
+const odataType = await dataverseAPI.getAttributeODataType('String')
+console.log(odataType) // Output: "Microsoft.Dynamics.CRM.StringAttributeMetadata"
+
+const lookupType = await dataverseAPI.getAttributeODataType('Lookup')
+console.log(lookupType) // Output: "Microsoft.Dynamics.CRM.LookupAttributeMetadata"
+```
+
+## Entity Operations {{ anchor: true }}
+
+### `dataverseAPI.createEntityDefinition(entityDefinition, options?, connectionTarget?)`
+
+Create a new entity (table) in Dataverse.
+
+**Parameters:**  
+`entityDefinition: object` Entity metadata definition  
+`options?: object` Optional settings (e.g., `{ solutionUniqueName: "MySolution" }`)  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<{ id: string }>` Object with the new entity's MetadataId
+
+```typescript
+// Create a custom entity
+const newEntity = await dataverseAPI.createEntityDefinition({
+  '@odata.type': 'Microsoft.Dynamics.CRM.EntityMetadata',
+  LogicalName: 'new_project',
+  DisplayName: dataverseAPI.buildLabel('Project'),
+  DisplayCollectionName: dataverseAPI.buildLabel('Projects'),
+  Description: dataverseAPI.buildLabel('Custom project tracking entity'),
+  OwnershipType: 'UserOwned', // UserOwned, TeamOwned, OrganizationOwned, None
+  IsActivity: false,
+  HasActivities: true,
+  HasNotes: true,
+  Attributes: [
+    {
+      '@odata.type': 'Microsoft.Dynamics.CRM.StringAttributeMetadata',
+      SchemaName: 'new_Name',
+      DisplayName: dataverseAPI.buildLabel('Project Name'),
+      RequiredLevel: { Value: 'ApplicationRequired' },
+      MaxLength: 100,
+      FormatName: { Value: 'Text' },
+    },
+  ],
+}, { solutionUniqueName: 'MyCustomSolution' })
+
+console.log('Created entity with ID:', newEntity.id)
+
+// Publish to make it available
+await dataverseAPI.publishCustomizations('new_project')
+```
+
+### `dataverseAPI.updateEntityDefinition(entityIdentifier, entityDefinition, options?, connectionTarget?)`
+
+Update an existing entity's metadata.
+
+**Parameters:**  
+`entityIdentifier: string` Entity MetadataId or LogicalName  
+`entityDefinition: object` Updated entity metadata  
+`options?: object` Optional settings (e.g., `{ mergeLabels: true }`)  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Update entity display name and description
+await dataverseAPI.updateEntityDefinition('new_project', {
+  DisplayName: dataverseAPI.buildLabel('Project Management'),
+  Description: dataverseAPI.buildLabel('Enhanced project tracking and management'),
+  HasNotes: false, // Disable notes
+}, { mergeLabels: true })
+
+await dataverseAPI.publishCustomizations('new_project')
+```
+
+### `dataverseAPI.deleteEntityDefinition(entityIdentifier, connectionTarget?)`
+
+Delete an entity from Dataverse.
+
+**Parameters:**  
+`entityIdentifier: string` Entity MetadataId or LogicalName  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Delete an entity - WARNING: This is permanent!
+await dataverseAPI.deleteEntityDefinition('new_project')
+
+// No need to publish after deletion - takes effect immediately
+```
+
+## Attribute Operations {{ anchor: true }}
+
+### `dataverseAPI.createAttribute(entityLogicalName, attributeDefinition, options?, connectionTarget?)`
+
+Create a new attribute (column) on an entity.
+
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`attributeDefinition: object` Attribute metadata definition  
+`options?: object` Optional settings (e.g., `{ solutionUniqueName: "MySolution" }`)  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<{ id: string }>` Object with the new attribute's MetadataId
+
+```typescript
+// Create a text field
+const textAttribute = await dataverseAPI.createAttribute('new_project', {
+  '@odata.type': await dataverseAPI.getAttributeODataType('String'),
+  SchemaName: 'new_Description',
+  DisplayName: dataverseAPI.buildLabel('Description'),
+  Description: dataverseAPI.buildLabel('Project description'),
+  RequiredLevel: { Value: 'None' }, // None, ApplicationRequired, SystemRequired
+  MaxLength: 2000,
+  FormatName: { Value: 'TextArea' }, // Text, TextArea, Email, Url, etc.
+})
+
+// Create a whole number field
+const numberAttribute = await dataverseAPI.createAttribute('new_project', {
+  '@odata.type': await dataverseAPI.getAttributeODataType('Integer'),
+  SchemaName: 'new_EstimatedHours',
+  DisplayName: dataverseAPI.buildLabel('Estimated Hours'),
+  RequiredLevel: { Value: 'None' },
+  MinValue: 0,
+  MaxValue: 10000,
+  Format: 'None', // None, Duration, Locale, TimeZone, Language
+})
+
+// Create a decimal field
+const decimalAttribute = await dataverseAPI.createAttribute('new_project', {
+  '@odata.type': await dataverseAPI.getAttributeODataType('Decimal'),
+  SchemaName: 'new_Budget',
+  DisplayName: dataverseAPI.buildLabel('Budget'),
+  RequiredLevel: { Value: 'None' },
+  MinValue: 0,
+  MaxValue: 1000000000,
+  Precision: 2,
+})
+
+// Create a date field
+const dateAttribute = await dataverseAPI.createAttribute('new_project', {
+  '@odata.type': await dataverseAPI.getAttributeODataType('DateTime'),
+  SchemaName: 'new_StartDate',
+  DisplayName: dataverseAPI.buildLabel('Start Date'),
+  RequiredLevel: { Value: 'None' },
+  Format: 'DateOnly', // DateOnly, DateAndTime
+})
+
+// Create a choice (option set) field - local
+const choiceAttribute = await dataverseAPI.createAttribute('new_project', {
+  '@odata.type': await dataverseAPI.getAttributeODataType('Picklist'),
+  SchemaName: 'new_Priority',
+  DisplayName: dataverseAPI.buildLabel('Priority'),
+  RequiredLevel: { Value: 'ApplicationRequired' },
+  OptionSet: {
+    '@odata.type': 'Microsoft.Dynamics.CRM.OptionSetMetadata',
+    IsGlobal: false,
+    OptionSetType: 'Picklist',
+    Options: [
+      {
+        Value: 1,
+        Label: dataverseAPI.buildLabel('Low'),
+      },
+      {
+        Value: 2,
+        Label: dataverseAPI.buildLabel('Medium'),
+      },
+      {
+        Value: 3,
+        Label: dataverseAPI.buildLabel('High'),
+      },
+    ],
+  },
+})
+
+// Create a lookup field (single entity)
+const lookupAttribute = await dataverseAPI.createAttribute('new_project', {
+  '@odata.type': await dataverseAPI.getAttributeODataType('Lookup'),
+  SchemaName: 'new_AccountId',
+  DisplayName: dataverseAPI.buildLabel('Account'),
+  RequiredLevel: { Value: 'None' },
+  Targets: ['account'], // Entity types this lookup can reference
+})
+
+await dataverseAPI.publishCustomizations('new_project')
+```
+
+### `dataverseAPI.updateAttribute(entityLogicalName, attributeIdentifier, attributeDefinition, options?, connectionTarget?)`
+
+Update an existing attribute's metadata.
+
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`attributeIdentifier: string` Attribute MetadataId or LogicalName  
+`attributeDefinition: object` Updated attribute metadata  
+`options?: object` Optional settings (e.g., `{ mergeLabels: true }`)  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Update attribute display name and requirement level
+await dataverseAPI.updateAttribute('new_project', 'new_description', {
+  DisplayName: dataverseAPI.buildLabel('Project Details'),
+  RequiredLevel: { Value: 'ApplicationRequired' },
+  MaxLength: 4000, // Increase max length
+}, { mergeLabels: true })
+
+await dataverseAPI.publishCustomizations('new_project')
+```
+
+### `dataverseAPI.deleteAttribute(entityLogicalName, attributeIdentifier, connectionTarget?)`
+
+Delete an attribute from an entity.
+
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`attributeIdentifier: string` Attribute MetadataId or LogicalName  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Delete an attribute - WARNING: This is permanent!
+await dataverseAPI.deleteAttribute('new_project', 'new_description')
+
+// Publish to complete the deletion
+await dataverseAPI.publishCustomizations('new_project')
+```
+
+## Polymorphic Lookup Attributes {{ anchor: true }}
+
+### `dataverseAPI.createPolymorphicLookupAttribute(entityLogicalName, attributeDefinition, options?, connectionTarget?)`
+
+Create a polymorphic lookup attribute that can reference multiple entity types (e.g., Customer field that can reference both Account and Contact).
+
+**Parameters:**  
+`entityLogicalName: string` Logical name of the entity  
+`attributeDefinition: object` Lookup attribute metadata with Targets array  
+`options?: object` Optional settings  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<{ AttributeId: string }>` Object with the new attribute's ID
+
+```typescript
+// Create a Customer lookup (Account or Contact)
+const customerLookup = await dataverseAPI.createPolymorphicLookupAttribute(
+  'new_order',
+  {
+    SchemaName: 'new_CustomerId',
+    DisplayName: dataverseAPI.buildLabel('Customer'),
+    Description: dataverseAPI.buildLabel('The customer for this order'),
+    RequiredLevel: { Value: 'ApplicationRequired' },
+    Targets: ['account', 'contact'], // Can reference both entities
+  }
+)
+
+// Create a Regarding lookup for notes (multiple custom entities)
+const regardingLookup = await dataverseAPI.createPolymorphicLookupAttribute(
+  'new_note',
+  {
+    SchemaName: 'new_RegardingId',
+    DisplayName: dataverseAPI.buildLabel('Regarding'),
+    RequiredLevel: { Value: 'None' },
+    Targets: ['new_project', 'new_task', 'new_milestone'],
+  }
+)
+
+await dataverseAPI.publishCustomizations()
+```
+
+<Note>
+  **Alternative:** For customer lookups specifically, you can use the `CreateCustomerRelationships` action via `dataverseAPI.execute()` which creates both the lookup and relationships in a single operation.
+</Note>
+
+## Relationship Operations {{ anchor: true }}
+
+### `dataverseAPI.createRelationship(relationshipDefinition, options?, connectionTarget?)`
+
+Create a new entity relationship (1:N or N:N).
+
+**Parameters:**  
+`relationshipDefinition: object` Relationship metadata definition  
+`options?: object` Optional settings  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<{ id: string }>` Object with the new relationship's MetadataId
+
+```typescript
+// Create a One-to-Many (1:N) relationship
+// Account (1) -> Projects (N)
+const oneToManyRelationship = await dataverseAPI.createRelationship({
+  '@odata.type': 'Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata',
+  SchemaName: 'new_account_project',
+  ReferencedEntity: 'account', // The "One" side
+  ReferencedAttribute: 'accountid',
+  ReferencingEntity: 'new_project', // The "Many" side
+  Lookup: {
+    '@odata.type': await dataverseAPI.getAttributeODataType('Lookup'),
+    SchemaName: 'new_AccountId',
+    DisplayName: dataverseAPI.buildLabel('Account'),
+    RequiredLevel: { Value: 'None' },
+  },
+  CascadeConfiguration: {
+    Assign: 'NoCascade', // NoCascade, Cascade, Active, UserOwned
+    Delete: 'RemoveLink', // Cascade, RemoveLink, Restrict
+    Merge: 'NoCascade',
+    Reparent: 'NoCascade',
+    Share: 'NoCascade',
+    Unshare: 'NoCascade',
+  },
+})
+
+// Create a Many-to-Many (N:N) relationship  
+// Projects (N) <-> Users (N) for team members
+const manyToManyRelationship = await dataverseAPI.createRelationship({
+  '@odata.type': 'Microsoft.Dynamics.CRM.ManyToManyRelationshipMetadata',
+  SchemaName: 'new_project_systemuser',
+  Entity1LogicalName: 'new_project',
+  Entity1IntersectAttribute: 'new_projectid',
+  Entity2LogicalName: 'systemuser',
+  Entity2IntersectAttribute: 'systemuserid',
+  IntersectEntityName: 'new_project_systemuser',
+})
+
+await dataverseAPI.publishCustomizations()
+```
+
+### `dataverseAPI.updateRelationship(relationshipIdentifier, relationshipDefinition, options?, connectionTarget?)`
+
+Update an existing relationship's metadata.
+
+**Parameters:**  
+`relationshipIdentifier: string` Relationship MetadataId or SchemaName  
+`relationshipDefinition: object` Updated relationship metadata  
+`options?: object` Optional settings  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Update cascade configuration for a relationship
+// First retrieve the current relationship
+const relationship = await dataverseAPI.queryData(
+  `RelationshipDefinitions(SchemaName='new_account_project')`
+)
+
+// Update cascade delete behavior
+relationship.CascadeConfiguration.Delete = 'Cascade' // Change from RemoveLink to Cascade
+
+await dataverseAPI.updateRelationship('new_account_project', relationship, {
+  mergeLabels: true,
+})
+
+await dataverseAPI.publishCustomizations()
+```
+
+### `dataverseAPI.deleteRelationship(relationshipIdentifier, connectionTarget?)`
+
+Delete a relationship.
+
+**Parameters:**  
+`relationshipIdentifier: string` Relationship MetadataId or SchemaName  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Delete a relationship - WARNING: This is permanent!
+await dataverseAPI.deleteRelationship('new_account_project')
+
+await dataverseAPI.publishCustomizations()
+```
+
+## Global Option Sets {{ anchor: true }}
+
+### `dataverseAPI.createGlobalOptionSet(optionSetDefinition, options?, connectionTarget?)`
+
+Create a new global option set (choice) that can be shared across multiple entities.
+
+**Parameters:**  
+`optionSetDefinition: object` Option set metadata definition  
+`options?: object` Optional settings  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<{ id: string }>` Object with the new option set's MetadataId
+
+```typescript
+// Create a global option set for project status
+const globalOptionSet = await dataverseAPI.createGlobalOptionSet({
+  '@odata.type': 'Microsoft.Dynamics.CRM.OptionSetMetadata',
+  Name: 'new_projectstatus',
+  DisplayName: dataverseAPI.buildLabel('Project Status'),
+  Description: dataverseAPI.buildLabel('Status values for projects'),
+  OptionSetType: 'Picklist',
+  IsGlobal: true,
+  Options: [
+    {
+      Value: 1,
+      Label: dataverseAPI.buildLabel('Planning'),
+      Description: dataverseAPI.buildLabel('Project is in planning phase'),
+    },
+    {
+      Value: 2,
+      Label: dataverseAPI.buildLabel('In Progress'),
+    },
+    {
+      Value: 3,
+      Label: dataverseAPI.buildLabel('On Hold'),
+    },
+    {
+      Value: 4,
+      Label: dataverseAPI.buildLabel('Completed'),
+    },
+    {
+      Value: 5,
+      Label: dataverseAPI.buildLabel('Cancelled'),
+    },
+  ],
+}, { solutionUniqueName: 'MyCustomSolution' })
+
+console.log('Created global option set:', globalOptionSet.id)
+
+await dataverseAPI.publishCustomizations()
+
+// Retrieve the created option set
+const optionSet = await dataverseAPI.queryData(
+  "GlobalOptionSetDefinitions(Name='new_projectstatus')"
+)
+console.log('Option set details:', optionSet)
+```
+
+### `dataverseAPI.updateGlobalOptionSet(optionSetIdentifier, optionSetDefinition, options?, connectionTarget?)`
+
+Update an existing global option set.
+
+**Parameters:**  
+`optionSetIdentifier: string` Option set Name or MetadataId  
+`optionSetDefinition: object` Updated option set metadata  
+`options?: object` Optional settings  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Update global option set display name
+await dataverseAPI.updateGlobalOptionSet('new_projectstatus', {
+  DisplayName: dataverseAPI.buildLabel('Project Lifecycle Status'),
+  Description: dataverseAPI.buildLabel('Tracks the full lifecycle of a project'),
+}, { mergeLabels: true })
+
+await dataverseAPI.publishCustomizations()
+```
+
+### `dataverseAPI.deleteGlobalOptionSet(optionSetIdentifier, connectionTarget?)`
+
+Delete a global option set.
+
+**Parameters:**  
+`optionSetIdentifier: string` Option set Name or MetadataId  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Delete a global option set - WARNING: This is permanent!
+await dataverseAPI.deleteGlobalOptionSet('new_projectstatus')
+
+await dataverseAPI.publishCustomizations()
+```
+
+## Option Value Operations {{ anchor: true }}
+
+### `dataverseAPI.insertOptionValue(params, connectionTarget?)`
+
+Insert a new option value into a local or global option set.
+
+**Parameters:**  
+`params: object` Parameters for the option value  
+`params.EntityLogicalName?: string` Entity name (for local option sets)  
+`params.AttributeLogicalName?: string` Attribute name (for local option sets)  
+`params.OptionSetName?: string` Option set name (for global option sets)  
+`params.Value: number` Integer value for the new option  
+`params.Label: Label` Label object for the option  
+`params.Description?: Label` Optional description  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Add option to a local option set
+await dataverseAPI.insertOptionValue({
+  EntityLogicalName: 'new_project',
+  AttributeLogicalName: 'new_priority',
+  Value: 4,
+  Label: dataverseAPI.buildLabel('Critical'),
+  Description: dataverseAPI.buildLabel('Requires immediate attention'),
+})
+
+// Add option to a global option set
+await dataverseAPI.insertOptionValue({
+  OptionSetName: 'new_projectstatus',
+  Value: 6,
+  Label: dataverseAPI.buildLabel('Archived'),
+})
+
+await dataverseAPI.publishCustomizations()
+```
+
+<Note>
+  **Status Columns:** For status choice columns (statuscode), use the `InsertStatusValue` action via `dataverseAPI.execute()` instead, which requires a StateCode parameter.
+</Note>
+
+### `dataverseAPI.updateOptionValue(params, connectionTarget?)`
+
+Update an existing option value.
+
+**Parameters:**  
+`params: object` Parameters for the update  
+`params.EntityLogicalName?: string` Entity name (for local option sets)  
+`params.AttributeLogicalName?: string` Attribute name (for local option sets)  
+`params.OptionSetName?: string` Option set name (for global option sets)  
+`params.Value: number` Integer value to update  
+`params.Label?: Label` New label  
+`params.Description?: Label` New description  
+`params.MergeLabels?: boolean` Whether to merge or replace labels  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Update local option set value
+await dataverseAPI.updateOptionValue({
+  EntityLogicalName: 'new_project',
+  AttributeLogicalName: 'new_priority',
+  Value: 3,
+  Label: dataverseAPI.buildLabel('High Priority'),
+  MergeLabels: true,
+})
+
+await dataverseAPI.publishCustomizations()
+```
+
+### `dataverseAPI.deleteOptionValue(params, connectionTarget?)`
+
+Delete an option value from an option set.
+
+**Parameters:**  
+`params: object` Parameters for deletion  
+`params.EntityLogicalName?: string` Entity name (for local option sets)  
+`params.AttributeLogicalName?: string` Attribute name (for local option sets)  
+`params.OptionSetName?: string` Option set name (for global option sets)  
+`params.Value: number` Integer value to delete  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Delete option from local option set
+await dataverseAPI.deleteOptionValue({
+  EntityLogicalName: 'new_project',
+  AttributeLogicalName: 'new_priority',
+  Value: 4,
+})
+
+await dataverseAPI.publishCustomizations()
+```
+
+### `dataverseAPI.orderOptionValues(params, connectionTarget?)`
+
+Reorder option values in an option set.
+
+**Parameters:**  
+`params: object` Parameters for reordering  
+`params.EntityLogicalName?: string` Entity name (for local option sets)  
+`params.AttributeLogicalName?: string` Attribute name (for local option sets)  
+`params.OptionSetName?: string` Option set name (for global option sets)  
+`params.Values: number[]` Array of values in the desired order  
+`connectionTarget?: 'primary' | 'secondary'` Connection target  
+**Returns:** `Promise<void>`
+
+```typescript
+// Reorder local option set values
+await dataverseAPI.orderOptionValues({
+  EntityLogicalName: 'new_project',
+  AttributeLogicalName: 'new_priority',
+  Values: [3, 2, 1], // High, Medium, Low
+})
+
+await dataverseAPI.publishCustomizations()
+```
+
+## Actions & Functions {{ anchor: true }}
+
+### `dataverseAPI.execute(options, connectionTarget?)`
+
+Execute a custom action or function using a unified interface. Supports both bound (entity-specific) and unbound (global) operations.
+
+**Parameters:**  
+`options.entityName: string` Logical name of the entity (required for bound operations)  
+`options.entityId: string` GUID of the record (required for bound operations)  
+`options.operationName: string` Name of the action/function  
+`options.operationType: 'action' | 'function'` Type of operation  
+`options.parameters: Record<string, any>` Operation parameters (optional)  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
+**Returns:** `Promise<Record<string, unknown>>` Operation result
+
+```typescript
+// Bound action - operates on a specific entity record
+const boundResult = await dataverseAPI.execute({
+  entityName: 'systemuser',
+  entityId: 'user-guid',
+  operationName: 'SetBusinessSystemUser',
+  operationType: 'action',
+  parameters: {
+    BusinessUnit: 'businessunits(bu-guid)',
+    ReassignPrincipal: 'systemusers(user-guid)',
+    DoNotMoveAllRecords: true
+  }
+})
+
+// Unbound function - global operation
+const unboundResult = await dataverseAPI.execute({
+  operationName: 'WhoAmI',
+  operationType: 'function'
+})
+
+// Multi-connection tool using secondary connection
+const unboundResultSecondary = await dataverseAPI.execute({
+  operationName: 'WhoAmI',
+  operationType: 'function'
+}, 'secondary')
+```
+
+## Customizations {{ anchor: true }}
+
+### `dataverseAPI.publishCustomizations(tableLogicalName?, connectionTarget?)`
+
+Publish customizations for the current environment.  
+**Parameters:**  
+`tableLogicalName?: string` Optional table (entity) logical name to publish. If omitted, all pending customizations are published.  
+`connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.
+**Returns:** `Promise<void>` Successful completion
+
+```typescript
+// Publish all customizations for the primary connection
+await dataverseAPI.publishCustomizations()
+
+// Publish only the account table customizations for the secondary connection
+await dataverseAPI.publishCustomizations('account', 'secondary')
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference/settings-api" arrow="right">
+    <>Settings API</>
+  </Button>
+  <Button href="/tool-development/api-reference" variant="outline">
+    <>API Reference Home</>
+  </Button>
+</div>

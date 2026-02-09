@@ -133,7 +133,9 @@ function ActivePageMarker({
 }) {
   const itemHeight = remToPx(2)
   const offset = remToPx(0.25)
-  const activePageIndex = group.links.findIndex((link) => link.href === pathname)
+  const activePageIndex = group.links.findIndex(
+    (link) => link.href === pathname,
+  )
   const top = offset + activePageIndex * itemHeight
 
   return (
@@ -247,6 +249,27 @@ export const navigation: Array<NavGroup> = [
     links: [
       { title: 'Overview', href: '/tool-development' },
       { title: 'API Reference', href: '/tool-development/api-reference' },
+      {
+        title: 'ToolBox API',
+        href: '/tool-development/api-reference/toolbox-api',
+      },
+      {
+        title: 'Dataverse API',
+        href: '/tool-development/api-reference/dataverse-api',
+      },
+      { title: 'Events API', href: '/tool-development/api-reference/events' },
+      {
+        title: 'Settings API',
+        href: '/tool-development/api-reference/settings-api',
+      },
+      {
+        title: 'File System API',
+        href: '/tool-development/api-reference/filesystem-api',
+      },
+      {
+        title: 'Error Handling',
+        href: '/tool-development/api-reference/error-handling',
+      },
       {
         title: 'CSP Configuration',
         href: '/tool-development/csp-configuration',

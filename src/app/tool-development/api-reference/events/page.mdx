@@ -1,0 +1,221 @@
+export const metadata = {
+  title: 'Events API',
+  description:
+    'Subscribe to platform events and respond to connection changes, settings updates, and tool lifecycle events',
+}
+
+export const sections = [
+  { title: 'Event Subscription', id: 'event-subscription' },
+  { title: 'Event Types', id: 'event-types' },
+]
+
+# Events API
+
+Subscribe to platform events to respond to connection changes, settings updates, and tool lifecycle events. {{ className: 'lead' }}
+
+## Event Subscription {{ anchor: true }}
+
+### `toolboxAPI.events.on(handler)`
+
+Subscribe to events relevant to your tool.
+
+```typescript
+toolboxAPI.events.on((details, payload) => {
+  switch (payload.event) {
+    case 'connection:updated':
+      refreshConnectionInfo()
+      break
+    case 'connection:activated':
+      handleConnectionActivated(payload)
+      break
+    case 'settings:updated':
+      if (payload && payload.theme) {
+        applyTheme(payload.theme)
+      }
+      break
+  }
+})
+```
+
+**Parameters:**
+
+- `handler`: `(event: string, payload?: any) => void` - Callback function to handle events
+
+## Event Types {{ anchor: true }}
+
+The following events are available for subscription:
+
+### `connection:updated`
+
+Fired when the active connection changes. This happens when a user switches to a different Dataverse connection.
+
+**Payload:** Connection details
+
+```typescript
+toolboxAPI.events.on((event, payload) => {
+  if (event === 'connection:updated') {
+    console.log('Connection changed to:', payload.name)
+    // Refresh data from new connection
+    loadData()
+  }
+})
+```
+
+### `connection:activated`
+
+Fired when a connection becomes active. This happens when a user connects to a Dataverse environment.
+
+**Payload:** Connection details
+
+```typescript
+toolboxAPI.events.on((event, payload) => {
+  if (event === 'connection:activated') {
+    console.log('Connection activated:', payload.name)
+    // Initialize tool with connection
+    initializeWithConnection(payload)
+  }
+})
+```
+
+### `connection:deactivated`
+
+Fired when a connection is deactivated or disconnected.
+
+**Payload:** None
+
+```typescript
+toolboxAPI.events.on((event) => {
+  if (event === 'connection:deactivated') {
+    console.log('Connection deactivated')
+    // Clear cached data
+    clearCache()
+  }
+})
+```
+
+### `settings:updated`
+
+Fired when settings are updated, including theme changes.
+
+**Payload:** Updated settings object (may include `theme` property)
+
+```typescript
+toolboxAPI.events.on((event, payload) => {
+  if (event === 'settings:updated') {
+    console.log('Settings updated:', payload)
+    
+    if (payload && payload.theme) {
+      // Apply theme changes
+      document.body.classList.remove('theme-light', 'theme-dark')
+      document.body.classList.add(`theme-${payload.theme}`)
+    }
+  }
+})
+```
+
+### `tool:activated`
+
+Fired when your tool's tab becomes active (when user switches to your tool).
+
+**Payload:** None
+
+```typescript
+toolboxAPI.events.on((event) => {
+  if (event === 'tool:activated') {
+    console.log('Tool activated')
+    // Refresh UI or check for updates
+    refreshUI()
+  }
+})
+```
+
+### `tool:deactivated`
+
+Fired when your tool's tab is deactivated (when user switches away from your tool).
+
+**Payload:** None
+
+```typescript
+toolboxAPI.events.on((event) => {
+  if (event === 'tool:deactivated') {
+    console.log('Tool deactivated')
+    // Pause expensive operations
+    pausePolling()
+  }
+})
+```
+
+## Best Practices {{ anchor: true }}
+
+<Note>
+  **Event Handler Registration:** Subscribe to events early in your tool's initialization to avoid missing important events.
+</Note>
+
+### Register Once
+
+Register your event handler only once during initialization:
+
+```typescript
+// Good: Register once during initialization
+function initializeTool() {
+  toolboxAPI.events.on(handleEvent)
+}
+
+function handleEvent(event, payload) {
+  // Handle all events in one place
+}
+
+initializeTool()
+```
+
+### Avoid Multiple Handlers
+
+Don't register multiple event handlers for the same events:
+
+```typescript
+// Bad: Multiple handlers
+toolboxAPI.events.on(handler1)
+toolboxAPI.events.on(handler2)
+
+// Good: Single handler with routing
+toolboxAPI.events.on((event, payload) => {
+  switch (event) {
+    case 'connection:updated':
+      handleConnectionUpdate(payload)
+      break
+    case 'settings:updated':
+      handleSettingsUpdate(payload)
+      break
+  }
+})
+```
+
+### Error Handling
+
+Always wrap event handler logic in try-catch blocks:
+
+```typescript
+toolboxAPI.events.on((event, payload) => {
+  try {
+    switch (event) {
+      case 'connection:updated':
+        refreshData()
+        break
+      case 'settings:updated':
+        applySettings(payload)
+        break
+    }
+  } catch (error) {
+    console.error('Error handling event:', event, error)
+  }
+})
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference/error-handling" arrow="right">
+    <>Error Handling</>
+  </Button>
+  <Button href="/tool-development/api-reference/toolbox-api" variant="outline">
+    <>Back to ToolBox API</>
+  </Button>
+</div>
