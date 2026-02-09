@@ -77,7 +77,7 @@ export const Header = forwardRef<
         <CloseButton as={Link} href="/" aria-label="Home">
           <Image
             src="../images/app-icon.svg"
-            alt="Power Platform Tool Box"
+            alt="Power Platform ToolBox"
             className="h-6"
             width="24"
             height="24"

@@ -9,11 +9,11 @@ import '@/styles/tailwind.css'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s - Power Platform Tool Box',
-    default: 'Power Platform Tool Box - Documentation',
+    template: '%s - Power Platform ToolBox',
+    default: 'Power Platform ToolBox - Documentation',
   },
   description:
-    'Documentation for Power Platform Tool Box - The modern toolbox for Power Platform, built for speed, simplicity and security.',
+    'Documentation for Power Platform ToolBox - The modern toolbox for Power Platform, built for speed, simplicity and security.',
 }
 
 export default async function RootLayout({

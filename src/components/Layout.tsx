@@ -4,10 +4,10 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+import { EditLink } from '@/components/EditLink'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
 import { Navigation } from '@/components/Navigation'
-import { EditLink } from '@/components/EditLink'
 import { SectionProvider, type Section } from '@/components/SectionProvider'
 import Image from 'next/image'
 
@@ -32,7 +32,7 @@ export function Layout({
               <Link href="/" aria-label="Home">
                 <Image
                   src="/images/app-icon.svg"
-                  alt="Power Platform Tool Box"
+                  alt="Power Platform ToolBox"
                   className="h-10"
                   width="40"
                   height="40"
