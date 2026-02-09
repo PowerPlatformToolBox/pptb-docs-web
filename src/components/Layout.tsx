@@ -33,7 +33,7 @@ export function Layout({
               <Link href="/" aria-label="Home">
                 <Image
                   src="/images/app-icon.svg"
-                  alt="Power Platform Tool Box"
+                  alt="Power Platform ToolBox"
                   className="h-10"
                   width="40"
                   height="40"

@@ -5,18 +5,18 @@ const guides = [
   {
     href: '/quickstart',
     name: 'Quick Start',
-    description: 'Get up and running with Power Platform Tool Box in minutes.',
+    description: 'Get up and running with Power Platform ToolBox in minutes.',
   },
   {
     href: '/tool-development',
     name: 'Tool Development',
     description:
-      'Build tools for Power Platform Tool Box with our comprehensive API.',
+      'Build tools for Power Platform ToolBox with our comprehensive API.',
   },
   {
     href: '/toolbox-development',
     name: 'ToolBox Development',
-    description: 'Contribute to the Power Platform Tool Box platform itself.',
+    description: 'Contribute to the Power Platform ToolBox platform itself.',
   },
   {
     href: '/contributing',
