@@ -1036,7 +1036,7 @@ Save string or binary content to a user-selected location via the native save di
 // Save with custom filters
 const filePath = await toolboxAPI.fileSystem.saveFile(
   'react-export.json',
-  JSON.stringify(data, null, 2),
+  JSON.stringify(jsonData, null, 2),
   [
     { name: 'JSON', extensions: ['json'] },
     { name: 'Text', extensions: ['txt'] },
@@ -1060,7 +1060,7 @@ if (filePath) {
 
 - `defaultPath`: `string` - Suggested initial path or filename shown in the dialog
 - `content`: `string | Buffer` - Data to save (text or binary)
-- `filters`: `FileDialogFilter[]` *(optional)* - Custom file type filters; inferred from `defaultPath` if omitted
+- `filters`: `Array<{ name: string; extensions: string[] }>` *(optional)* - Custom file type filters; inferred from `defaultPath` if omitted
 
 **Returns:** `Promise<string | null>` - File path or null if cancelled
 
