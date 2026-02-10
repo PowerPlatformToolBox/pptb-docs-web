@@ -206,7 +206,7 @@ await toolboxAPI.fileSystem.writeText(
 
 ## User-Interactive Operations {{ anchor: true }}
 
-### `toolboxAPI.fileSystem.saveFile(filename, content)`
+### `toolboxAPI.fileSystem.saveFile(defaultPath, content, filters?)`
 
 Save content to a file with a user-selected location. Opens a native save dialog.
 
@@ -216,16 +216,31 @@ Save content to a file with a user-selected location. Opens a native save dialog
 
 **Parameters:**
 
-- `filename`: `string` - Suggested filename for the save dialog
-- `content`: `string` - Content to save
+- `defaultPath`: `string` - Suggested file name and path for the save dialog
+- `content`: `string | Buffer` - Content to save (text or binary)
+- `filters`: `FileDialogFilter[]` - Optional file type filters. If not provided, filters are auto-derived from the file extension
 
 **Returns:** `Promise<string | null>` - File path or null if cancelled
 
+**FileDialogFilter Interface:**
+
 ```typescript
+interface FileDialogFilter {
+  name: string // Display name for the filter (e.g., "JSON Files")
+  extensions: string[] // File extensions without dots (e.g., ["json", "txt"])
+}
+```
+
+```typescript
+// Save with custom filters
 const jsonData = { accounts: [], contacts: [] }
 const filePath = await toolboxAPI.fileSystem.saveFile(
   'export.json',
   JSON.stringify(jsonData, null, 2),
+  [
+    { name: 'JSON', extensions: ['json'] },
+    { name: 'Text', extensions: ['txt'] }
+  ]
 )
 
 if (filePath) {
@@ -238,6 +253,19 @@ if (filePath) {
   })
 } else {
   console.log('Save cancelled')
+}
+```
+
+```typescript
+// Save without filters (auto-derived from extension)
+const configXml = '<config><setting>value</setting></config>'
+const filePath = await toolboxAPI.fileSystem.saveFile(
+  'config.xml',
+  configXml
+)
+
+if (filePath) {
+  console.log('File saved to:', filePath)
 }
 ```
 
