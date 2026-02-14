@@ -26,7 +26,8 @@ export const sections = [
 Complete HTTP client for interacting with Microsoft Dataverse. {{ className: 'lead' }}
 
 <Note>
-  For complete TypeScript definitions, install the `@pptb/types` package: ```bash npm install --save-dev @pptb/types ```
+  For complete TypeScript definitions, install the `@pptb/types` package:
+  ```bash npm install --save-dev @pptb/types ```
 </Note>
 
 ## CRUD Operations {{ anchor: true }}
@@ -479,6 +480,7 @@ Returns the full OData service document as raw XML containing comprehensive meta
 **Returns:** `Promise<string>` Raw CSDL/EDMX XML document (typically 1-5MB)
 
 **What's included in the CSDL document:**
+
 - **EntityType** definitions (tables/entities)
 - **Property** elements (attributes/columns)
 - **NavigationProperty** elements (relationships)
@@ -504,32 +506,32 @@ const customActions = []
 actions.forEach((action) => {
   const actionName = action.getAttribute('Name')
   const isBound = action.getAttribute('IsBound') === 'true'
-  
+
   // Get parameters
   const parameters = []
   action.querySelectorAll('Parameter').forEach((param) => {
     parameters.push({
       name: param.getAttribute('Name'),
       type: param.getAttribute('Type'),
-      nullable: param.getAttribute('Nullable') !== 'false'
+      nullable: param.getAttribute('Nullable') !== 'false',
     })
   })
-  
+
   // Get return type
   const returnType = action.querySelector('ReturnType')
-  
+
   customActions.push({
     name: actionName,
     isBound,
     parameters,
-    returnType: returnType ? returnType.getAttribute('Type') : null
+    returnType: returnType ? returnType.getAttribute('Type') : null,
   })
 })
 
 console.log('Found', customActions.length, 'actions')
-customActions.forEach(action => {
+customActions.forEach((action) => {
   console.log(`- ${action.name} (${action.isBound ? 'Bound' : 'Unbound'})`)
-  action.parameters.forEach(param => {
+  action.parameters.forEach((param) => {
     console.log(`  Parameter: ${param.name} (${param.type})`)
   })
   if (action.returnType) {
@@ -546,33 +548,33 @@ functions.forEach((func) => {
   const funcName = func.getAttribute('Name')
   const isBound = func.getAttribute('IsBound') === 'true'
   const isComposable = func.getAttribute('IsComposable') === 'true'
-  
+
   // Get parameters
   const parameters = []
   func.querySelectorAll('Parameter').forEach((param) => {
     parameters.push({
       name: param.getAttribute('Name'),
       type: param.getAttribute('Type'),
-      nullable: param.getAttribute('Nullable') !== 'false'
+      nullable: param.getAttribute('Nullable') !== 'false',
     })
   })
-  
+
   // Get return type
   const returnType = func.querySelector('ReturnType')
-  
+
   customFunctions.push({
     name: funcName,
     isBound,
     isComposable,
     parameters,
-    returnType: returnType ? returnType.getAttribute('Type') : null
+    returnType: returnType ? returnType.getAttribute('Type') : null,
   })
 })
 
 console.log('Found', customFunctions.length, 'functions')
-customFunctions.forEach(func => {
+customFunctions.forEach((func) => {
   console.log(`- ${func.name} (${func.isBound ? 'Bound' : 'Unbound'})`)
-  func.parameters.forEach(param => {
+  func.parameters.forEach((param) => {
     console.log(`  Parameter: ${param.name} (${param.type})`)
   })
   if (func.returnType) {
@@ -588,12 +590,14 @@ function findAction(xmlDoc, actionName) {
       return {
         name: actionName,
         isBound: action.getAttribute('IsBound') === 'true',
-        parameters: Array.from(action.querySelectorAll('Parameter')).map(p => ({
-          name: p.getAttribute('Name'),
-          type: p.getAttribute('Type'),
-          nullable: p.getAttribute('Nullable') !== 'false'
-        })),
-        returnType: action.querySelector('ReturnType')?.getAttribute('Type')
+        parameters: Array.from(action.querySelectorAll('Parameter')).map(
+          (p) => ({
+            name: p.getAttribute('Name'),
+            type: p.getAttribute('Type'),
+            nullable: p.getAttribute('Nullable') !== 'false',
+          }),
+        ),
+        returnType: action.querySelector('ReturnType')?.getAttribute('Type'),
       }
     }
   }
@@ -611,27 +615,27 @@ console.log('Found', entityTypes.length, 'entity types')
 
 entityTypes.forEach((entityType) => {
   const name = entityType.getAttribute('Name')
-  
+
   // Get properties (columns)
   const properties = []
   entityType.querySelectorAll('Property').forEach((prop) => {
     properties.push({
       name: prop.getAttribute('Name'),
       type: prop.getAttribute('Type'),
-      nullable: prop.getAttribute('Nullable') !== 'false'
+      nullable: prop.getAttribute('Nullable') !== 'false',
     })
   })
-  
+
   // Get navigation properties (relationships)
   const navProps = []
   entityType.querySelectorAll('NavigationProperty').forEach((nav) => {
     navProps.push({
       name: nav.getAttribute('Name'),
       type: nav.getAttribute('Type'),
-      partner: nav.getAttribute('Partner')
+      partner: nav.getAttribute('Partner'),
     })
   })
-  
+
   console.log(`Entity: ${name}`)
   console.log(`  Properties: ${properties.length}`)
   console.log(`  Navigation Properties: ${navProps.length}`)
@@ -644,16 +648,16 @@ console.log('Found', complexTypes.length, 'complex types')
 complexTypes.forEach((complexType) => {
   const name = complexType.getAttribute('Name')
   const properties = []
-  
+
   complexType.querySelectorAll('Property').forEach((prop) => {
     properties.push({
       name: prop.getAttribute('Name'),
-      type: prop.getAttribute('Type')
+      type: prop.getAttribute('Type'),
     })
   })
-  
+
   console.log(`ComplexType: ${name}`)
-  properties.forEach(prop => {
+  properties.forEach((prop) => {
     console.log(`  ${prop.name}: ${prop.type}`)
   })
 })
@@ -662,14 +666,17 @@ complexTypes.forEach((complexType) => {
 function findActionsByReturnType(xmlDoc, returnType) {
   const actions = xmlDoc.querySelectorAll('Action')
   const matchingActions = []
-  
+
   actions.forEach((action) => {
     const actionReturnType = action.querySelector('ReturnType')
-    if (actionReturnType && actionReturnType.getAttribute('Type').includes(returnType)) {
+    if (
+      actionReturnType &&
+      actionReturnType.getAttribute('Type').includes(returnType)
+    ) {
       matchingActions.push(action.getAttribute('Name'))
     }
   })
-  
+
   return matchingActions
 }
 
@@ -678,11 +685,16 @@ console.log('Actions returning Guid:', actionsReturningGuid)
 ```
 
 <Note>
-  **Pro Tip:** The CSDL document is large (1-5MB). Consider caching it if you need to reference it multiple times, or use specific metadata endpoints like `getEntityMetadata()` or `getEntityRelatedMetadata()` for targeted queries.
+  **Pro Tip:** The CSDL document is large (1-5MB). Consider caching it if you
+  need to reference it multiple times, or use specific metadata endpoints like
+  `getEntityMetadata()` or `getEntityRelatedMetadata()` for targeted queries.
 </Note>
 
 <Note>
-  **XML Namespaces:** The CSDL document uses XML namespaces. When querying, you may need to handle namespaces appropriately. The examples above use simple `querySelectorAll()` which works for element names, but for more complex queries, consider using namespace-aware XML parsing.
+  **XML Namespaces:** The CSDL document uses XML namespaces. When querying, you
+  may need to handle namespaces appropriately. The examples above use simple
+  `querySelectorAll()` which works for element names, but for more complex
+  queries, consider using namespace-aware XML parsing.
 </Note>
 
 ### `dataverseAPI.getSolutions(selectColumns, connectionTarget?)`
@@ -717,7 +729,8 @@ const solutions = await dataverseAPI.getSolutions(['uniquename'], 'secondary')
 Power Platform ToolBox provides comprehensive metadata operations to programmatically create, read, update, and delete Dataverse schema elements including entities, attributes, relationships, and option sets.
 
 <Note>
-  **Important:** Always call `dataverseAPI.publishCustomizations()` after making metadata changes to apply them to your environment.
+  **Important:** Always call `dataverseAPI.publishCustomizations()` after making
+  metadata changes to apply them to your environment.
 </Note>
 
 ### `dataverseAPI.buildLabel(text, languageCode?)`
@@ -773,27 +786,30 @@ Create a new entity (table) in Dataverse.
 
 ```typescript
 // Create a custom entity
-const newEntity = await dataverseAPI.createEntityDefinition({
-  '@odata.type': 'Microsoft.Dynamics.CRM.EntityMetadata',
-  LogicalName: 'new_project',
-  DisplayName: dataverseAPI.buildLabel('Project'),
-  DisplayCollectionName: dataverseAPI.buildLabel('Projects'),
-  Description: dataverseAPI.buildLabel('Custom project tracking entity'),
-  OwnershipType: 'UserOwned', // UserOwned, TeamOwned, OrganizationOwned, None
-  IsActivity: false,
-  HasActivities: true,
-  HasNotes: true,
-  Attributes: [
-    {
-      '@odata.type': 'Microsoft.Dynamics.CRM.StringAttributeMetadata',
-      SchemaName: 'new_Name',
-      DisplayName: dataverseAPI.buildLabel('Project Name'),
-      RequiredLevel: { Value: 'ApplicationRequired' },
-      MaxLength: 100,
-      FormatName: { Value: 'Text' },
-    },
-  ],
-}, { solutionUniqueName: 'MyCustomSolution' })
+const newEntity = await dataverseAPI.createEntityDefinition(
+  {
+    '@odata.type': 'Microsoft.Dynamics.CRM.EntityMetadata',
+    LogicalName: 'new_project',
+    DisplayName: dataverseAPI.buildLabel('Project'),
+    DisplayCollectionName: dataverseAPI.buildLabel('Projects'),
+    Description: dataverseAPI.buildLabel('Custom project tracking entity'),
+    OwnershipType: 'UserOwned', // UserOwned, TeamOwned, OrganizationOwned, None
+    IsActivity: false,
+    HasActivities: true,
+    HasNotes: true,
+    Attributes: [
+      {
+        '@odata.type': 'Microsoft.Dynamics.CRM.StringAttributeMetadata',
+        SchemaName: 'new_Name',
+        DisplayName: dataverseAPI.buildLabel('Project Name'),
+        RequiredLevel: { Value: 'ApplicationRequired' },
+        MaxLength: 100,
+        FormatName: { Value: 'Text' },
+      },
+    ],
+  },
+  { solutionUniqueName: 'MyCustomSolution' },
+)
 
 console.log('Created entity with ID:', newEntity.id)
 
@@ -814,11 +830,17 @@ Update an existing entity's metadata.
 
 ```typescript
 // Update entity display name and description
-await dataverseAPI.updateEntityDefinition('new_project', {
-  DisplayName: dataverseAPI.buildLabel('Project Management'),
-  Description: dataverseAPI.buildLabel('Enhanced project tracking and management'),
-  HasNotes: false, // Disable notes
-}, { mergeLabels: true })
+await dataverseAPI.updateEntityDefinition(
+  'new_project',
+  {
+    DisplayName: dataverseAPI.buildLabel('Project Management'),
+    Description: dataverseAPI.buildLabel(
+      'Enhanced project tracking and management',
+    ),
+    HasNotes: false, // Disable notes
+  },
+  { mergeLabels: true },
+)
 
 await dataverseAPI.publishCustomizations('new_project')
 ```
@@ -948,11 +970,16 @@ Update an existing attribute's metadata.
 
 ```typescript
 // Update attribute display name and requirement level
-await dataverseAPI.updateAttribute('new_project', 'new_description', {
-  DisplayName: dataverseAPI.buildLabel('Project Details'),
-  RequiredLevel: { Value: 'ApplicationRequired' },
-  MaxLength: 4000, // Increase max length
-}, { mergeLabels: true })
+await dataverseAPI.updateAttribute(
+  'new_project',
+  'new_description',
+  {
+    DisplayName: dataverseAPI.buildLabel('Project Details'),
+    RequiredLevel: { Value: 'ApplicationRequired' },
+    MaxLength: 4000, // Increase max length
+  },
+  { mergeLabels: true },
+)
 
 await dataverseAPI.publishCustomizations('new_project')
 ```
@@ -998,7 +1025,7 @@ const customerLookup = await dataverseAPI.createPolymorphicLookupAttribute(
     Description: dataverseAPI.buildLabel('The customer for this order'),
     RequiredLevel: { Value: 'ApplicationRequired' },
     Targets: ['account', 'contact'], // Can reference both entities
-  }
+  },
 )
 
 // Create a Regarding lookup for notes (multiple custom entities)
@@ -1009,14 +1036,16 @@ const regardingLookup = await dataverseAPI.createPolymorphicLookupAttribute(
     DisplayName: dataverseAPI.buildLabel('Regarding'),
     RequiredLevel: { Value: 'None' },
     Targets: ['new_project', 'new_task', 'new_milestone'],
-  }
+  },
 )
 
 await dataverseAPI.publishCustomizations()
 ```
 
 <Note>
-  **Alternative:** For customer lookups specifically, you can use the `CreateCustomerRelationships` action via `dataverseAPI.execute()` which creates both the lookup and relationships in a single operation.
+  **Alternative:** For customer lookups specifically, you can use the
+  `CreateCustomerRelationships` action via `dataverseAPI.execute()` which
+  creates both the lookup and relationships in a single operation.
 </Note>
 
 ## Relationship Operations {{ anchor: true }}
@@ -1056,7 +1085,7 @@ const oneToManyRelationship = await dataverseAPI.createRelationship({
   },
 })
 
-// Create a Many-to-Many (N:N) relationship  
+// Create a Many-to-Many (N:N) relationship
 // Projects (N) <-> Users (N) for team members
 const manyToManyRelationship = await dataverseAPI.createRelationship({
   '@odata.type': 'Microsoft.Dynamics.CRM.ManyToManyRelationshipMetadata',
@@ -1086,7 +1115,7 @@ Update an existing relationship's metadata.
 // Update cascade configuration for a relationship
 // First retrieve the current relationship
 const relationship = await dataverseAPI.queryData(
-  `RelationshipDefinitions(SchemaName='new_account_project')`
+  `RelationshipDefinitions(SchemaName='new_account_project')`,
 )
 
 // Update cascade delete behavior
@@ -1129,37 +1158,40 @@ Create a new global option set (choice) that can be shared across multiple entit
 
 ```typescript
 // Create a global option set for project status
-const globalOptionSet = await dataverseAPI.createGlobalOptionSet({
-  '@odata.type': 'Microsoft.Dynamics.CRM.OptionSetMetadata',
-  Name: 'new_projectstatus',
-  DisplayName: dataverseAPI.buildLabel('Project Status'),
-  Description: dataverseAPI.buildLabel('Status values for projects'),
-  OptionSetType: 'Picklist',
-  IsGlobal: true,
-  Options: [
-    {
-      Value: 1,
-      Label: dataverseAPI.buildLabel('Planning'),
-      Description: dataverseAPI.buildLabel('Project is in planning phase'),
-    },
-    {
-      Value: 2,
-      Label: dataverseAPI.buildLabel('In Progress'),
-    },
-    {
-      Value: 3,
-      Label: dataverseAPI.buildLabel('On Hold'),
-    },
-    {
-      Value: 4,
-      Label: dataverseAPI.buildLabel('Completed'),
-    },
-    {
-      Value: 5,
-      Label: dataverseAPI.buildLabel('Cancelled'),
-    },
-  ],
-}, { solutionUniqueName: 'MyCustomSolution' })
+const globalOptionSet = await dataverseAPI.createGlobalOptionSet(
+  {
+    '@odata.type': 'Microsoft.Dynamics.CRM.OptionSetMetadata',
+    Name: 'new_projectstatus',
+    DisplayName: dataverseAPI.buildLabel('Project Status'),
+    Description: dataverseAPI.buildLabel('Status values for projects'),
+    OptionSetType: 'Picklist',
+    IsGlobal: true,
+    Options: [
+      {
+        Value: 1,
+        Label: dataverseAPI.buildLabel('Planning'),
+        Description: dataverseAPI.buildLabel('Project is in planning phase'),
+      },
+      {
+        Value: 2,
+        Label: dataverseAPI.buildLabel('In Progress'),
+      },
+      {
+        Value: 3,
+        Label: dataverseAPI.buildLabel('On Hold'),
+      },
+      {
+        Value: 4,
+        Label: dataverseAPI.buildLabel('Completed'),
+      },
+      {
+        Value: 5,
+        Label: dataverseAPI.buildLabel('Cancelled'),
+      },
+    ],
+  },
+  { solutionUniqueName: 'MyCustomSolution' },
+)
 
 console.log('Created global option set:', globalOptionSet.id)
 
@@ -1167,7 +1199,7 @@ await dataverseAPI.publishCustomizations()
 
 // Retrieve the created option set
 const optionSet = await dataverseAPI.queryData(
-  "GlobalOptionSetDefinitions(Name='new_projectstatus')"
+  "GlobalOptionSetDefinitions(Name='new_projectstatus')",
 )
 console.log('Option set details:', optionSet)
 ```
@@ -1185,10 +1217,16 @@ Update an existing global option set.
 
 ```typescript
 // Update global option set display name
-await dataverseAPI.updateGlobalOptionSet('new_projectstatus', {
-  DisplayName: dataverseAPI.buildLabel('Project Lifecycle Status'),
-  Description: dataverseAPI.buildLabel('Tracks the full lifecycle of a project'),
-}, { mergeLabels: true })
+await dataverseAPI.updateGlobalOptionSet(
+  'new_projectstatus',
+  {
+    DisplayName: dataverseAPI.buildLabel('Project Lifecycle Status'),
+    Description: dataverseAPI.buildLabel(
+      'Tracks the full lifecycle of a project',
+    ),
+  },
+  { mergeLabels: true },
+)
 
 await dataverseAPI.publishCustomizations()
 ```
@@ -1247,7 +1285,9 @@ await dataverseAPI.publishCustomizations()
 ```
 
 <Note>
-  **Status Columns:** For status choice columns (statuscode), use the `InsertStatusValue` action via `dataverseAPI.execute()` instead, which requires a StateCode parameter.
+  **Status Columns:** For status choice columns (statuscode), use the
+  `InsertStatusValue` action via `dataverseAPI.execute()` instead, which
+  requires a StateCode parameter.
 </Note>
 
 ### `dataverseAPI.updateOptionValue(params, connectionTarget?)`
@@ -1352,21 +1392,24 @@ const boundResult = await dataverseAPI.execute({
   parameters: {
     BusinessUnit: 'businessunits(bu-guid)',
     ReassignPrincipal: 'systemusers(user-guid)',
-    DoNotMoveAllRecords: true
-  }
+    DoNotMoveAllRecords: true,
+  },
 })
 
 // Unbound function - global operation
 const unboundResult = await dataverseAPI.execute({
   operationName: 'WhoAmI',
-  operationType: 'function'
+  operationType: 'function',
 })
 
 // Multi-connection tool using secondary connection
-const unboundResultSecondary = await dataverseAPI.execute({
-  operationName: 'WhoAmI',
-  operationType: 'function'
-}, 'secondary')
+const unboundResultSecondary = await dataverseAPI.execute(
+  {
+    operationName: 'WhoAmI',
+    operationType: 'function',
+  },
+  'secondary',
+)
 ```
 
 ## Customizations {{ anchor: true }}
