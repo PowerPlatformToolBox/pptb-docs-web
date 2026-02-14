@@ -604,9 +604,38 @@ function findAction(xmlDoc, actionName) {
   return null
 }
 
-const whoAmIAction = findAction(xmlDoc, 'WhoAmI')
-if (whoAmIAction) {
-  console.log('WhoAmI action details:', whoAmIAction)
+// Search for a common Dataverse action like GrantAccess
+const grantAccessAction = findAction(xmlDoc, 'GrantAccess')
+if (grantAccessAction) {
+  console.log('GrantAccess action details:', grantAccessAction)
+  console.log('Parameters:', grantAccessAction.parameters)
+}
+
+// You can also search for functions using a similar pattern
+function findFunction(xmlDoc, functionName) {
+  const functions = xmlDoc.querySelectorAll('Function')
+  for (const func of functions) {
+    if (func.getAttribute('Name') === functionName) {
+      return {
+        name: functionName,
+        isBound: func.getAttribute('IsBound') === 'true',
+        isComposable: func.getAttribute('IsComposable') === 'true',
+        parameters: Array.from(func.querySelectorAll('Parameter')).map((p) => ({
+          name: p.getAttribute('Name'),
+          type: p.getAttribute('Type'),
+          nullable: p.getAttribute('Nullable') !== 'false',
+        })),
+        returnType: func.querySelector('ReturnType')?.getAttribute('Type'),
+      }
+    }
+  }
+  return null
+}
+
+// WhoAmI is a function, not an action
+const whoAmIFunction = findFunction(xmlDoc, 'WhoAmI')
+if (whoAmIFunction) {
+  console.log('WhoAmI function details:', whoAmIFunction)
 }
 
 // Example 4: Extract entity type definitions
