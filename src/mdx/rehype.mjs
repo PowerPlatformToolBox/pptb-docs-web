@@ -8,7 +8,8 @@ import { visit } from 'unist-util-visit'
 function rehypeParseCodeBlocks() {
   return (tree) => {
     visit(tree, 'element', (node, _nodeIndex, parentNode) => {
-      if (node.tagName === 'code') {
+      if (node.tagName === 'code' && parentNode?.tagName === 'pre') {
+        parentNode.properties = parentNode.properties ?? {}
         parentNode.properties.language = node.properties.className
           ? node.properties?.className[0]?.replace(/^language-/, '')
           : 'txt'
