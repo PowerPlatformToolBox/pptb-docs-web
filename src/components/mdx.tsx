@@ -56,10 +56,48 @@ export function WarningIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-export function Note({ children }: { children: React.ReactNode }) {
+type NoteFlavour = 'information' | 'warning' | 'important'
+
+const noteStyles: Record<NoteFlavour, { container: string; icon: string }> = {
+  information: {
+    container:
+      'border-emerald-500/20 bg-emerald-50/50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:var(--color-emerald-300)] dark:[--tw-prose-links:var(--color-white)]',
+    icon: 'fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200',
+  },
+  warning: {
+    container:
+      'border-amber-500/20 bg-amber-50/50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/5 dark:text-amber-200 dark:[--tw-prose-links-hover:var(--color-amber-300)] dark:[--tw-prose-links:var(--color-white)]',
+    icon: 'fill-amber-500 dark:fill-amber-200/20 dark:stroke-amber-200',
+  },
+  important: {
+    container:
+      'border-red-500/20 bg-red-50/50 text-red-900 dark:border-red-500/30 dark:bg-red-500/5 dark:text-red-200 dark:[--tw-prose-links-hover:var(--color-red-300)] dark:[--tw-prose-links:var(--color-white)]',
+    icon: 'fill-red-500 dark:fill-red-200/20 dark:stroke-red-200',
+  },
+}
+
+export function Note({
+  children,
+  type,
+}: {
+  children: React.ReactNode
+  type?: NoteFlavour
+}) {
+  const variant = type ?? 'information'
+  const styles = noteStyles[variant]
+
   return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 p-4 text-sm/6 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:var(--color-emerald-300)] dark:[--tw-prose-links:var(--color-white)]">
-      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200" />
+    <div
+      className={clsx(
+        'my-6 flex gap-2.5 rounded-2xl border p-4 text-sm/6',
+        styles.container,
+      )}
+    >
+      {variant === 'information' ? (
+        <InfoIcon className={clsx('mt-1 h-4 w-4 flex-none', styles.icon)} />
+      ) : (
+        <WarningIcon className={clsx('mt-1 h-4 w-4 flex-none', styles.icon)} />
+      )}
       <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {children}
       </div>
@@ -68,14 +106,11 @@ export function Note({ children }: { children: React.ReactNode }) {
 }
 
 export function Warning({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-red-500/20 bg-red-50/50 p-4 text-sm/6 text-red-900 dark:border-red-500/30 dark:bg-red-500/5 dark:text-red-200 dark:[--tw-prose-links-hover:var(--color-red-300)] dark:[--tw-prose-links:var(--color-white)]">
-      <WarningIcon className="stroke-red mt-1 h-4 w-4 flex-none fill-red-500 dark:fill-red-200/20 dark:stroke-red-200" />
-      <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
-        {children}
-      </div>
-    </div>
-  )
+  return <Note type="warning">{children}</Note>
+}
+
+export function Important({ children }: { children: React.ReactNode }) {
+  return <Note type="important">{children}</Note>
 }
 
 export function Row({ children }: { children: React.ReactNode }) {
