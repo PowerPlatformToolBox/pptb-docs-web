@@ -67,15 +67,21 @@ To enable this feature, you must update the package.json file to indicate your t
   "displayName": " My Awesome Tool",
   "description": "A Power Platform Tool Box tool to do awesome things",
   "main": "index.html",
+  "icon": "icons/test.svg",
   "contributors": [
     "Awesome Developer "
   ],
   // Other properties...
   // This section enables multiple connections
   "features": {
-    "multiConnection": "required" or "optional"
+    "multiConnection": "required" or "optional",
+    "minAPI": "1.2.0"
   },
 ```
+
+<Note>
+  Use top-level `icon` for your SVG icon path (relative to the `dist` root, for example `icons/test.svg`). To ensure the icon adapts to dark/light theme, set SVG fill to `currentColor`.
+</Note>
 
 When the user opens your tool, they are presented with the option to connect to a primary and secondary environment.
 

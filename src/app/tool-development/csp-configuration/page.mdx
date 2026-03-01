@@ -77,6 +77,10 @@ Tools can specify CSP exceptions in their `package.json` manifest:
   "version": "1.0.0",
   "description": "Generate Entity Relationship Diagrams from Dataverse",
   "author": "Power Maverick",
+  "icon": "icons/test.svg",
+  "features": {
+    "minAPI": "1.2.0"
+  },
   "cspExceptions": {
     "connect-src": ["https://*.dynamics.com", "https://*.crm*.dynamics.com"],
     "script-src": ["https://cdn.jsdelivr.net"],
@@ -85,6 +89,7 @@ Tools can specify CSP exceptions in their `package.json` manifest:
   }
 }
 ```
+<Note>Use an SVG icon and set `fill="currentColor"` so the icon is theme-aware in ToolBox.</Note>
 <Note>Once the CSP Exception is added, the tool must be reloaded to trigger the consent dialog on next launch.</Note>
 
 ## Supported CSP Directives {{ anchor: true }}
@@ -327,7 +332,10 @@ Here's a complete example for a tool that needs Dataverse access and external li
   "description": "A tool that does amazing things with Dataverse",
   "author": "Your Name",
   "main": "dist/index.html",
-  "icon": "icon.png",
+  "icon": "icons/test.svg",
+  "features": {
+    "minAPI": "1.2.0"
+  },
   "cspExceptions": {
     "connect-src": [
       "https://*.dynamics.com",

@@ -116,10 +116,22 @@ my-tool/
   "version": "1.0.0",
   "displayName": "My Tool",
   "description": "Description of what your tool does",
+  "icon": "icons/test.svg",
+  "features": {
+    "minAPI": "1.2.0"
+  },
   "author": "Your Name",
   "keywords": ["powerplatform", "dataverse", "toolbox"]
 }
 ```
+
+<Note>
+  `iconURL` is no longer supported under `configurations`. Use top-level `icon` and set a path relative to the `dist` root (for example, `icons/test.svg`).
+</Note>
+
+<Note>
+  Make your SVG theme-aware by setting `fill="currentColor"` (or `stroke="currentColor"`).
+</Note>
 
 ### Install Type Definitions
 
@@ -248,6 +260,10 @@ Ensure your `package.json` has all required fields:
   "displayName": "My Tool",
   "description": "Clear description of what your tool does",
   "main": "index.html",
+  "icon": "icons/test.svg",
+  "features": {
+    "minAPI": "1.2.0"
+  },
   "author": "Your Name",
   "keywords": ["powerplatform", "dataverse", "toolbox"],
   "repository": {

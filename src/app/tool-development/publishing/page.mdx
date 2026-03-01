@@ -53,6 +53,7 @@ Ensure all required fields are present:
   "displayName": "Your Tool Name",
   "description": "Clear, concise description of what your tool does",
   "main": "index.html",
+  "icon": "icons/test.svg",
   "license": "MIT",
   "contributors": [
     {
@@ -80,10 +81,19 @@ Ensure all required fields are present:
   },
   "features": {
     // Optional section to declare special features your tool needs
-    "multiConnection": "optional" // or "required" if your tool needs multiple connections
+    "multiConnection": "optional", // or "required" if your tool needs multiple connections
+    "minAPI": "1.2.0" // minimum supported ToolBox API version
   }
 }
 ```
+
+<Note>
+  `iconURL` under `configurations` is no longer supported. Use top-level `icon` instead, with an SVG path relative to your `dist` root (for example, `icons/test.svg`).
+</Note>
+
+<Note>
+  To support light and dark themes, your SVG icon should use `fill="currentColor"` (or `stroke="currentColor"` as needed).
+</Note>
 
 <Properties>
   <Property name="name" type="string" required>
@@ -98,6 +108,10 @@ Ensure all required fields are present:
   </Property>
   <Property name="main" type="string" required>
     Entry point file (usually `index.html`)
+  </Property>
+  <Property name="icon" type="string" required>
+    Relative path to your tool icon SVG from the `dist` root (for example,
+    `icons/test.svg`)
   </Property>
   <Property name="contributors" type="array" required>
     List of authors/contributors with names and optional URLs
@@ -114,7 +128,7 @@ Ensure all required fields are present:
     Content Security Policy exceptions if needed
   </Property>
   <Property name="features" type="object">
-    Special features your tool requires (e.g., multiConnection)
+    Special features your tool requires (e.g., `multiConnection`, `minAPI`)
   </Property>
 </Properties>
 
@@ -129,6 +143,7 @@ npm run build
 Verify that your `dist/` directory contains:
 
 - `index.html` (entry point)
+- `icons/test.svg` (or similar SVG path referenced by top-level `icon`)
 - All compiled JavaScript/CSS files
 - Any required assets (images, icons, etc.)
 
