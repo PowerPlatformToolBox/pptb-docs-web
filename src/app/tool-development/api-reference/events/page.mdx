@@ -25,12 +25,12 @@ toolboxAPI.events.on((details, payload) => {
     case 'connection:updated':
       refreshConnectionInfo()
       break
-    case 'connection:activated':
-      handleConnectionActivated(payload)
+    case 'terminal:command:completed':
+      handleCommandCompleted(payload.data)
       break
     case 'settings:updated':
-      if (payload && payload.theme) {
-        applyTheme(payload.theme)
+      if (payload.data && payload.data.theme) {
+        applyTheme(payload.data.theme)
       }
       break
   }
@@ -39,108 +39,94 @@ toolboxAPI.events.on((details, payload) => {
 
 **Parameters:**
 
-- `handler`: `(event: string, payload?: any) => void` - Callback function to handle events
+- `handler`: `(event: any, payload: ToolBoxEventPayload) => void` - Callback function to handle events
+
+**ToolBoxEventPayload:**
+
+```typescript
+interface ToolBoxEventPayload {
+  event: ToolBoxEvent
+  data: unknown
+  timestamp: string
+}
+```
 
 ## Event Types {{ anchor: true }}
 
 The following events are available for subscription:
 
-### `connection:updated`
+### `tool:loaded` / `tool:unloaded`
 
-Fired when the active connection changes. This happens when a user switches to a different Dataverse connection.
-
-**Payload:** Connection details
+Fired when a tool instance is loaded or unloaded.
 
 ```typescript
-toolboxAPI.events.on((event, payload) => {
-  if (event === 'connection:updated') {
-    console.log('Connection changed to:', payload.name)
-    // Refresh data from new connection
-    loadData()
+toolboxAPI.events.on((_, payload) => {
+  if (payload.event === 'tool:loaded') {
+    initializeTool()
+  }
+
+  if (payload.event === 'tool:unloaded') {
+    cleanupResources()
   }
 })
 ```
 
-### `connection:activated`
+### `connection:created` / `connection:updated` / `connection:deleted`
 
-Fired when a connection becomes active. This happens when a user connects to a Dataverse environment.
-
-**Payload:** Connection details
+Fired when Dataverse connections are created, updated, or deleted.
 
 ```typescript
-toolboxAPI.events.on((event, payload) => {
-  if (event === 'connection:activated') {
-    console.log('Connection activated:', payload.name)
-    // Initialize tool with connection
-    initializeWithConnection(payload)
-  }
-})
-```
-
-### `connection:deactivated`
-
-Fired when a connection is deactivated or disconnected.
-
-**Payload:** None
-
-```typescript
-toolboxAPI.events.on((event) => {
-  if (event === 'connection:deactivated') {
-    console.log('Connection deactivated')
-    // Clear cached data
-    clearCache()
+toolboxAPI.events.on((_, payload) => {
+  if (payload.event === 'connection:updated') {
+    console.log('Connection event:', payload.data)
+    refreshConnectionInfo()
   }
 })
 ```
 
 ### `settings:updated`
 
-Fired when settings are updated, including theme changes.
-
-**Payload:** Updated settings object (may include `theme` property)
+Fired when tool settings are changed.
 
 ```typescript
-toolboxAPI.events.on((event, payload) => {
-  if (event === 'settings:updated') {
-    console.log('Settings updated:', payload)
-    
-    if (payload && payload.theme) {
-      // Apply theme changes
-      document.body.classList.remove('theme-light', 'theme-dark')
-      document.body.classList.add(`theme-${payload.theme}`)
-    }
+toolboxAPI.events.on((_, payload) => {
+  if (payload.event === 'settings:updated') {
+    console.log('Settings updated:', payload.data)
   }
 })
 ```
 
-### `tool:activated`
+### `notification:shown`
 
-Fired when your tool's tab becomes active (when user switches to your tool).
-
-**Payload:** None
+Fired when a notification is displayed.
 
 ```typescript
-toolboxAPI.events.on((event) => {
-  if (event === 'tool:activated') {
-    console.log('Tool activated')
-    // Refresh UI or check for updates
-    refreshUI()
+toolboxAPI.events.on((_, payload) => {
+  if (payload.event === 'notification:shown') {
+    console.log('Notification shown:', payload.data)
   }
 })
 ```
 
-### `tool:deactivated`
+### `terminal:created` / `terminal:closed` / `terminal:output` / `terminal:command:completed` / `terminal:error`
 
-Fired when your tool's tab is deactivated (when user switches away from your tool).
-
-**Payload:** None
+Fired for terminal lifecycle, output streaming, command completion, and terminal errors.
 
 ```typescript
-toolboxAPI.events.on((event) => {
-  if (event === 'tool:deactivated') {
-    console.log('Tool deactivated')
-    // Pause expensive operations
-    pausePolling()
+toolboxAPI.events.on((_, payload) => {
+  switch (payload.event) {
+    case 'terminal:created':
+      console.log('Terminal created:', payload.data)
+      break
+    case 'terminal:output':
+      console.log('Terminal output:', payload.data)
+      break
+    case 'terminal:command:completed':
+      console.log('Command completed:', payload.data)
+      break
+    case 'terminal:error':
+      console.error('Terminal error:', payload.data)
+      break
   }
 })
 ```
@@ -197,16 +183,16 @@ Always wrap event handler logic in try-catch blocks:
 ```typescript
 toolboxAPI.events.on((event, payload) => {
   try {
-    switch (event) {
+    switch (payload.event) {
       case 'connection:updated':
         refreshData()
         break
       case 'settings:updated':
-        applySettings(payload)
+        applySettings(payload.data)
         break
     }
   } catch (error) {
-    console.error('Error handling event:', event, error)
+    console.error('Error handling event:', payload.event, error)
   }
 })
 ```

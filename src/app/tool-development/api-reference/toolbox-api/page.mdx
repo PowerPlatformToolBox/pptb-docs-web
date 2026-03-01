@@ -9,6 +9,7 @@ export const sections = [
   { title: 'Secondary Connections', id: 'secondary-connections' },
   { title: 'Utils', id: 'utils' },
   { title: 'Terminal', id: 'terminal' },
+  { title: 'Tool Context', id: 'tool-context' },
 ]
 
 # ToolBox API
@@ -33,7 +34,7 @@ const connection = await toolboxAPI.connections.getActiveConnection()
 if (connection) {
   console.log('Connected to:', connection.name)
   console.log('Environment:', connection.environment)
-  console.log('API URL:', connection.apiUrl)
+  console.log('URL:', connection.url)
 } else {
   console.log('No active connection')
 }
@@ -46,11 +47,10 @@ interface DataverseConnection {
   id: string // Unique identifier of the connection
   name: string // Friendly name of the connection
   url: string // Base URL of the Dataverse instance
-  environment: string // Dev | Test | UAT | Prod - Defines the type as established by the user
-  clientId: string // Application (client) ID used for authentication
-  tenantId: string // Tenant ID of the Azure AD tenant
+  environment: 'Dev' | 'Test' | 'UAT' | 'Production' // Environment classification
   createdAt: string // ISO date string of when the connection was created
-  lastUsedAt: string // ISO date string of when the connection was last used
+  lastUsedAt?: string // ISO date string of when the connection was last used
+  isActive?: boolean // @deprecated legacy field retained for backwards compatibility
 }
 ```
 
@@ -87,7 +87,7 @@ When the user opens your tool, they are presented with the option to connect to 
 
 ### `toolboxAPI.connections.getSecondaryConnection()`
 
-Returns the currently active secoondary connection or null if none is configured.
+Returns the currently active secondary connection or null if none is configured.
 
 ```typescript
 const secondaryConnection =
@@ -96,7 +96,7 @@ const secondaryConnection =
 if (secondaryConnection) {
   console.log('Connected to:', secondaryConnection.name)
   console.log('Environment:', secondaryConnection.environment)
-  console.log('API URL:', secondaryConnection.apiUrl)
+  console.log('URL:', secondaryConnection.url)
 } else {
   console.log('No active secondary connection')
 }
@@ -109,11 +109,10 @@ interface DataverseConnection {
   id: string // Unique identifier of the connection
   name: string // Friendly name of the connection
   url: string // Base URL of the Dataverse instance
-  environment: string // Dev | Test | UAT | Prod - Defines the type as established by the user
-  clientId: string // Application (client) ID used for authentication
-  tenantId: string // Tenant ID of the Azure AD tenant
+  environment: 'Dev' | 'Test' | 'UAT' | 'Production' // Environment classification
   createdAt: string // ISO date string of when the connection was created
-  lastUsedAt: string // ISO date string of when the connection was last used
+  lastUsedAt?: string // ISO date string of when the connection was last used
+  isActive?: boolean // @deprecated legacy field retained for backwards compatibility
 }
 ```
 
@@ -278,6 +277,38 @@ Close a terminal.
 ```typescript
 await toolboxAPI.terminal.close(terminal.id)
 ```
+
+## Tool Context {{ anchor: true }}
+
+### `toolboxAPI.getToolContext()`
+
+Returns the current tool context used by the framework.
+
+```typescript
+const context = await toolboxAPI.getToolContext()
+
+console.log('Tool ID:', context.toolId)
+console.log('Instance ID:', context.instanceId)
+console.log('Primary URL:', context.connectionUrl)
+console.log('Secondary URL:', context.secondaryConnectionUrl)
+```
+
+**Returns:** `Promise<ToolContext>`
+
+```typescript
+interface ToolContext {
+  toolId: string | null
+  instanceId?: string | null
+  connectionUrl: string | null
+  connectionId?: string | null
+  secondaryConnectionUrl?: string | null
+  secondaryConnectionId?: string | null
+}
+```
+
+<Note>
+  `ToolContext` intentionally does not contain access tokens. Use `dataverseAPI` for authenticated Dataverse operations.
+</Note>
 
 <div className="not-prose mt-6 mb-16 flex gap-3">
   <Button href="/tool-development/api-reference/events" arrow="right">

@@ -91,7 +91,7 @@ if (await toolboxAPI.fileSystem.exists(configPath)) {
 
 ### `toolboxAPI.fileSystem.stat(path)`
 
-Get metadata about a file or directory. Properly handles symlinks.
+Get metadata about a file or directory.
 
 **Parameters:**
 
@@ -114,13 +114,13 @@ console.log('Modified:', new Date(stats.mtime))
 interface FileStats {
   type: 'file' | 'directory' // Type of the path
   size: number // Size in bytes
-  mtime: number // Last modified timestamp (milliseconds since epoch)
+  mtime: string // Last modified timestamp (ISO string)
 }
 ```
 
 ### `toolboxAPI.fileSystem.readDirectory(path)`
 
-List the contents of a directory. Returns only files and directories, excludes symlinks.
+List the contents of a directory.
 
 **Parameters:**
 
@@ -282,6 +282,9 @@ Open a native dialog to select either a file or a folder and return the chosen p
 - `options` - Optional configuration object
   - `type`: `'file' | 'folder'` - Type of selection dialog
   - `title`: `string` - Dialog window title
+  - `message`: `string` - Message shown in the dialog
+  - `buttonLabel`: `string` - Custom label for the confirm button
+  - `defaultPath`: `string` - Initial file/folder path
   - `filters`: `Array<{ name: string; extensions: string[] }>` - File filters (file dialogs only)
 
 **Returns:** `Promise<string | null>` - Selected path or null if cancelled
