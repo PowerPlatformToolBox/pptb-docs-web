@@ -87,11 +87,11 @@ Ensure all required fields are present:
 }
 ```
 
-<Note>
+<Note type="important">
   `iconURL` under `configurations` is no longer supported. Use top-level `icon` instead, with an SVG path relative to your `dist` root (for example, `icons/test.svg`).
 </Note>
 
-<Note>
+<Note type="warning">
   To support light and dark themes, your SVG icon should use `fill="currentColor"` (or `stroke="currentColor"` as needed).
 </Note>
 
@@ -178,7 +178,7 @@ npm publish --access public
 npm publish
 ```
 
-<Note>
+<Note type="important">
   **Scoped packages** (e.g., `@myorg/tool-name`) require the `--access public`
   flag to be publicly accessible.
 </Note>
@@ -279,7 +279,7 @@ npm run build
 npm publish --access public
 ```
 
-<Note>
+<Note type="warning">
   The ToolBox registry automatically syncs with npm. Users will receive update
   notifications when new versions are published.
 </Note>

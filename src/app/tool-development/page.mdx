@@ -27,14 +27,14 @@ Tools are web applications that run in isolated environments and communicate wit
 - **Context-Aware**: Tool ID and connection context automatically managed
 - **Type-Safe**: Full TypeScript support with `@pptb/types` package
 
-<Note>
+<Note type="warning">
   If you are planning on respectfully cloning a [XrmToolBox tool](https://www.xrmtoolbox.com/), we ask you to
   reach out to the original author *(if you are not the author)* This allows for
   collaboration and honours the great respect we have for Tanguy and the other
   tool makers.
 </Note>
 
-<Note>
+<Note type="warning">
   We strongly encourage sharing and learning from each other. Our [Discord server](
   https://discord.gg/yHXdyuqWva) is a great place to discuss tool development,
   share ideas, and get help from the community.
@@ -64,12 +64,12 @@ Complete HTTP client for Dataverse:
 
 ## Quick Start {{ anchor: true }}
 
-<Note>
+<Note type="important">
   This guide assumes basic knowledge of web development with HTML, CSS, and
   JavaScript/TypeScript.
 </Note>
 
-<Note>
+<Note type="warning">
   Sample tools, using the supported frameworks are available on our GitHub
   repository: https://github.com/PowerPlatformToolBox/sample-tools This also
   contains example code of utilising the PPTB APIs.
@@ -125,11 +125,11 @@ my-tool/
 }
 ```
 
-<Note>
+<Note type="important">
   `iconURL` is no longer supported under `configurations`. Use top-level `icon` and set a path relative to the `dist` root (for example, `icons/test.svg`).
 </Note>
 
-<Note>
+<Note type="warning">
   Make your SVG theme-aware by setting `fill="currentColor"` (or `stroke="currentColor"`).
 </Note>
 

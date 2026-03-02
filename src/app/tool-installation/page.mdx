@@ -42,7 +42,7 @@ The Tools Marketplace provides a centralized catalog of available tools:
    - Screenshots (if available)
 4. Click **"Install"** to add the tool to your PPTB installation
 
-<Note>
+<Note type="warning">
   Tools are downloaded as pre-built packages from the PPTB registry. No npm or
   pnpm installation required on your machine.
 </Note>
@@ -56,7 +56,7 @@ For developers or private tools, PPTB supports installing directly from npm pack
   purposes only. Use the marketplace whenever possible.
 </Warning>
 
-<Note>
+<Note type="important">
   Both these methods require the Show Debug Setting to be enabled in Settings
   menu.
 </Note>
@@ -84,7 +84,7 @@ For tool developers
 5. PPTB installs the local tool
 6. Tool loads after installation
 
-<Note>
+<Note type="warning">
   Use this method for testing local tools during development or installing
   private npm packages not available in the marketplace.
 </Note>
@@ -114,7 +114,7 @@ The **Installed Tools** panel shows all installed tools:
 3. New version of the tool will be downloaded and update old version
 4. The new version of the tool will be available
 
-<Note>
+<Note type="warning">
   Updates are atomic - if an update fails, the previous version remains
   installed.
 </Note>
@@ -173,7 +173,7 @@ Review the requested permissions carefully before accepting.
 
 Additional details on permissions, please see the Tool Developer documentation [here](/tool-development/csp-configuration).
 
-<Note>
+<Note type="important">
   If you decline, the tool won't load. If you accept, your choice is saved and
   you won't see the dialog again for that tool, unless the permissions requested
   change.
@@ -221,7 +221,7 @@ Requests: font-src from https://fonts.googleapis.com
 Reason: Uses custom web fonts for professional appearance
 ```
 
-<Note>
+<Note type="warning">
   Permissions are tool-specific, not global. Granting access for one tool
   doesn't affect other tools' permissions.
 </Note>

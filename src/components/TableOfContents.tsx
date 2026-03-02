@@ -23,23 +23,28 @@ export function TableOfContents() {
 
     const headingElements = main.querySelectorAll('h2, h3, h4')
     const extractedHeadings: Heading[] = []
+    const headingIdCounts = new Map<string, number>()
 
     headingElements.forEach((element) => {
       const level = parseInt(element.tagName[1])
-      const id =
+      const baseId =
         element.id ||
         element.textContent?.toLowerCase().replace(/\s+/g, '-') ||
         ''
 
-      if (id && element.textContent) {
+      if (baseId && element.textContent) {
+        const seen = headingIdCounts.get(baseId) ?? 0
+        const id = seen === 0 ? baseId : `${baseId}-${seen + 1}`
+        headingIdCounts.set(baseId, seen + 1)
+
         extractedHeadings.push({
           id,
           title: element.textContent,
           level,
         })
 
-        // Set id on element if not already set
-        if (!element.id) {
+        // Ensure id on element is unique for valid hash links and React keys
+        if (element.id !== id) {
           element.id = id
         }
       }

@@ -25,7 +25,7 @@ export const sections = [
 
 Complete HTTP client for interacting with Microsoft Dataverse. {{ className: 'lead' }}
 
-<Note>
+<Note type="warning">
   For complete TypeScript definitions, install the `@pptb/types` package:
   ```bash npm install --save-dev @pptb/types ```
 </Note>
@@ -734,13 +734,13 @@ const actionsReturningGuid = findActionsByReturnType(xmlDoc, 'Edm.Guid')
 console.log('Actions returning Guid:', actionsReturningGuid)
 ```
 
-<Note>
+<Note type="warning">
   **Pro Tip:** The CSDL document is large (1-5MB). Consider caching it if you
   need to reference it multiple times, or use specific metadata endpoints like
   `getEntityMetadata()` or `getEntityRelatedMetadata()` for targeted queries.
 </Note>
 
-<Note>
+<Note type="warning">
   **XML Namespaces:** The CSDL document uses XML namespaces. When querying, you
   may need to handle namespaces appropriately. The examples above use simple
   `querySelectorAll()` which works for element names, but for more complex
@@ -778,7 +778,7 @@ const solutions = await dataverseAPI.getSolutions(['uniquename'], 'secondary')
 
 Power Platform ToolBox provides comprehensive metadata operations to programmatically create, read, update, and delete Dataverse schema elements including entities, attributes, relationships, and option sets.
 
-<Note>
+<Note type="important">
   **Important:** Always call `dataverseAPI.publishCustomizations()` after making
   metadata changes to apply them to your environment.
 </Note>
@@ -1108,7 +1108,7 @@ const regardingLookup = await dataverseAPI.createPolymorphicLookupAttribute(
 await dataverseAPI.publishCustomizations()
 ```
 
-<Note>
+<Note type="warning">
   **Alternative:** For customer lookups specifically, you can use the
   `CreateCustomerRelationships` action via `dataverseAPI.execute()` which
   creates both the lookup and relationships in a single operation.
@@ -1352,7 +1352,7 @@ await dataverseAPI.insertOptionValue({
 await dataverseAPI.publishCustomizations()
 ```
 
-<Note>
+<Note type="important">
   **Status Columns:** For status choice columns (statuscode), use the
   `InsertStatusValue` action via `dataverseAPI.execute()` instead, which
   requires a StateCode parameter.

@@ -16,7 +16,7 @@ export const sections = [
 
 The ToolBox API provides access to platform features and utilities. {{ className: 'lead' }}
 
-<Note>
+<Note type="warning">
   For complete TypeScript definitions, install the `@pptb/types` package: ```bash npm install --save-dev @pptb/types ```
 </Note>
 
@@ -79,7 +79,7 @@ To enable this feature, you must update the package.json file to indicate your t
   },
 ```
 
-<Note>
+<Note type="warning">
   Use top-level `icon` for your SVG icon path (relative to the `dist` root, for example `icons/test.svg`). To ensure the icon adapts to dark/light theme, set SVG fill to `currentColor`.
 </Note>
 
@@ -130,7 +130,7 @@ const myTables = await dataverseAPI.getAllEntitiesMetadata(
 
 Utility functions for notifications, clipboard, and more.
 
-<Note>
+<Note type="important">
   **Breaking Change:** `saveFile()` and `selectPath()` have been migrated to the File System API. See [File System API](/tool-development/api-reference/filesystem-api) for details.
 </Note>
 
@@ -306,7 +306,7 @@ interface ToolContext {
 }
 ```
 
-<Note>
+<Note type="important">
   `ToolContext` intentionally does not contain access tokens. Use `dataverseAPI` for authenticated Dataverse operations.
 </Note>
 

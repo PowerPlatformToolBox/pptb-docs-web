@@ -15,7 +15,7 @@ export const sections = [
 
 The File System API provides secure access to read and write files, manage directories, and interact with the local file system. All functions include path validation for security. {{ className: 'lead' }}
 
-<Note>
+<Note type="important">
   **Migration Notice:** `saveFile()` and `selectPath()` have been migrated from `toolboxAPI.utils` to `toolboxAPI.fileSystem`. Update your code accordingly.
 </Note>
 
@@ -210,7 +210,7 @@ await toolboxAPI.fileSystem.writeText(
 
 Save content to a file with a user-selected location. Opens a native save dialog.
 
-<Note>
+<Note type="important">
   **Migrated from Utils:** This function was previously `toolboxAPI.utils.saveFile()`. Update your code to use `toolboxAPI.fileSystem.saveFile()`.
 </Note>
 
@@ -273,7 +273,7 @@ if (filePath) {
 
 Open a native dialog to select either a file or a folder and return the chosen path.
 
-<Note>
+<Note type="important">
   **Migrated from Utils:** This function was previously `toolboxAPI.utils.selectPath()`. Update your code to use `toolboxAPI.fileSystem.selectPath()`.
 </Note>
 
