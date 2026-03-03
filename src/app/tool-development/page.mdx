@@ -110,6 +110,10 @@ my-tool/
 
 ### Define package.json
 
+<Note type="important">
+  `iconURL` is no longer supported under `configurations`. Use top-level `icon` and set a path relative to the `dist` root (for example, `icons/test.svg`).
+</Note>
+
 ```json
 {
   "name": "@powerplatform/my-tool",
@@ -124,9 +128,8 @@ my-tool/
   "keywords": ["powerplatform", "dataverse", "toolbox"]
 }
 ```
-
-<Note type="important">
-  `iconURL` is no longer supported under `configurations`. Use top-level `icon` and set a path relative to the `dist` root (for example, `icons/test.svg`).
+<Note type="information">
+  For a full reference of all available fields, see the [Package Manifest](/tool-development/manifest) documentation.
 </Note>
 
 <Note type="warning">
