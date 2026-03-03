@@ -242,6 +242,7 @@ export const navigation: Array<NavGroup> = [
       { title: 'Quick Start', href: '/quickstart' },
       { title: 'Tool Installation', href: '/tool-installation' },
       { title: 'Authentication', href: '/authentication' },
+      { title: 'Access to Data', href: '/data-access' },
     ],
   },
   {

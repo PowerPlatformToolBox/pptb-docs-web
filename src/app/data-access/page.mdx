@@ -1,0 +1,88 @@
+export const metadata = {
+  title: 'Access to Data',
+  description:
+    'Understand how Power Platform ToolBox and the tools inside it access data and external websites — what the prompts mean, what data is used, and how to stay in control.',
+}
+
+export const sections = [
+  { title: 'How ToolBox uses data', id: 'how-toolbox-uses-data' },
+  { title: 'What is this prompt?', id: 'what-is-this-prompt' },
+  { title: 'Why does it appear?', id: 'why-does-it-appear' },
+  { title: 'Should I allow it?', id: 'should-i-allow-it' },
+  { title: 'What happens if I allow it?', id: 'what-happens-if-i-allow-it' },
+  { title: 'What happens if I deny it?', id: 'what-happens-if-i-deny-it' },
+]
+
+# Access to Data
+
+Power Platform ToolBox is transparent about what data it accesses — both for the application itself and for the individual tools you install. This page explains it all in plain language. {{ className: 'lead' }}
+
+## How ToolBox uses data {{ anchor: true }}
+
+Power Platform ToolBox itself connects to a small number of external services to function. None of these involve your Power Platform data.
+
+**Tool Registry (Supabase)**
+When you browse or install tools from the built-in tool store, the application fetches the list of available tools from a hosted registry. This is how you see what tools are available and download them. No personal data is sent — it is a read-only look-up.
+
+**Error Tracking (Sentry)**
+The application uses [Sentry.io](https://sentry.io/) to automatically capture crash reports and errors. This helps the team find and fix bugs quickly. Reports are anonymous and contain no Power Platform data or credentials. You can turn this off at any time in the application settings.
+
+**Dataverse Connections**
+When you add a connection to a Dataverse environment, the application communicates directly with that environment using your credentials. This data stays between your machine and your environment — it is not routed through any ToolBox-owned server.
+
+<Note>
+  Power Platform ToolBox does **NOT** collect, store, or sell your Power Platform data. Your Dataverse connections and their data remain private to you.
+</Note>
+
+## What is this prompt? {{ anchor: true }}
+
+Beyond the ToolBox application itself, individual tools you install may also need to reach out to websites. When that happens, Power Platform ToolBox will show you a prompt that looks like this:
+
+<div style={{ maxWidth: '420px' }}>
+  [![CSP Consent Dialog](/images/screenshots/csp-consent-dialog.png)](images/screenshots/csp-consent-dialog.png)
+</div>
+
+This is a safety check built into Power Platform ToolBox. The application is asking you to make a conscious decision before a tool is allowed to talk to the outside world.
+
+## Why does it appear? {{ anchor: true }}
+
+By default, **all access to external websites and resources is blocked** for every tool. Tools run in a fully isolated environment and cannot reach anything outside the application unless you explicitly grant permission. This keeps things safe and predictable.
+
+Some tools genuinely need to go further. A tool might need to:
+
+- Pull live data from an external service or API
+- Load images, icons, or other content from a website
+- Save or sync information with a cloud service
+- Connect to an internal system on your company network
+
+When a tool was built to do any of these things, it declares the websites it needs access to. Power Platform ToolBox then shows you this prompt so that **you** are always in control of what gets connected.
+
+## Should I allow it? {{ anchor: true }}
+
+Ask yourself two questions before clicking **Allow**:
+
+**1. Do I trust the tool?**
+Only install tools from sources you recognise and trust. If you are unsure where a tool came from, do not allow access.
+
+**2. Do the listed websites make sense for what this tool does?**
+A tool that helps you manage Dataverse records should probably only need to connect to Microsoft or Dynamics URLs. If the websites listed seem unrelated to the tool's purpose, that is worth questioning.
+
+## What happens if I allow it? {{ anchor: true }}
+
+The tool is granted permission to communicate with only the specific websites that were listed in the prompt — nothing more. It can:
+
+- Download data or content from those websites
+- Send information to those websites
+- Load resources (like images or scripts) from those websites
+
+It **cannot** suddenly access other websites that were not listed. The list is fixed by the tool's author and cannot be changed at runtime.
+
+## What happens if I deny it? {{ anchor: true }}
+
+The tool will not launch. Website access is required for the tool to run, so denying it prevents the tool from starting entirely.
+
+If you want to use the tool, you will need to allow access when prompted. If you are unsure whether the listed websites are safe, check the tool's documentation or reach out to its author before proceeding.
+
+<Note>
+  Not all tools require website access. Many tools work entirely within Power Platform ToolBox and will never show this prompt.
+</Note>
