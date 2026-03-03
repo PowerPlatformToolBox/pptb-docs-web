@@ -62,7 +62,7 @@ export function TableOfContents() {
   return (
     <>
       {/* Mobile view */}
-      <div className="fixed top-14 right-0 left-0 z-20 mx-4 mb-6 bg-white sm:mx-6 lg:mx-8 xl:hidden dark:bg-zinc-900">
+      <div className="fixed top-14 right-0 left-0 z-20 mx-4 mb-6 bg-white sm:mx-6 lg:mx-8 lg:hidden dark:bg-zinc-900">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex w-full items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 text-left text-sm font-semibold text-zinc-900 dark:bg-zinc-900 dark:text-white"
