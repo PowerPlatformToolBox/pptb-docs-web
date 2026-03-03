@@ -89,8 +89,41 @@ Tools can specify CSP exceptions in their `package.json` manifest:
   }
 }
 ```
-<Note type="warning">Use an SVG icon and set `fill="currentColor"` so the icon is theme-aware in ToolBox.</Note>
 <Note type="important">Once the CSP Exception is added, the tool must be reloaded to trigger the consent dialog on next launch.</Note>
+
+## Security Considerations {{ anchor: true }}
+
+### Implementation Details
+
+CSP Enforcement Flow:
+
+1. Tool's CSP exceptions are read from `package.json` during installation/loading
+2. When a tool is launched, the system checks if it has CSP exceptions
+3. If exceptions exist, the system checks if user has granted consent
+4. If not granted, a consent dialog is shown to the user
+5. When the tool's HTML is served, `WebviewProtocolManager` checks consent status
+6. CSP exceptions are only applied if consent has been granted
+7. Without consent, the tool receives only the default restrictive CSP
+
+<Note type="important">
+  This ensures that even if a tool declares CSP exceptions, they are not applied until the user explicitly grants permission.
+</Note>
+
+### For Users
+
+- Only install tools from trusted sources
+- Review CSP exceptions carefully before granting consent
+- Watch for suspicious patterns like requests to unusual domains
+- Revoke consent if you no longer use a tool
+
+### Developer Guidelines
+
+- Never request `*` or overly broad wildcards
+- Validate and sanitize all user input
+- Use HTTPS for all external resources
+- Keep dependencies up to date
+- Follow the principle of least privilege
+
 
 ## Supported CSP Directives {{ anchor: true }}
 
@@ -223,40 +256,11 @@ Before requesting CSP exceptions, consider if there are alternatives:
 - Can you proxy API calls through a secure backend?
 - Can you use PPTB's built-in Dataverse API instead of direct calls?
 
-## Security Considerations {{ anchor: true }}
-
-### Implementation Details
-
-CSP Enforcement Flow:
-
-1. Tool's CSP exceptions are read from `package.json` during installation/loading
-2. When a tool is launched, the system checks if it has CSP exceptions
-3. If exceptions exist, the system checks if user has granted consent
-4. If not granted, a consent dialog is shown to the user
-5. When the tool's HTML is served, `WebviewProtocolManager` checks consent status
-6. CSP exceptions are only applied if consent has been granted
-7. Without consent, the tool receives only the default restrictive CSP
-
-<Note type="important">
-  This ensures that even if a tool declares CSP exceptions, they are not applied until the user explicitly grants permission.
-</Note>
-
-### For Users
-
-- Only install tools from trusted sources
-- Review CSP exceptions carefully before granting consent
-- Watch for suspicious patterns like requests to unusual domains
-- Revoke consent if you no longer use a tool
-
-### Developer Guidelines
-
-- Never request `*` or overly broad wildcards
-- Validate and sanitize all user input
-- Use HTTPS for all external resources
-- Keep dependencies up to date
-- Follow the principle of least privilege
-
 ## Revoking Consent {{ anchor: true }}
+
+<Note>
+  This is planned for future releases.
+</Note>
 
 Users can revoke CSP consent for any tool:
 
