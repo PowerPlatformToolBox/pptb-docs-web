@@ -248,6 +248,7 @@ export const navigation: Array<NavGroup> = [
     title: 'Tool Development',
     links: [
       { title: 'Overview', href: '/tool-development' },
+      { title: 'Package Manifest', href: '/tool-development/manifest' },
       { title: 'API Reference', href: '/tool-development/api-reference' },
       {
         title: 'ToolBox API',

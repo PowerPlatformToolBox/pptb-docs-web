@@ -1,0 +1,169 @@
+export const metadata = {
+  title: 'Package Manifest (package.json)',
+  description:
+    'Complete reference for the package.json manifest file required for every Power Platform ToolBox tool',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Required Fields', id: 'required-fields' },
+  { title: 'Configurations Object', id: 'configurations-object' },
+  { title: 'Optional Fields', id: 'optional-fields' },
+  { title: 'Features Object', id: 'features-object' },
+  { title: 'CSP Exceptions Object', id: 'csp-exceptions-object' },
+  { title: 'Full Example', id: 'full-example' },
+]
+
+# Package Manifest
+
+Every Power Platform ToolBox tool requires a `package.json` file at the root of the distribution. This file describes your tool to the ToolBox host and the npm registry. {{ className: 'lead' }}
+
+<Note type="important">
+  `iconURL` under `configurations` is no longer supported. Use the top-level `icon` field instead with an SVG path relative to your `dist` root.
+</Note>
+
+## Overview {{ anchor: true }}
+
+The `package.json` follows the standard [npm package format](https://docs.npmjs.com/cli/v10/configuring-npm/package-json) with additional PPTB-specific fields. Required fields must be present for your tool to load correctly.
+
+## Required Fields {{ anchor: true }}
+
+| Field | Type | Description | Sample |
+|-------|------|-------------|--------|
+| `name` | `string` | Scoped npm package name — lowercase, no spaces | `"@myorg/my-tool"` |
+| `version` | `string` | SemVer-compatible version | `"1.0.0"` |
+| `displayName` | `string` | Human-readable name shown in the ToolBox UI | `"My Awesome Tool"` |
+| `description` | `string` | Short description of what the tool does | `"Manage Dataverse solutions"` |
+| `main` | `string` | Entry-point file relative to the `dist` root | `"index.html"` |
+| `icon` | `string` | Path to SVG icon relative to the `dist` root. Use `fill="currentColor"` to support light/dark themes | `"icons/tool.svg"` |
+| `license` | `string` | An approved open-source license identifier | `"MIT"` |
+| `contributors` | `array` | One or more objects with a `name` and optional `url` | See below |
+| `configurations` | `object` | PPTB-specific links and metadata | See [Configurations Object](#configurations-object) |
+
+### `contributors` array
+
+Each entry must have at minimum a `name`.
+
+```json
+"contributors": [
+  { "name": "Jane Dev", "url": "https://janedev.com" },
+  { "name": "John Doe" }
+]
+```
+
+Allowed licenses: `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `GPL-2.0`, `GPL-3.0`, `LGPL-3.0`, `ISC`, `AGPL-3.0-only`.
+
+## Configurations Object {{ anchor: true }}
+
+Nested inside the top-level `configurations` key.
+
+| Field | Required | Type | Description | Sample |
+|-------|----------|------|-------------|--------|
+| `repository` | Yes | `string` | URL of the tool's source repository — shown in the ToolBox help menu | `"https://github.com/myorg/my-tool"` |
+| `website` | No | `string` | Tool website or documentation URL | `"https://docs.myorg.com/my-tool"` |
+| `readmeUrl` | No | `string` | Raw `githubusercontent.com` URL for the README — used to display docs inside ToolBox | `"https://raw.githubusercontent.com/myorg/my-tool/main/README.md"` |
+
+## Optional Fields {{ anchor: true }}
+
+| Field | Type | Description | Sample |
+|-------|------|-------------|--------|
+| `homepage` | `string` | Public homepage URL | `"https://myorg.com"` |
+| `repository` | `object` | Standard npm repository object | `{ "type": "git", "url": "https://github.com/…" }` |
+| `cspExceptions` | `object` | Additional Content Security Policy origins your tool connects to | See [CSP Exceptions Object](#csp-exceptions-object) |
+| `features` | `object` | Declare special ToolBox capabilities required by your tool | See [Features Object](#features-object) |
+
+## Features Object {{ anchor: true }}
+
+Declare ToolBox-specific capabilities your tool needs. Omit this section entirely if neither field applies.
+
+| Field | Type | Values | Description | Sample |
+|-------|------|--------|-------------|--------|
+| `multiConnection` | `string` | `"optional"` \| `"required"` | Whether the tool supports or requires a second Dataverse connection | `"optional"` |
+| `minAPI` | `string` | SemVer | Minimum ToolBox API version the tool requires | `"1.2.0"` |
+
+```json
+"features": {
+  "multiConnection": "optional",
+  "minAPI": "1.2.0"
+}
+```
+
+## CSP Exceptions Object {{ anchor: true }}
+
+Declare additional external origins that your tool's iframe is permitted to connect to. Omit this section entirely if your tool only communicates with Dataverse endpoints. All fields are optional.
+
+| Field | Type | Description | Sample |
+|-------|------|-------------|--------|
+| `connect-src` | `string[]` | Fetch, XHR, WebSocket, and EventSource origins | `["api.example.com"]` |
+| `script-src` | `string[]` | Additional origins allowed to serve scripts | `["cdn.example.com"]` |
+| `style-src` | `string[]` | Additional origins allowed to serve stylesheets | `["fonts.googleapis.com"]` |
+| `img-src` | `string[]` | Additional origins allowed to serve images | `["img.example.com"]` |
+| `font-src` | `string[]` | Additional origins allowed to serve fonts | `["fonts.gstatic.com"]` |
+| `frame-src` | `string[]` | Origins allowed to be embedded in iframes | `["embed.example.com"]` |
+| `media-src` | `string[]` | Origins allowed to serve audio/video media | `["media.example.com"]` |
+
+```json
+"cspExceptions": {
+  "connect-src": ["api.example.com"],
+  "script-src": ["cdn.example.com"],
+  "style-src": ["fonts.googleapis.com"],
+  "img-src": ["img.example.com"],
+  "font-src": ["fonts.gstatic.com"],
+  "frame-src": ["embed.example.com"],
+  "media-src": ["media.example.com"]
+}
+```
+
+<Note type="warning">
+  Only add origins you genuinely need. Unnecessary CSP exceptions will be flagged during registry submission review.
+</Note>
+
+## Full Example {{ anchor: true }}
+
+```json
+{
+  "name": "@myorg/my-awesome-tool",
+  "version": "1.0.0",
+  "displayName": "My Awesome Tool",
+  "description": "Manage Dataverse solutions across environments with ease.",
+  "main": "index.html",
+  "icon": "icons/tool.svg",
+  "license": "MIT",
+  "contributors": [
+    { "name": "Jane Dev", "url": "https://janedev.com" },
+    { "name": "John Doe" }
+  ],
+  "configurations": {
+    "repository": "https://github.com/myorg/my-awesome-tool",
+    "website": "https://docs.myorg.com/my-awesome-tool",
+    "readmeUrl": "https://raw.githubusercontent.com/myorg/my-awesome-tool/main/README.md"
+  },
+  "features": {
+    "multiConnection": "optional",
+    "minAPI": "1.2.0"
+  },
+  "cspExceptions": {
+    "connect-src": ["api.example.com"],
+    "img-src": ["img.example.com"]
+  },
+  "keywords": ["dataverse", "power-platform", "solutions"],
+  "homepage": "https://docs.myorg.com/my-awesome-tool",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/myorg/my-awesome-tool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/myorg/my-awesome-tool/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@pptb/types": "^1.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  }
+}
+```
