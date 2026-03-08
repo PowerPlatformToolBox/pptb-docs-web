@@ -23,7 +23,7 @@ The File System API provides secure access to read and write files, manage direc
 
 ### `toolboxAPI.fileSystem.readText(path)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Read a UTF-8 text file (useful for configs, JSON files, manifests, etc.).
 
@@ -46,7 +46,7 @@ try {
 
 ### `toolboxAPI.fileSystem.readBinary(path)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Read a binary file as a Buffer (useful for ZIPs, images for hashing/upload, etc.). Properly serializes over IPC.
 
@@ -74,7 +74,7 @@ try {
 
 ### `toolboxAPI.fileSystem.exists(path)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Lightweight check to verify if a file or directory exists before performing I/O operations.
 
@@ -97,7 +97,7 @@ if (await toolboxAPI.fileSystem.exists(configPath)) {
 
 ### `toolboxAPI.fileSystem.stat(path)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Get metadata about a file or directory.
 
@@ -128,7 +128,7 @@ interface FileStats {
 
 ### `toolboxAPI.fileSystem.readDirectory(path)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 List the contents of a directory.
 
@@ -166,7 +166,7 @@ interface DirectoryEntry {
 
 ### `toolboxAPI.fileSystem.writeText(path, content)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Save text content to a file without a dialog prompt. Useful for automated exports and backups.
 
@@ -195,7 +195,7 @@ console.log('Export saved to:', exportPath)
 
 ### `toolboxAPI.fileSystem.createDirectory(path)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Create a directory recursively (creates parent directories as needed).
 
@@ -222,7 +222,7 @@ await toolboxAPI.fileSystem.writeText(
 
 ### `toolboxAPI.fileSystem.saveFile(defaultPath, content, filters?)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Save content to a file with a user-selected location. Opens a native save dialog.
 
@@ -287,7 +287,7 @@ if (filePath) {
 
 ### `toolboxAPI.fileSystem.selectPath(options?)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Open a native dialog to select either a file or a folder and return the chosen path.
 

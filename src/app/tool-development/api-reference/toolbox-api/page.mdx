@@ -26,7 +26,7 @@ Get information about the active Dataverse connection(s).
 
 ### `toolboxAPI.connections.getActiveConnection()`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Returns the currently active connection or null if none is selected.
 
@@ -140,7 +140,7 @@ Utility functions for notifications, clipboard, and more.
 
 ### `toolboxAPI.utils.showNotification(options)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Display a notification to the user.
 
@@ -164,7 +164,7 @@ await toolboxAPI.utils.showNotification({
 
 ### `toolboxAPI.utils.copyToClipboard(text)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Copy text to the system clipboard.
 
@@ -181,7 +181,7 @@ await toolboxAPI.utils.showNotification({
 
 ### `toolboxAPI.utils.getCurrentTheme()`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Get the current application theme.
 
@@ -194,7 +194,7 @@ document.body.classList.add(`theme-${theme}`)
 
 ### `toolboxAPI.utils.showLoading(message)` / `hideLoading()`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Show/hide a loading overlay.
 
@@ -218,7 +218,7 @@ try {
 
 ### `toolboxAPI.utils.executeParallel(...promises)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Execute multiple async operations in parallel.
 
@@ -239,7 +239,7 @@ Create and manage terminal sessions (context-aware to your tool).
 
 ### `toolboxAPI.terminal.create(options)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Create a new terminal.
 
@@ -257,7 +257,7 @@ console.log('Terminal created:', terminal.id)
 
 ### `toolboxAPI.terminal.execute(terminalId, command)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Execute a command in a terminal.
 
@@ -273,7 +273,7 @@ if (result.exitCode === 0) {
 
 ### `toolboxAPI.terminal.setVisibility(terminalId, visible)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Show or hide a terminal's UI panel.
 
@@ -283,7 +283,7 @@ await toolboxAPI.terminal.setVisibility(terminal.id, true)
 
 ### `toolboxAPI.terminal.list()`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 List all terminals created by your tool.
 
@@ -294,7 +294,7 @@ console.log(`This tool has ${terminals.length} terminals`)
 
 ### `toolboxAPI.terminal.close(terminalId)`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Close a terminal.
 
@@ -306,7 +306,7 @@ await toolboxAPI.terminal.close(terminal.id)
 
 ### `toolboxAPI.getToolContext()`
 
-_Available since: TODO_
+_Available since: `1.0.17`_
 
 Returns the current tool context used by the framework.
 
