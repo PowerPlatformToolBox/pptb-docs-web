@@ -17,6 +17,8 @@ Subscribe to platform events to respond to connection changes, settings updates,
 
 ### `toolboxAPI.events.on(handler)`
 
+_Available since: TODO_
+
 Subscribe to events relevant to your tool.
 
 ```typescript
@@ -57,6 +59,8 @@ The following events are available for subscription:
 
 ### `tool:loaded` / `tool:unloaded`
 
+_Available since: TODO_
+
 Fired when a tool instance is loaded or unloaded.
 
 ```typescript
@@ -73,6 +77,8 @@ toolboxAPI.events.on((_, payload) => {
 
 ### `connection:created` / `connection:updated` / `connection:deleted`
 
+_Available since: TODO_
+
 Fired when Dataverse connections are created, updated, or deleted.
 
 ```typescript
@@ -86,6 +92,8 @@ toolboxAPI.events.on((_, payload) => {
 
 ### `settings:updated`
 
+_Available since: TODO_
+
 Fired when tool settings are changed.
 
 ```typescript
@@ -98,6 +106,8 @@ toolboxAPI.events.on((_, payload) => {
 
 ### `notification:shown`
 
+_Available since: TODO_
+
 Fired when a notification is displayed.
 
 ```typescript
@@ -109,6 +119,8 @@ toolboxAPI.events.on((_, payload) => {
 ```
 
 ### `terminal:created` / `terminal:closed` / `terminal:output` / `terminal:command:completed` / `terminal:error`
+
+_Available since: TODO_
 
 Fired for terminal lifecycle, output streaming, command completion, and terminal errors.
 

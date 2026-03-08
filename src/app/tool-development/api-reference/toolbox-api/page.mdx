@@ -26,6 +26,8 @@ Get information about the active Dataverse connection(s).
 
 ### `toolboxAPI.connections.getActiveConnection()`
 
+_Available since: TODO_
+
 Returns the currently active connection or null if none is selected.
 
 ```typescript
@@ -87,6 +89,8 @@ When the user opens your tool, they are presented with the option to connect to 
 
 ### `toolboxAPI.connections.getSecondaryConnection()`
 
+_Available since: `1.2.0`_
+
 Returns the currently active secondary connection or null if none is configured.
 
 ```typescript
@@ -136,6 +140,8 @@ Utility functions for notifications, clipboard, and more.
 
 ### `toolboxAPI.utils.showNotification(options)`
 
+_Available since: TODO_
+
 Display a notification to the user.
 
 ```typescript
@@ -158,6 +164,8 @@ await toolboxAPI.utils.showNotification({
 
 ### `toolboxAPI.utils.copyToClipboard(text)`
 
+_Available since: TODO_
+
 Copy text to the system clipboard.
 
 ```typescript
@@ -173,6 +181,8 @@ await toolboxAPI.utils.showNotification({
 
 ### `toolboxAPI.utils.getCurrentTheme()`
 
+_Available since: TODO_
+
 Get the current application theme.
 
 ```typescript
@@ -183,6 +193,8 @@ document.body.classList.add(`theme-${theme}`)
 **Returns:** `Promise<'light' | 'dark'>`
 
 ### `toolboxAPI.utils.showLoading(message)` / `hideLoading()`
+
+_Available since: TODO_
 
 Show/hide a loading overlay.
 
@@ -206,6 +218,8 @@ try {
 
 ### `toolboxAPI.utils.executeParallel(...promises)`
 
+_Available since: TODO_
+
 Execute multiple async operations in parallel.
 
 ```typescript
@@ -225,6 +239,8 @@ Create and manage terminal sessions (context-aware to your tool).
 
 ### `toolboxAPI.terminal.create(options)`
 
+_Available since: TODO_
+
 Create a new terminal.
 
 ```typescript
@@ -241,6 +257,8 @@ console.log('Terminal created:', terminal.id)
 
 ### `toolboxAPI.terminal.execute(terminalId, command)`
 
+_Available since: TODO_
+
 Execute a command in a terminal.
 
 ```typescript
@@ -255,6 +273,8 @@ if (result.exitCode === 0) {
 
 ### `toolboxAPI.terminal.setVisibility(terminalId, visible)`
 
+_Available since: TODO_
+
 Show or hide a terminal's UI panel.
 
 ```typescript
@@ -262,6 +282,8 @@ await toolboxAPI.terminal.setVisibility(terminal.id, true)
 ```
 
 ### `toolboxAPI.terminal.list()`
+
+_Available since: TODO_
 
 List all terminals created by your tool.
 
@@ -272,6 +294,8 @@ console.log(`This tool has ${terminals.length} terminals`)
 
 ### `toolboxAPI.terminal.close(terminalId)`
 
+_Available since: TODO_
+
 Close a terminal.
 
 ```typescript
@@ -281,6 +305,8 @@ await toolboxAPI.terminal.close(terminal.id)
 ## Tool Context {{ anchor: true }}
 
 ### `toolboxAPI.getToolContext()`
+
+_Available since: TODO_
 
 Returns the current tool context used by the framework.
 

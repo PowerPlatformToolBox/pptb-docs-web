@@ -94,12 +94,12 @@ The `minAPI` field lets you declare the lowest ToolBox API version your tool is 
 
 **When to set `minAPI`:**
 
-- Your tool calls an API or uses a feature that was introduced in a specific ToolBox release (for example, `multiConnection` requires **1.0.x** or later).
+- Your tool calls an API or uses a feature that was introduced in a specific ToolBox release (for example, `multiConnection` requires **1.2.0** or later).
 - You want to prevent runtime errors caused by a user running an older, incompatible version of ToolBox.
 
 **How to determine the correct value:**
 
-Check the API reference for each feature you use. The version in which a feature was introduced is noted in the relevant section. Set `minAPI` to the highest "introduced in" version across all features your tool depends on.
+Each function in the [API Reference](/tool-development/api-reference) includes an _Available since_ label showing the ToolBox version it was introduced in (where available). Set `minAPI` to the highest such version across all the functions your tool depends on.
 
 <Note type="information">
   You only need to set `minAPI` if your tool relies on features that were not available in the very first public release. If your tool only uses core APIs that have been available from the start, you can omit this field.
