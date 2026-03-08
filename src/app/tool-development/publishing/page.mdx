@@ -76,7 +76,11 @@ Ensure all required fields are present:
   "cspExceptions": {
     //This is an optional section, do not include unless your tool needs to connect to more than dataverse endpoints
     "connect-src": [
-      "websites that your tool needs to connect to, e.g.: www.api.example.com"
+      {
+        "domain": "www.api.example.com",
+        "exceptionReason": "Explain **why** your tool needs this exception.",
+        "optional": false // set to true if the core tool works without this exception
+      }
     ]
   },
   "features": {
