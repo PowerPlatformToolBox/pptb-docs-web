@@ -88,6 +88,27 @@ Declare ToolBox-specific capabilities your tool needs. Omit this section entirel
 }
 ```
 
+### Specifying a Minimum API Version
+
+The `minAPI` field lets you declare the lowest ToolBox API version your tool is compatible with. When a user installs or opens your tool, Power Platform ToolBox checks this value against the currently installed ToolBox version. If the installed version is older than the minimum required, ToolBox will alert the user and recommend upgrading before they can use the tool.
+
+**When to set `minAPI`:**
+
+- Your tool calls an API or uses a feature that was introduced in a specific ToolBox release (for example, `multiConnection` requires **1.2.0** or later).
+- You want to prevent runtime errors caused by a user running an older, incompatible version of ToolBox.
+
+**How to determine the correct value:**
+
+Each function in the [API Reference](/tool-development/api-reference) includes an _Available since_ label showing the ToolBox version it was introduced in (where available). Set `minAPI` to the highest such version across all the functions your tool depends on.
+
+<Note type="information">
+  You only need to set `minAPI` if your tool relies on features that were not available in the very first public release. If your tool only uses core APIs that have been available from the start, you can omit this field.
+</Note>
+
+<Note type="warning">
+  Setting `minAPI` too high (higher than necessary) will prevent users with older but compatible ToolBox versions from running your tool. Always use the lowest version that includes all the features you actually need.
+</Note>
+
 ## CSP Exceptions Object {{ anchor: true }}
 
 Declare additional external origins that your tool's iframe is permitted to connect to. Omit this section entirely if your tool only communicates with Dataverse endpoints. All fields are optional.

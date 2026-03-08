@@ -36,6 +36,8 @@ Each method accepts an optional `connectionTarget` parameter to specify which co
 
 ### `dataverseAPI.create(entityLogicalName, record, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Creates a new record in the primary or secondary dataverse.  
 **Parameters:**  
 `entityLogicalName: string` Logical name of the entity  
@@ -64,6 +66,8 @@ console.log('Created contact in secondary connection:', contactResult.id)
 ```
 
 ### `dataverseAPI.retrieve(entityLogicalName, id, columns?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Retrieve a single record.
 **Parameters:**  
@@ -96,6 +100,8 @@ console.log('Contact name:', contact.fullname)
 
 ### `dataverseAPI.update(entityLogicalName, id, record, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Update an existing record.  
 **Parameters:**  
 `entityLogicalName: string` Logical name of the entity  
@@ -122,6 +128,8 @@ await dataverseAPI.update(
 
 ### `dataverseAPI.delete(entityLogicalName, id, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Deletes a record.  
 **Parameters:**  
 `entityLogicalName: string` Logical name of the entity  
@@ -143,6 +151,8 @@ await dataverseAPI.delete(
 
 ### `dataverseAPI.createMultiple(entityLogicalName, records, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Creates multiple records in Dataverse  
 **Parameters:**  
 `entityLogicalName` Logical name of the entity  
@@ -159,6 +169,8 @@ const results = await dataverseAPI.createMultiple('account', [
 ```
 
 ### `dataverseAPI.updateMultiple(entityLogicalName, records, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Updates multiple records in Dataverse  
 **Parameters:**  
@@ -186,6 +198,8 @@ await dataverseAPI.updateMultiple('account', [
 ## Relationship Associations {{ anchor: true }}
 
 ### `dataverseAPI.associate(primaryEntityName, primaryEntityId, relationshipName, relatedEntityName, relatedEntityId, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Associate two records in a many-to-many relationship.
 
@@ -230,6 +244,8 @@ await dataverseAPI.associate(
 
 ### `dataverseAPI.disassociate(primaryEntityName, primaryEntityId, relationshipName, relatedEntityId, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Disassociate two records in a many-to-many relationship.
 
 **Parameters:**  
@@ -271,6 +287,8 @@ await dataverseAPI.disassociate(
 
 ### `dataverseAPI.fetchXmlQuery(fetchXml, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Execute a FetchXML query.  
 **Parameters:**  
 `fetchXml: string` FetchXML query string  
@@ -305,6 +323,8 @@ result.value.forEach((account) => {
 
 ### `dataverseAPI.retrieveMultiple(fetchXml, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Alias of `fetchXmlQuery()` for backward compatibility.
 
 **Parameters:**  
@@ -318,6 +338,8 @@ console.log(`Found ${result.value.length} records`)
 ```
 
 ### `dataverseAPI.queryData(odataQuery, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Retrieve multiple records with OData query options.
 
@@ -357,6 +379,8 @@ const result = await dataverseAPI.queryData(
 
 ### `dataverseAPI.getEntityMetadata(entityLogicalName, searchByLogicalName, selectColumns?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Get entity metadata.  
 **Parameters:**  
 `entityLogicalName: string` Logical name or entity id of the entity  
@@ -395,6 +419,8 @@ console.log('Logical Name from secondary connection:', metadata.LogicalName)
 ```
 
 ### `dataverseAPI.getEntityRelatedMetadata(entityLogicalName, relatedPath, selectColumns?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Get related metadata for a specific entity (attributes, relationships, etc.)  
 **Parameters:**  
@@ -446,6 +472,8 @@ console.log('Attributes from secondary connection:', attributes.value)
 
 ### `dataverseAPI.getAllEntitiesMetadata(selectColumns?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Get metadata for all entities  
 **Parameters:**  
 `selectColumns?: string[]` Optional array of column names to retrieve (retrieves LogicalName, DisplayName, MetadataId by default)  
@@ -474,6 +502,8 @@ const allEntities = await dataverseAPI.getAllEntitiesMetadata(
 
 ### `dataverseAPI.getEntitySetName(logicalName)`
 
+_Available since: `1.0.17`_
+
 Get the entity set name for a given logical name. No connectionTarget needed.
 This will work in most scenarios but if you have custom entities with non-standard pluralization
 you may need to retrieve the metadata instead.
@@ -491,6 +521,8 @@ console.log('Entity Set Name for contact:', tableSetName) // Outputs: contacts
 ## CSDL Metadata Document {{ anchor: true }}
 
 ### `dataverseAPI.getCSDLDocument(connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Retrieve the complete CSDL/EDMX metadata document for the Dataverse environment.
 
@@ -749,6 +781,8 @@ console.log('Actions returning Guid:', actionsReturningGuid)
 
 ### `dataverseAPI.getSolutions(selectColumns, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Get solutions from the environment  
 **Parameters:**  
 `selectColumns: string[]` Required array of column names to retrieve (must contain at least one column)  
@@ -785,6 +819,8 @@ Power Platform ToolBox provides comprehensive metadata operations to programmati
 
 ### `dataverseAPI.buildLabel(text, languageCode?)`
 
+_Available since: `1.0.17`_
+
 Build a properly formatted Label object for use in metadata operations.
 
 **Parameters:**  
@@ -808,6 +844,8 @@ const labelFrench = dataverseAPI.buildLabel('Nom du client', 1036)
 
 ### `dataverseAPI.getAttributeODataType(attributeType)`
 
+_Available since: `1.0.17`_
+
 Get the OData type name for a given attribute type. Useful when creating attribute definitions.
 
 **Parameters:**  
@@ -829,6 +867,8 @@ console.log(lookupType) // Output: "Microsoft.Dynamics.CRM.LookupAttributeMetada
 ## Entity Operations {{ anchor: true }}
 
 ### `dataverseAPI.createEntityDefinition(entityDefinition, options?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Create a new entity (table) in Dataverse.
 
@@ -873,6 +913,8 @@ await dataverseAPI.publishCustomizations('new_project')
 
 ### `dataverseAPI.updateEntityDefinition(entityIdentifier, entityDefinition, options?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Update an existing entity's metadata.
 
 **Parameters:**  
@@ -901,6 +943,8 @@ await dataverseAPI.publishCustomizations('new_project')
 
 ### `dataverseAPI.deleteEntityDefinition(entityIdentifier, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Delete an entity from Dataverse.
 
 **Parameters:**  
@@ -918,6 +962,8 @@ await dataverseAPI.deleteEntityDefinition('new_project')
 ## Attribute Operations {{ anchor: true }}
 
 ### `dataverseAPI.createAttribute(entityLogicalName, attributeDefinition, options?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Create a new attribute (column) on an entity.
 
@@ -1024,6 +1070,8 @@ await dataverseAPI.publishCustomizations('new_project')
 
 ### `dataverseAPI.updateAttribute(entityLogicalName, attributeIdentifier, attributeDefinition, options?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Update an existing attribute's metadata.
 
 **Parameters:**  
@@ -1052,6 +1100,8 @@ await dataverseAPI.publishCustomizations('new_project')
 
 ### `dataverseAPI.deleteAttribute(entityLogicalName, attributeIdentifier, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Delete an attribute from an entity.
 
 **Parameters:**  
@@ -1071,6 +1121,8 @@ await dataverseAPI.publishCustomizations('new_project')
 ## Polymorphic Lookup Attributes {{ anchor: true }}
 
 ### `dataverseAPI.createPolymorphicLookupAttribute(entityLogicalName, attributeDefinition, options?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Create a polymorphic lookup attribute that can reference multiple entity types (e.g., Customer field that can reference both Account and Contact).
 
@@ -1117,6 +1169,8 @@ await dataverseAPI.publishCustomizations()
 ## Relationship Operations {{ anchor: true }}
 
 ### `dataverseAPI.createRelationship(relationshipDefinition, options?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Create a new entity relationship (1:N or N:N).
 
@@ -1170,6 +1224,8 @@ await dataverseAPI.publishCustomizations()
 
 ### `dataverseAPI.updateRelationship(relationshipIdentifier, relationshipDefinition, options?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Update an existing relationship's metadata.
 
 **Parameters:**  
@@ -1198,6 +1254,8 @@ await dataverseAPI.publishCustomizations()
 
 ### `dataverseAPI.deleteRelationship(relationshipIdentifier, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Delete a relationship.
 
 **Parameters:**  
@@ -1215,6 +1273,8 @@ await dataverseAPI.publishCustomizations()
 ## Global Option Sets {{ anchor: true }}
 
 ### `dataverseAPI.createGlobalOptionSet(optionSetDefinition, options?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Create a new global option set (choice) that can be shared across multiple entities.
 
@@ -1274,6 +1334,8 @@ console.log('Option set details:', optionSet)
 
 ### `dataverseAPI.updateGlobalOptionSet(optionSetIdentifier, optionSetDefinition, options?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Update an existing global option set.
 
 **Parameters:**  
@@ -1301,6 +1363,8 @@ await dataverseAPI.publishCustomizations()
 
 ### `dataverseAPI.deleteGlobalOptionSet(optionSetIdentifier, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Delete a global option set.
 
 **Parameters:**  
@@ -1318,6 +1382,8 @@ await dataverseAPI.publishCustomizations()
 ## Option Value Operations {{ anchor: true }}
 
 ### `dataverseAPI.insertOptionValue(params, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Insert a new option value into a local or global option set.
 
@@ -1360,6 +1426,8 @@ await dataverseAPI.publishCustomizations()
 
 ### `dataverseAPI.updateOptionValue(params, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Update an existing option value.
 
 **Parameters:**  
@@ -1389,6 +1457,8 @@ await dataverseAPI.publishCustomizations()
 
 ### `dataverseAPI.deleteOptionValue(params, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Delete an option value from an option set.
 
 **Parameters:**  
@@ -1412,6 +1482,8 @@ await dataverseAPI.publishCustomizations()
 ```
 
 ### `dataverseAPI.orderOption(params, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Reorder option values in an option set.
 
@@ -1438,6 +1510,8 @@ await dataverseAPI.publishCustomizations()
 ## Actions & Functions {{ anchor: true }}
 
 ### `dataverseAPI.execute(request, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Execute a custom action or function using a unified interface. Supports both bound (entity-specific) and unbound (global) operations.
 
@@ -1484,6 +1558,8 @@ const unboundResultSecondary = await dataverseAPI.execute(
 
 ### `dataverseAPI.publishCustomizations(tableLogicalName?, connectionTarget?)`
 
+_Available since: `1.0.17`_
+
 Publish customizations for the current environment.  
 **Parameters:**  
 `tableLogicalName?: string` Optional table (entity) logical name to publish. If omitted, all pending customizations are published.  
@@ -1499,6 +1575,8 @@ await dataverseAPI.publishCustomizations('account', 'secondary')
 ```
 
 ### `dataverseAPI.deploySolution(solutionContent, options?, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Deploy (import) a Dataverse solution.
 
@@ -1520,6 +1598,8 @@ console.log('Solution deployment started. Import Job ID:', result.ImportJobId)
 ```
 
 ### `dataverseAPI.getImportJobStatus(importJobId, connectionTarget?)`
+
+_Available since: `1.0.17`_
 
 Get the status of a solution import job.
 
