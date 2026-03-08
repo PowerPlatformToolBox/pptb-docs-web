@@ -1,0 +1,210 @@
+export const metadata = {
+  title: 'Local Tool Validation',
+  description:
+    'Use the pptb-validate CLI to validate your tool\'s package.json against the official review criteria before publishing to npm.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Prerequisites', id: 'prerequisites' },
+  { title: 'Quick Start', id: 'quick-start' },
+  { title: 'CLI Options', id: 'cli-options' },
+  { title: 'What Is Validated', id: 'what-is-validated' },
+  { title: 'Warnings vs Errors', id: 'warnings-vs-errors' },
+  { title: 'CI Pipeline Integration', id: 'ci-pipeline-integration' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
+
+# Local Tool Validation
+
+Use the `pptb-validate` CLI — shipped with `@pptb/types` — to validate your tool's `package.json` against the **same rules** as the official Power Platform ToolBox review process, before you publish to npm. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+When you submit a tool to the ToolBox registry, automated checks run the same validation pipeline that `pptb-validate` mirrors locally. Running the validator before publishing helps you:
+
+- Catch configuration problems early, without wasting npm version numbers
+- Reduce failed intake reviews caused by minor setup issues
+- Speed up the overall review process for you and for maintainers
+
+<Note type="information">
+  `pptb-validate` is a **standalone copy** of the review rules. If validation
+  rules change in the official pipeline, a new version of `@pptb/types` will be
+  released — keep your dev dependency up to date to stay in sync.
+</Note>
+
+## Prerequisites {{ anchor: true }}
+
+Install `@pptb/types` as a dev dependency in your tool project:
+
+```bash
+npm install --save-dev @pptb/types
+```
+
+The `pptb-validate` binary is automatically added to `node_modules/.bin/` on install.
+
+## Quick Start {{ anchor: true }}
+
+### Option 1 — npm script (recommended)
+
+Add a `validate` script to your tool's `package.json`:
+
+```json
+{
+  "scripts": {
+    "validate": "pptb-validate"
+  }
+}
+```
+
+Then run:
+
+```bash
+npm run validate
+```
+
+<Note type="information">
+  The npm script name (e.g. `validate`) is your choice. The binary installed by
+  npm is always `pptb-validate` — ensure the script value matches exactly.
+</Note>
+
+### Option 2 — npx (no script entry needed)
+
+Run without adding a script entry, as long as `@pptb/types` is installed:
+
+```bash
+npx pptb-validate
+```
+
+### Option 3 — point at a specific file
+
+```bash
+npx pptb-validate path/to/package.json
+```
+
+By default the tool looks for `package.json` in the current working directory.
+
+## CLI Options {{ anchor: true }}
+
+| Option | Description |
+|---|---|
+| `--skip-url-checks` | Skip URL reachability checks — faster and works offline |
+| `--json` | Print results as a JSON object, suitable for CI pipelines |
+| `--help`, `-h` | Show help information |
+
+**Examples:**
+
+```bash
+# Full validation including URL reachability
+npm run validate
+
+# Fast / offline run — skip URL checks
+npm run validate -- --skip-url-checks
+
+# JSON output for CI pipelines
+npx pptb-validate --json
+
+# Validate a specific package.json
+npx pptb-validate ./dist/package.json --skip-url-checks
+```
+
+## What Is Validated {{ anchor: true }}
+
+The validator checks every field that the official review pipeline inspects:
+
+| Field | Required | Rules |
+|---|---|---|
+| `name` | ✅ | Must be a non-empty string |
+| `version` | ✅ | Must be a non-empty string |
+| `displayName` | ✅ | Must be a non-empty string |
+| `description` | ✅ | Must be a non-empty string |
+| `license` | ✅ | Must be one of the approved open-source identifiers |
+| `contributors` | ✅ | Must be a non-empty array; each entry must have a `name` |
+| `configurations.repository` | ✅ | Must be a valid GitHub URL |
+| `configurations.readmeUrl` | ✅ | Must be a valid `raw.githubusercontent.com` URL |
+| `icon` | ⚠️ optional | If present: relative POSIX SVG path under `dist/`; no absolute, Windows, or URL paths |
+| `configurations.website` | ⚠️ optional | If present: must be a valid HTTPS URL |
+| `configurations.funding` | ⚠️ optional | If present: must be a valid URL |
+| `cspExceptions` | ⚠️ optional | Each directive must be an array of valid origin strings |
+| `features.multiConnection` | ⚠️ optional | If present: must be `"required"`, `"optional"`, or `"none"` |
+| `features.minAPI` | ⚠️ optional | If present: must be a valid semantic version string |
+
+**Approved licenses:** `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `GPL-2.0`, `GPL-3.0`, `LGPL-3.0`, `ISC`, `AGPL-3.0-only`
+
+<Note type="information">
+  For the full reference of all `package.json` fields, see the [Package Manifest](/tool-development/manifest) documentation.
+</Note>
+
+## Warnings vs Errors {{ anchor: true }}
+
+| Category | Behaviour |
+|---|---|
+| Required fields missing or invalid (`name`, `version`, `displayName`, `description`, `license`, `contributors`, `configurations.repository`, `configurations.readmeUrl`) | ✖ **Error** — validation fails, exit code `1` |
+| Optional fields absent (`icon`, `configurations.website`, `configurations.funding`) | ⚠ **Warning** — validation still passes, you are nudged to add them |
+| Optional fields present but malformed (bad URL, invalid icon path, Windows absolute path, backslash separator, etc.) | ⚠ **Warning** or ✖ **Error** as appropriate |
+
+A clean run with no errors exits with code `0`. Any error exits with code `1`. Warnings alone do **not** cause a non-zero exit.
+
+**Sample human-readable output:**
+
+```
+✔ Validation passed
+
+  ✖ configurations.readmeUrl is missing
+  ⚠ icon is not set (optional but recommended)
+  ⚠ configurations.website is not set (optional but recommended)
+```
+
+## CI Pipeline Integration {{ anchor: true }}
+
+Use `--json` to get machine-readable output and integrate `pptb-validate` into your GitHub Actions workflow or other CI pipeline:
+
+```yaml
+# .github/workflows/validate.yml
+name: Validate tool package
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npx pptb-validate --skip-url-checks
+```
+
+For structured results (e.g. to post a PR comment), capture the JSON output:
+
+```bash
+npx pptb-validate --json --skip-url-checks
+```
+
+```json
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    "icon is not set (optional but recommended)"
+  ]
+}
+```
+
+<Note type="warning">
+  Add `--skip-url-checks` in CI to avoid flaky failures caused by transient
+  network issues or rate limiting from URL reachability checks.
+</Note>
+
+## Next Steps {{ anchor: true }}
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/publishing" arrow="right">
+    <>Publishing Your Tool</>
+  </Button>
+  <Button href="/tool-development/manifest" variant="outline">
+    <>Package Manifest Reference</>
+  </Button>
+</div>

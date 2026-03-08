@@ -8,15 +8,16 @@ export const sections = [
   { title: 'Prerequisites', id: 'prerequisites' },
   { title: 'Step 1: Prepare Your Package', id: 'step-1-prepare-your-package' },
   { title: 'Step 2: Build Your Tool', id: 'step-2-build-your-tool' },
-  { title: 'Step 3: Finalize Package', id: 'step-3-finalize-package' },
-  { title: 'Step 4: Publish to npm', id: 'step-4-publish-to-npm' },
+  { title: 'Step 3: Validate Locally', id: 'step-3-validate-locally' },
+  { title: 'Step 4: Finalize Package', id: 'step-4-finalize-package' },
+  { title: 'Step 5: Publish to npm', id: 'step-5-publish-to-npm' },
   {
-    title: 'Step 5: Test Published Version',
-    id: 'step-5-test-published-version',
+    title: 'Step 6: Test Published Version',
+    id: 'step-6-test-published-version',
   },
   {
-    title: 'Step 6: Submit to ToolBox Registry',
-    id: 'step-6-submit-to-toolbox-registry',
+    title: 'Step 7: Submit to ToolBox Registry',
+    id: 'step-7-submit-to-toolbox-registry',
   },
   { title: 'Versioning and Updates', id: 'versioning-and-updates' },
   { title: 'Best Practices', id: 'best-practices' },
@@ -35,6 +36,7 @@ Before publishing, ensure your tool:
 
 - ✅ Builds successfully without errors
 - ✅ Has been tested in local debug mode
+- ✅ Passes local validation with `pptb-validate` (see [Local Tool Validation](/tool-development/validation))
 - ✅ Follows the [Tool Development Guide](/tool-development)
 - ✅ Has complete `package.json` metadata
 - ✅ Has appropriate license (open source recommended)
@@ -147,7 +149,27 @@ Verify that your `dist/` directory contains:
 - All compiled JavaScript/CSS files
 - Any required assets (images, icons, etc.)
 
-## Step 3: Finalize Package {{ anchor: true }}
+## Step 3: Validate Locally {{ anchor: true }}
+
+Before finalizing and publishing, run the `pptb-validate` CLI to check your `package.json` against the same rules used by the official review pipeline:
+
+```bash
+npm run validate
+```
+
+Or without a script entry:
+
+```bash
+npx pptb-validate
+```
+
+Fix any **errors** reported before proceeding. **Warnings** indicate optional-but-recommended fields that are absent or misconfigured — address them where possible.
+
+<Note type="information">
+  See the [Local Tool Validation](/tool-development/validation) guide for full details on CLI options, what is validated, and how to integrate with CI pipelines.
+</Note>
+
+## Step 4: Finalize Package {{ anchor: true }}
 
 Run the finalization script to prepare your package:
 
@@ -157,7 +179,7 @@ npm run finalize-package
 
 This ensures your package is ready for npm with correct file structure and dependencies.
 
-## Step 4: Publish to npm {{ anchor: true }}
+## Step 5: Publish to npm {{ anchor: true }}
 
 ### First-Time Setup
 
@@ -193,7 +215,7 @@ npm view @your-org/your-tool-name
 
 Or visit: `https://www.npmjs.com/package/@your-org/your-tool-name`
 
-## Step 5: Test Published Version {{ anchor: true }}
+## Step 6: Test Published Version {{ anchor: true }}
 
 Before submitting to the registry, test your published npm package:
 
@@ -204,7 +226,7 @@ Before submitting to the registry, test your published npm package:
    - Click **Install**
 4. **Test thoroughly** to ensure everything works as expected
 
-## Step 6: Submit to ToolBox Registry {{ anchor: true }}
+## Step 7: Submit to ToolBox Registry {{ anchor: true }}
 
 Once your tool is working correctly from npm:
 
@@ -289,6 +311,7 @@ npm publish --access public
 ### Before Publishing
 
 - ✅ Test thoroughly in debug mode
+- ✅ Run `pptb-validate` and fix all errors before publishing
 - ✅ Write comprehensive README with usage instructions
 - ✅ Include screenshots or demo GIFs
 - ✅ Document all features and limitations
