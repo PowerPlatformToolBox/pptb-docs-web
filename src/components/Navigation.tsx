@@ -276,6 +276,10 @@ export const navigation: Array<NavGroup> = [
         title: 'CSP Configuration',
         href: '/tool-development/csp-configuration',
       },
+      {
+        title: 'Local Validation',
+        href: '/tool-development/validation',
+      },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
     ],
   },
