@@ -18,6 +18,8 @@ The Settings API allows tool-specific settings to be stored and retrieved betwee
 
 ### `toolboxAPI.settings.getAll()`
 
+<RequiresVersion>1.0.17</RequiresVersion>
+
 Retrieve all settings for your tool.
 
 **Returns:** `Promise<Record<string, any>>` Object containing all settings key-value pairs
@@ -36,6 +38,8 @@ console.log('All settings:', JSON.stringify(settings))
 ```
 
 ### `toolboxAPI.settings.get(key)`
+
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Retrieve a specific setting by key.
 
@@ -57,6 +61,8 @@ const theme = await toolboxAPI.settings.get('theme') || 'light'
 ## Writing Settings {{ anchor: true }}
 
 ### `toolboxAPI.settings.set(key, value)`
+
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Set a specific setting by key.
 
@@ -81,6 +87,8 @@ await toolboxAPI.settings.set('lastFilter', {
 ```
 
 ### `toolboxAPI.settings.setAll(settings)`
+
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Set multiple settings at once.
 
