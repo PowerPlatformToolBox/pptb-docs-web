@@ -138,6 +138,85 @@ Ensure all required fields are present:
   </Property>
 </Properties>
 
+### Including Your Icon in `dist/`
+
+Your SVG icon must be present in the `dist/` folder after building. How you achieve this depends on your build setup.
+
+#### No Bundler (manual copy)
+
+Use [shx](https://www.npmjs.com/package/shx) for a cross-platform copy that works on Windows, macOS, and Linux:
+
+```bash
+npm install --save-dev shx
+```
+
+Then wire up individual copy steps and call them from your `build` script:
+
+```json
+{
+  "scripts": {
+    "build": "tsc && npm run copy-html && npm run copy-css && npm run copy-icon",
+    "copy-html": "shx cp src/index.html dist/",
+    "copy-css": "shx cp src/styles.css dist/",
+    "copy-icon": "shx cp -r icon/ dist/icon/"
+  }
+}
+```
+
+Adjust the paths to match your project structure. The `copy-icon` step recursively copies your entire `icon/` folder into `dist/icon/`, so whatever path you reference in `package.json`'s `icon` field (e.g., `icon/test.svg`) will be available after the build.
+
+#### Vite
+
+Vite automatically copies everything inside the `public/` directory to `dist/` at build time — no plugin required. Place your icon there:
+
+```
+public/
+  icon/
+    test.svg
+```
+
+If your `public/` folder is in a non-default location, point Vite to it via `publicDir`:
+
+```js
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  publicDir: 'public', // default — change this if your folder is elsewhere
+})
+```
+
+Your `package.json` `icon` field should then be `icon/test.svg`, which will resolve to `dist/icon/test.svg` after the build.
+
+#### Webpack
+
+Webpack has no built-in public folder, but you can achieve the same result by placing your icon under `public/` and using [copy-webpack-plugin](https://www.npmjs.com/package/copy-webpack-plugin) to copy that folder to `dist/`:
+
+```bash
+npm install --save-dev copy-webpack-plugin
+```
+
+```js
+// webpack.config.js
+const CopyPlugin = require('copy-webpack-plugin')
+
+module.exports = {
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        { from: 'public', to: '.' },
+      ],
+    }),
+  ],
+}
+```
+
+With your icon at `public/icon/test.svg`, it will be output to `dist/icon/test.svg`, matching the `icon` field in `package.json`.
+
+<Note type="important">
+  Whatever method you use, confirm the icon is present at the path referenced by the top-level `icon` field in `package.json` (e.g., `icons/test.svg`) relative to your `dist/` root before publishing.
+</Note>
+
 ## Step 2: Build Your Tool {{ anchor: true }}
 
 Build your tool to create the distributable files:
