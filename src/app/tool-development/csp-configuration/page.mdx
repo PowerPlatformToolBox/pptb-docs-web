@@ -82,10 +82,35 @@ Tools can specify CSP exceptions in their `package.json` manifest:
     "minAPI": "1.2.0"
   },
   "cspExceptions": {
-    "connect-src": ["https://*.dynamics.com", "https://*.crm*.dynamics.com"],
-    "script-src": ["https://cdn.jsdelivr.net"],
-    "style-src": ["https://cdn.jsdelivr.net"],
-    "img-src": ["https://example.com/images"]
+    "connect-src": [
+      {
+        "domain": "https://*.dynamics.com",
+        "exceptionReason": "Required to **fetch** metadata and records from Dataverse."
+      },
+      {
+        "domain": "https://*.crm*.dynamics.com",
+        "exceptionReason": "Required to connect to region-specific Dataverse environments."
+      }
+    ],
+    "script-src": [
+      {
+        "domain": "https://cdn.jsdelivr.net",
+        "exceptionReason": "Loads the Mermaid diagram library used to render ERDs."
+      }
+    ],
+    "style-src": [
+      {
+        "domain": "https://cdn.jsdelivr.net",
+        "exceptionReason": "Loads Mermaid's bundled stylesheet.",
+        "optional": true
+      }
+    ],
+    "img-src": [
+      {
+        "domain": "https://example.com/images",
+        "exceptionReason": "Displays entity icons in the diagram."
+      }
+    ]
   }
 }
 ```
@@ -127,49 +152,93 @@ CSP Enforcement Flow:
 
 ## Supported CSP Directives {{ anchor: true }}
 
-PPTB supports the following CSP directives for per-tool configuration:
+PPTB supports the following CSP directives for per-tool configuration. Each directive accepts an array of entries. An entry can be a plain string (just the domain) or an object with the following properties:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `domain` | `string` | Yes | The origin/domain to allow |
+| `exceptionReason` | `string` | No | Markdown description explaining why this CSP exception is needed. Supports markdown formatting and is displayed to users in the consent dialog. |
+| `optional` | `boolean` | No | When `true`, indicates that the core tool functions without this exception; granting it enables additional features. Defaults to `false`. |
 
 <Properties>
-  <Property name="connect-src" type="string[]">
+  <Property name="connect-src" type="string | object[]">
     Controls which URLs can be loaded via XHR, fetch, WebSocket, etc.
     ```json
-    ["https://*.dynamics.com"]
+    [
+      {
+        "domain": "https://*.dynamics.com",
+        "exceptionReason": "Fetches metadata and records from Dataverse."
+      }
+    ]
     ```
   </Property>
-  <Property name="script-src" type="string[]">
+  <Property name="script-src" type="string | object[]">
     Controls which sources can load JavaScript.
     ```json
-    ["https://cdn.jsdelivr.net"]
+    [
+      {
+        "domain": "https://cdn.jsdelivr.net",
+        "exceptionReason": "Loads the Mermaid diagram library."
+      }
+    ]
     ```
   </Property>
-  <Property name="style-src" type="string[]">
+  <Property name="style-src" type="string | object[]">
     Controls which sources can load CSS.
     ```json
-    ["https://fonts.googleapis.com"]
+    [
+      {
+        "domain": "https://fonts.googleapis.com",
+        "exceptionReason": "Provides the UI font family.",
+        "optional": true
+      }
+    ]
     ```
   </Property>
-  <Property name="img-src" type="string[]">
+  <Property name="img-src" type="string | object[]">
     Controls which sources can load images.
     ```json
-    ["https://example.com/images"]
+    [
+      {
+        "domain": "https://example.com/images",
+        "exceptionReason": "Displays entity icons in the diagram."
+      }
+    ]
     ```
   </Property>
-  <Property name="font-src" type="string[]">
+  <Property name="font-src" type="string | object[]">
     Controls which sources can load fonts.
     ```json
-    ["https://fonts.gstatic.com"]
+    [
+      {
+        "domain": "https://fonts.gstatic.com",
+        "exceptionReason": "Serves the UI font files.",
+        "optional": true
+      }
+    ]
     ```
   </Property>
-  <Property name="frame-src" type="string[]">
+  <Property name="frame-src" type="string | object[]">
     Controls which sources can be embedded in frames.
     ```json
-    ["https://trusted-domain.com"]
+    [
+      {
+        "domain": "https://trusted-domain.com",
+        "exceptionReason": "Embeds the interactive report viewer."
+      }
+    ]
     ```
   </Property>
-  <Property name="media-src" type="string[]">
+  <Property name="media-src" type="string | object[]">
     Controls which sources can load video/audio.
     ```json
-    ["https://media-cdn.com"]
+    [
+      {
+        "domain": "https://media-cdn.com",
+        "exceptionReason": "Streams tutorial videos within the tool.",
+        "optional": true
+      }
+    ]
     ```
   </Property>
 </Properties>
@@ -215,11 +284,20 @@ Only request CSP exceptions for resources your tool actually needs. Users are mo
     {
       "cspExceptions": {
         "connect-src": [
-          "https://api.powerbi.com",
-          "https://*.dynamics.com"
+          {
+            "domain": "https://api.powerbi.com",
+            "exceptionReason": "Embeds Power BI reports."
+          },
+          {
+            "domain": "https://*.dynamics.com",
+            "exceptionReason": "Fetches Dataverse metadata."
+          }
         ],
         "script-src": [
-          "https://cdn.jsdelivr.net/npm/mermaid@9"
+          {
+            "domain": "https://cdn.jsdelivr.net/npm/mermaid@9",
+            "exceptionReason": "Loads the Mermaid diagram library."
+          }
         ]
       }
     }
@@ -237,15 +315,37 @@ Use the most specific domain patterns possible. Wildcards should be used sparing
 
 ### 3. Document Your Requirements
 
-Clearly document in your README why your tool needs each CSP exception:
+Use the `exceptionReason` property on each entry to explain why your tool needs the exception. This description supports markdown and is shown to users in the consent dialog, helping them make an informed decision.
 
-```markdown
-## Security Permissions
+```json
+"cspExceptions": {
+  "connect-src": [
+    {
+      "domain": "https://*.dynamics.com",
+      "exceptionReason": "Required to **fetch metadata** from Dataverse"
+    }
+  ],
+  "script-src": [
+    {
+      "domain": "https://cdn.jsdelivr.net",
+      "exceptionReason": "Required to load the **Mermaid** diagram library"
+    }
+  ]
+}
+```
 
-This tool requires the following CSP exceptions:
+Mark any exception as `"optional": true` when the core tool works without it and it only enables additional functionality:
 
-- **connect-src: https://\*.dynamics.com** - Required to fetch metadata from Dataverse
-- **script-src: https://cdn.jsdelivr.net** - Required to load the Mermaid diagram library
+```json
+"cspExceptions": {
+  "style-src": [
+    {
+      "domain": "https://fonts.googleapis.com",
+      "exceptionReason": "Loads the preferred UI font. The tool works with the system font if this is declined.",
+      "optional": true
+    }
+  ]
+}
 ```
 
 ### 4. Consider Alternatives
@@ -285,8 +385,18 @@ When publishing a tool to the PPTB registry, include the `cspExceptions` in your
   "author": "Power Maverick",
   "downloadUrl": "...",
   "cspExceptions": {
-    "connect-src": ["https://*.dynamics.com"],
-    "script-src": ["https://cdn.jsdelivr.net"]
+    "connect-src": [
+      {
+        "domain": "https://*.dynamics.com",
+        "exceptionReason": "Fetches metadata and records from Dataverse."
+      }
+    ],
+    "script-src": [
+      {
+        "domain": "https://cdn.jsdelivr.net",
+        "exceptionReason": "Loads the Mermaid diagram library."
+      }
+    ]
   }
 }
 ```
@@ -342,14 +452,27 @@ Here's a complete example for a tool that needs Dataverse access and external li
   },
   "cspExceptions": {
     "connect-src": [
-      "https://*.dynamics.com",
-      "https://*.crm*.dynamics.com"
+      {
+        "domain": "https://*.dynamics.com",
+        "exceptionReason": "Required to **fetch metadata and records** from Dataverse."
+      },
+      {
+        "domain": "https://*.crm*.dynamics.com",
+        "exceptionReason": "Required to connect to region-specific Dataverse environments."
+      }
     ],
     "script-src": [
-      "https://cdn.jsdelivr.net/npm/mermaid@10"
+      {
+        "domain": "https://cdn.jsdelivr.net/npm/mermaid@10",
+        "exceptionReason": "Loads the **Mermaid** library used to render entity relationship diagrams."
+      }
     ],
     "style-src": [
-      "https://cdn.jsdelivr.net/npm/mermaid@10"
+      {
+        "domain": "https://cdn.jsdelivr.net/npm/mermaid@10",
+        "exceptionReason": "Loads Mermaid's bundled stylesheet for diagram rendering.",
+        "optional": true
+      }
     ]
   },
   "repository": {

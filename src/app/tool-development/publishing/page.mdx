@@ -8,15 +8,16 @@ export const sections = [
   { title: 'Prerequisites', id: 'prerequisites' },
   { title: 'Step 1: Prepare Your Package', id: 'step-1-prepare-your-package' },
   { title: 'Step 2: Build Your Tool', id: 'step-2-build-your-tool' },
-  { title: 'Step 3: Finalize Package', id: 'step-3-finalize-package' },
-  { title: 'Step 4: Publish to npm', id: 'step-4-publish-to-npm' },
+  { title: 'Step 3: Validate Locally', id: 'step-3-validate-locally' },
+  { title: 'Step 4: Finalize Package', id: 'step-4-finalize-package' },
+  { title: 'Step 5: Publish to npm', id: 'step-5-publish-to-npm' },
   {
-    title: 'Step 5: Test Published Version',
-    id: 'step-5-test-published-version',
+    title: 'Step 6: Test Published Version',
+    id: 'step-6-test-published-version',
   },
   {
-    title: 'Step 6: Submit to ToolBox Registry',
-    id: 'step-6-submit-to-toolbox-registry',
+    title: 'Step 7: Submit to ToolBox Registry',
+    id: 'step-7-submit-to-toolbox-registry',
   },
   { title: 'Versioning and Updates', id: 'versioning-and-updates' },
   { title: 'Best Practices', id: 'best-practices' },
@@ -35,6 +36,7 @@ Before publishing, ensure your tool:
 
 - ✅ Builds successfully without errors
 - ✅ Has been tested in local debug mode
+- ✅ Passes local validation with `pptb-validate` (see [Local Tool Validation](/tool-development/validation))
 - ✅ Follows the [Tool Development Guide](/tool-development)
 - ✅ Has complete `package.json` metadata
 - ✅ Has appropriate license (open source recommended)
@@ -76,7 +78,11 @@ Ensure all required fields are present:
   "cspExceptions": {
     //This is an optional section, do not include unless your tool needs to connect to more than dataverse endpoints
     "connect-src": [
-      "websites that your tool needs to connect to, e.g.: www.api.example.com"
+      {
+        "domain": "www.api.example.com",
+        "exceptionReason": "Explain **why** your tool needs this exception.",
+        "optional": false // set to true if the core tool works without this exception
+      }
     ]
   },
   "features": {
@@ -132,6 +138,85 @@ Ensure all required fields are present:
   </Property>
 </Properties>
 
+### Including Your Icon in `dist/`
+
+Your SVG icon must be present in the `dist/` folder after building. How you achieve this depends on your build setup.
+
+#### No Bundler (manual copy)
+
+Use [shx](https://www.npmjs.com/package/shx) for a cross-platform copy that works on Windows, macOS, and Linux:
+
+```bash
+npm install --save-dev shx
+```
+
+Then wire up individual copy steps and call them from your `build` script:
+
+```json
+{
+  "scripts": {
+    "build": "tsc && npm run copy-html && npm run copy-css && npm run copy-icon",
+    "copy-html": "shx cp src/index.html dist/",
+    "copy-css": "shx cp src/styles.css dist/",
+    "copy-icon": "shx cp -r icon/ dist/icon/"
+  }
+}
+```
+
+Adjust the paths to match your project structure. The `copy-icon` step recursively copies your entire `icon/` folder into `dist/icon/`, so whatever path you reference in `package.json`'s `icon` field (e.g., `icon/test.svg`) will be available after the build.
+
+#### Vite
+
+Vite automatically copies everything inside the `public/` directory to `dist/` at build time — no plugin required. Place your icon there:
+
+```
+public/
+  icon/
+    test.svg
+```
+
+If your `public/` folder is in a non-default location, point Vite to it via `publicDir`:
+
+```js
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  publicDir: 'public', // default — change this if your folder is elsewhere
+})
+```
+
+Your `package.json` `icon` field should then be `icon/test.svg`, which will resolve to `dist/icon/test.svg` after the build.
+
+#### Webpack
+
+Webpack has no built-in public folder, but you can achieve the same result by placing your icon under `public/` and using [copy-webpack-plugin](https://www.npmjs.com/package/copy-webpack-plugin) to copy that folder to `dist/`:
+
+```bash
+npm install --save-dev copy-webpack-plugin
+```
+
+```js
+// webpack.config.js
+const CopyPlugin = require('copy-webpack-plugin')
+
+module.exports = {
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        { from: 'public', to: '.' },
+      ],
+    }),
+  ],
+}
+```
+
+With your icon at `public/icon/test.svg`, it will be output to `dist/icon/test.svg`, matching the `icon` field in `package.json`.
+
+<Note type="important">
+  Whatever method you use, confirm the icon is present at the path referenced by the top-level `icon` field in `package.json` (e.g., `icons/test.svg`) relative to your `dist/` root before publishing.
+</Note>
+
 ## Step 2: Build Your Tool {{ anchor: true }}
 
 Build your tool to create the distributable files:
@@ -147,7 +232,27 @@ Verify that your `dist/` directory contains:
 - All compiled JavaScript/CSS files
 - Any required assets (images, icons, etc.)
 
-## Step 3: Finalize Package {{ anchor: true }}
+## Step 3: Validate Locally {{ anchor: true }}
+
+Before finalizing and publishing, run the `pptb-validate` CLI to check your `package.json` against the same rules used by the official review pipeline:
+
+```bash
+npm run validate
+```
+
+Or without a script entry:
+
+```bash
+npx pptb-validate
+```
+
+Fix any **errors** reported before proceeding. **Warnings** indicate optional-but-recommended fields that are absent or misconfigured — address them where possible.
+
+<Note type="information">
+  See the [Local Tool Validation](/tool-development/validation) guide for full details on CLI options, what is validated, and how to integrate with CI pipelines.
+</Note>
+
+## Step 4: Finalize Package {{ anchor: true }}
 
 Run the finalization script to prepare your package:
 
@@ -157,7 +262,7 @@ npm run finalize-package
 
 This ensures your package is ready for npm with correct file structure and dependencies.
 
-## Step 4: Publish to npm {{ anchor: true }}
+## Step 5: Publish to npm {{ anchor: true }}
 
 ### First-Time Setup
 
@@ -193,7 +298,7 @@ npm view @your-org/your-tool-name
 
 Or visit: `https://www.npmjs.com/package/@your-org/your-tool-name`
 
-## Step 5: Test Published Version {{ anchor: true }}
+## Step 6: Test Published Version {{ anchor: true }}
 
 Before submitting to the registry, test your published npm package:
 
@@ -204,7 +309,7 @@ Before submitting to the registry, test your published npm package:
    - Click **Install**
 4. **Test thoroughly** to ensure everything works as expected
 
-## Step 6: Submit to ToolBox Registry {{ anchor: true }}
+## Step 7: Submit to ToolBox Registry {{ anchor: true }}
 
 Once your tool is working correctly from npm:
 
@@ -289,6 +394,7 @@ npm publish --access public
 ### Before Publishing
 
 - ✅ Test thoroughly in debug mode
+- ✅ Run `pptb-validate` and fix all errors before publishing
 - ✅ Write comprehensive README with usage instructions
 - ✅ Include screenshots or demo GIFs
 - ✅ Document all features and limitations

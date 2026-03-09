@@ -113,21 +113,47 @@ Each function in the [API Reference](/tool-development/api-reference) includes a
 
 Declare additional external origins that your tool's iframe is permitted to connect to. Omit this section entirely if your tool only communicates with Dataverse endpoints. All fields are optional.
 
-| Field | Type | Description | Sample |
-|-------|------|-------------|--------|
-| `connect-src` | `string[]` | Fetch, XHR, WebSocket, and EventSource origins | `["api.example.com"]` |
-| `script-src` | `string[]` | Additional origins allowed to serve scripts | `["cdn.example.com"]` |
-| `style-src` | `string[]` | Additional origins allowed to serve stylesheets | `["fonts.googleapis.com"]` |
-| `img-src` | `string[]` | Additional origins allowed to serve images | `["img.example.com"]` |
-| `font-src` | `string[]` | Additional origins allowed to serve fonts | `["fonts.gstatic.com"]` |
-| `frame-src` | `string[]` | Origins allowed to be embedded in iframes | `["embed.example.com"]` |
-| `media-src` | `string[]` | Origins allowed to serve audio/video media | `["media.example.com"]` |
+Each directive accepts an array of entries. An entry can be either a plain string (just the domain) or an object with the following properties:
+
+| Field | Type | Required | Description | Sample |
+|-------|------|----------|-------------|--------|
+| `domain` | `string` | Yes | The origin/domain to allow | `"api.example.com"` |
+| `exceptionReason` | `string` | No | Markdown description explaining why this CSP exception is needed. Displayed to users in the consent dialog. | `"Used to **read** configuration details."` |
+| `optional` | `boolean` | No | When `true`, indicates the exception is optional — the core tool works without it, but granting it enables additional functionality. Defaults to `false`. | `true` |
+
+The supported CSP directives are:
+
+| Directive | Description | Sample domain |
+|-----------|-------------|---------------|
+| `connect-src` | Fetch, XHR, WebSocket, and EventSource origins | `"api.example.com"` |
+| `script-src` | Additional origins allowed to serve scripts | `"cdn.example.com"` |
+| `style-src` | Additional origins allowed to serve stylesheets | `"fonts.googleapis.com"` |
+| `img-src` | Additional origins allowed to serve images | `"img.example.com"` |
+| `font-src` | Additional origins allowed to serve fonts | `"fonts.gstatic.com"` |
+| `frame-src` | Origins allowed to be embedded in iframes | `"embed.example.com"` |
+| `media-src` | Origins allowed to serve audio/video media | `"media.example.com"` |
 
 ```json
 "cspExceptions": {
-  "connect-src": ["api.example.com"],
-  "script-src": ["cdn.example.com"],
-  "style-src": ["fonts.googleapis.com"],
+  "connect-src": [
+    {
+      "domain": "api.example.com",
+      "exceptionReason": "Used to **fetch** live data for the dashboard."
+    }
+  ],
+  "script-src": [
+    {
+      "domain": "cdn.example.com",
+      "exceptionReason": "Loads the charting library used to render reports."
+    }
+  ],
+  "style-src": [
+    {
+      "domain": "fonts.googleapis.com",
+      "exceptionReason": "Provides the UI font family.",
+      "optional": true
+    }
+  ],
   "img-src": ["img.example.com"],
   "font-src": ["fonts.gstatic.com"],
   "frame-src": ["embed.example.com"],
@@ -164,8 +190,19 @@ Declare additional external origins that your tool's iframe is permitted to conn
     "minAPI": "1.2.0"
   },
   "cspExceptions": {
-    "connect-src": ["api.example.com"],
-    "img-src": ["img.example.com"]
+    "connect-src": [
+      {
+        "domain": "api.example.com",
+        "exceptionReason": "Used to **fetch** live configuration data for the dashboard."
+      }
+    ],
+    "img-src": [
+      {
+        "domain": "img.example.com",
+        "exceptionReason": "Loads thumbnails for the media browser.",
+        "optional": true
+      }
+    ]
   },
   "keywords": ["dataverse", "power-platform", "solutions"],
   "homepage": "https://docs.myorg.com/my-awesome-tool",
