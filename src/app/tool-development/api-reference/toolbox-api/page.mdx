@@ -26,7 +26,7 @@ Get information about the active Dataverse connection(s).
 
 ### `toolboxAPI.connections.getActiveConnection()`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.2.0</RequiresVersion>
 
 Returns the currently active connection or null if none is selected.
 
@@ -50,6 +50,9 @@ interface DataverseConnection {
   name: string // Friendly name of the connection
   url: string // Base URL of the Dataverse instance
   environment: 'Dev' | 'Test' | 'UAT' | 'Production' // Environment classification
+  environmentColor?: string // Hex color code associated with the environment (added in 1.2.0)
+  category?: string // Category label assigned to the connection (added in 1.2.0)
+  categoryColor?: string // Hex color code for the category badge (added in 1.2.0)
   createdAt: string // ISO date string of when the connection was created
   lastUsedAt?: string // ISO date string of when the connection was last used
   isActive?: boolean // @deprecated legacy field retained for backwards compatibility
@@ -89,7 +92,7 @@ When the user opens your tool, they are presented with the option to connect to 
 
 ### `toolboxAPI.connections.getSecondaryConnection()`
 
-_Available since: `1.2.0`_
+<RequiresVersion>1.2.0</RequiresVersion>
 
 Returns the currently active secondary connection or null if none is configured.
 
@@ -114,6 +117,9 @@ interface DataverseConnection {
   name: string // Friendly name of the connection
   url: string // Base URL of the Dataverse instance
   environment: 'Dev' | 'Test' | 'UAT' | 'Production' // Environment classification
+  environmentColor?: string // Hex color code associated with the environment (added in 1.2.0)
+  category?: string // Category label assigned to the connection (added in 1.2.0)
+  categoryColor?: string // Hex color code for the category badge (added in 1.2.0)
   createdAt: string // ISO date string of when the connection was created
   lastUsedAt?: string // ISO date string of when the connection was last used
   isActive?: boolean // @deprecated legacy field retained for backwards compatibility
@@ -140,7 +146,7 @@ Utility functions for notifications, clipboard, and more.
 
 ### `toolboxAPI.utils.showNotification(options)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Display a notification to the user.
 
@@ -164,7 +170,7 @@ await toolboxAPI.utils.showNotification({
 
 ### `toolboxAPI.utils.copyToClipboard(text)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Copy text to the system clipboard.
 
@@ -181,7 +187,7 @@ await toolboxAPI.utils.showNotification({
 
 ### `toolboxAPI.utils.getCurrentTheme()`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Get the current application theme.
 
@@ -194,7 +200,7 @@ document.body.classList.add(`theme-${theme}`)
 
 ### `toolboxAPI.utils.showLoading(message)` / `hideLoading()`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Show/hide a loading overlay.
 
@@ -218,7 +224,7 @@ try {
 
 ### `toolboxAPI.utils.executeParallel(...promises)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Execute multiple async operations in parallel.
 
@@ -239,7 +245,7 @@ Create and manage terminal sessions (context-aware to your tool).
 
 ### `toolboxAPI.terminal.create(options)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Create a new terminal.
 
@@ -257,7 +263,7 @@ console.log('Terminal created:', terminal.id)
 
 ### `toolboxAPI.terminal.execute(terminalId, command)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Execute a command in a terminal.
 
@@ -273,7 +279,7 @@ if (result.exitCode === 0) {
 
 ### `toolboxAPI.terminal.setVisibility(terminalId, visible)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Show or hide a terminal's UI panel.
 
@@ -283,7 +289,7 @@ await toolboxAPI.terminal.setVisibility(terminal.id, true)
 
 ### `toolboxAPI.terminal.list()`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 List all terminals created by your tool.
 
@@ -294,7 +300,7 @@ console.log(`This tool has ${terminals.length} terminals`)
 
 ### `toolboxAPI.terminal.close(terminalId)`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Close a terminal.
 
@@ -306,7 +312,7 @@ await toolboxAPI.terminal.close(terminal.id)
 
 ### `toolboxAPI.getToolContext()`
 
-_Available since: `1.0.17`_
+<RequiresVersion>1.0.17</RequiresVersion>
 
 Returns the current tool context used by the framework.
 

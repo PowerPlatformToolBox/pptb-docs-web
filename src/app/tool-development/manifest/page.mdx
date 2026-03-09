@@ -99,7 +99,7 @@ The `minAPI` field lets you declare the lowest ToolBox API version your tool is 
 
 **How to determine the correct value:**
 
-Each function in the [API Reference](/tool-development/api-reference) includes an _Available since_ label showing the ToolBox version it was introduced in (where available). Set `minAPI` to the highest such version across all the functions your tool depends on.
+Each function in the [API Reference](/tool-development/api-reference) includes a **Requires vX.Y.Z** badge showing the minimum ToolBox version it needs (where applicable). Set `minAPI` to the highest such version across all the functions your tool depends on.
 
 <Note type="information">
   You only need to set `minAPI` if your tool relies on features that were not available in the very first public release. If your tool only uses core APIs that have been available from the start, you can omit this field.
