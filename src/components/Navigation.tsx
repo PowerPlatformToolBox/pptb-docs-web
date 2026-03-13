@@ -29,15 +29,19 @@ function useInitialValue<T>(value: T, condition = true) {
 function TopLevelNavItem({
   href,
   children,
+  newTab = false,
 }: {
   href: string
   children: React.ReactNode
+  newTab?: boolean
 }) {
   return (
     <li className="md:hidden">
       <CloseButton
         as={Link}
         href={href}
+        target={newTab ? '_blank' : undefined}
+        rel={newTab ? 'noopener noreferrer' : undefined}
         className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
       >
         {children}
@@ -304,7 +308,10 @@ export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
         <TopLevelNavItem href="https://www.powerplatformtoolbox.com">
           Website
         </TopLevelNavItem>
-        <TopLevelNavItem href="https://github.com/PowerPlatformToolBox">
+        <TopLevelNavItem
+          href="https://github.com/PowerPlatformToolBox"
+          newTab
+        >
           GitHub
         </TopLevelNavItem>
         {navigation.map((group, groupIndex) => (
