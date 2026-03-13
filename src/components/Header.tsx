@@ -17,14 +17,18 @@ import Image from 'next/image'
 function TopLevelNavItem({
   href,
   children,
+  newTab = false,
 }: {
   href: string
   children: React.ReactNode
+  newTab?: boolean
 }) {
   return (
     <li>
       <Link
         href={href}
+        target={newTab ? '_blank' : undefined}
+        rel={newTab ? 'noopener noreferrer' : undefined}
         className="text-sm/5 text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
       >
         {children}
@@ -91,7 +95,10 @@ export const Header = forwardRef<
             <TopLevelNavItem href="https://www.powerplatformtoolbox.com">
               Main Website
             </TopLevelNavItem>
-            <TopLevelNavItem href="https://github.com/PowerPlatformToolBox">
+            <TopLevelNavItem
+              href="https://github.com/PowerPlatformToolBox"
+              newTab
+            >
               GitHub
             </TopLevelNavItem>
           </ul>
