@@ -131,6 +131,24 @@ export function RequiresVersion({ children }: { children: React.ReactNode }) {
   )
 }
 
+export function Deprecated({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="not-prose my-2">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-amber-600/20 ring-inset dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
+        <svg
+          className="h-3 w-3"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm1 4H7v5h2V4Zm0 6H7v2h2v-2Z" />
+        </svg>
+        Deprecated since v{children}
+      </span>
+    </div>
+  )
+}
+
 export function Row({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-1 items-start gap-x-16 gap-y-10 xl:max-w-none xl:grid-cols-2">
