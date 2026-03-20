@@ -377,7 +377,7 @@ const result = await dataverseAPI.queryData(
 
 ## Metadata {{ anchor: true }}
 
-### `dataverseAPI.getEntityMetadata(entityLogicalName, searchByLogicalName, selectColumns?, connectionTarget?)`
+### `dataverseAPI.getEntityMetadata(entityLogicalName, searchByLogicalName, entityProperties?, connectionTarget?)`
 
 <RequiresVersion>1.0.17</RequiresVersion>
 
@@ -385,7 +385,7 @@ Get entity metadata.
 **Parameters:**  
 `entityLogicalName: string` Logical name or entity id of the entity  
 `searchByLogicalName: boolean` Boolean indicating whether to search by logical name (true) or metadata ID (false)  
-`selectColumns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`entityProperties?: string[]` Optional array of property or column names to retrieve (retrieves all if not specified)  
 `connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
 **Returns:** `Promise<EntityMetadata>` Object containing entity metadata
 
@@ -418,7 +418,7 @@ const metadata = await dataverseAPI.getEntityMetadata(
 console.log('Logical Name from secondary connection:', metadata.LogicalName)
 ```
 
-### `dataverseAPI.getEntityRelatedMetadata(entityLogicalName, relatedPath, selectColumns?, connectionTarget?)`
+### `dataverseAPI.getEntityRelatedMetadata(entityLogicalName, relatedPath, relatedProperties?, connectionTarget?)`
 
 <RequiresVersion>1.0.17</RequiresVersion>
 
@@ -426,7 +426,7 @@ Get related metadata for a specific entity (attributes, relationships, etc.)
 **Parameters:**  
 `entityLogicalName: string` Logical name of the entity  
 `relatedPath: EntityRelatedMetadataPath` Path after EntityDefinitions(LogicalName='name'). Supports collections and specific records, e.g. `Attributes`, `Keys`, `ManyToOneRelationships`, `Attributes(LogicalName='name')`, `Attributes(LogicalName='industrycode')/OptionSet`  
-`selectColumns?: string[]` Optional array of column names to retrieve (retrieves all if not specified)  
+`relatedProperties?: string[]` Optional array of property or column names to retrieve (retrieves all if not specified)  
 `connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
 **Returns:** `Promise<EntityRelatedMetadataResponse<P>>` Returns either a collection (`{ value: [...] }`) or a single metadata object depending on `relatedPath`
 
@@ -470,13 +470,13 @@ const attributes = await dataverseAPI.getEntityRelatedMetadata(
 console.log('Attributes from secondary connection:', attributes.value)
 ```
 
-### `dataverseAPI.getAllEntitiesMetadata(selectColumns?, connectionTarget?)`
+### `dataverseAPI.getAllEntitiesMetadata(entityProperties?, connectionTarget?)`
 
 <RequiresVersion>1.0.17</RequiresVersion>
 
 Get metadata for all entities  
 **Parameters:**  
-`selectColumns?: string[]` Optional array of column names to retrieve (retrieves LogicalName, DisplayName, MetadataId by default)  
+`entityProperties?: string[]` Optional array of property or column names to retrieve (retrieves LogicalName, DisplayName, MetadataId by default)  
 `connectionTarget?: 'primary' | 'secondary'` Optional connection target for multi-connection tools ('primary' or 'secondary'). Defaults to 'primary'.  
 **Returns:** `Promise<{ value: any[] }>` Object with value array containing all entity metadata
 
