@@ -110,6 +110,12 @@ Tools can specify CSP exceptions in their `package.json` manifest:
         "domain": "https://example.com/images",
         "exceptionReason": "Displays entity icons in the diagram."
       }
+    ],
+    "mailto": [
+      {
+        "domain": "mailto:url",
+        "exceptionReason": "Allows users to click email links in the tool."
+      }
     ]
   }
 }
@@ -237,6 +243,17 @@ PPTB supports the following CSP directives for per-tool configuration. Each dire
         "domain": "https://media-cdn.com",
         "exceptionReason": "Streams tutorial videos within the tool.",
         "optional": true
+      }
+    ]
+    ```
+  </Property>
+  <Property name="mailto" type="string | object[]">
+    Controls whether `mailto:` links are allowed.
+    ```json
+    [
+      {
+        "domain": "mailto:url",
+        "exceptionReason": "Allows users to click email links in the tool."
       }
     ]
     ```
