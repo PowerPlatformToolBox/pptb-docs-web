@@ -9,6 +9,7 @@ export const sections = [
   { title: 'Secondary Connections', id: 'secondary-connections' },
   { title: 'Utils', id: 'utils' },
   { title: 'Terminal', id: 'terminal' },
+  { title: 'Invocation API', id: 'invocation-api' },
   { title: 'Tool Context', id: 'tool-context' },
 ]
 
@@ -239,6 +240,34 @@ const [account, contact, opportunities] =
 console.log('All data fetched:', account, contact, opportunities)
 ```
 
+### `toolboxAPI.utils.openInConnectionBrowser(url, connectionTarget?)`
+
+<RequiresVersion>1.2.0</RequiresVersion>
+
+Open a URL in the external browser associated with the tool's active connection. When the connection has a browser profile configured (e.g. a specific Chrome or Edge profile), the URL is opened in that browser and profile so the user is already authenticated. Falls back to the system default browser when no profile is configured.
+
+Only `https:` and `http:` URLs are allowed.
+
+```typescript
+// Open a record in the browser using the primary connection's browser profile
+await toolboxAPI.utils.openInConnectionBrowser(
+  'https://contoso.crm.dynamics.com/main.aspx?etn=account&id=guid-here&pagetype=entityrecord',
+)
+
+// Open a URL using the secondary connection's browser profile
+await toolboxAPI.utils.openInConnectionBrowser(
+  'https://contoso-dev.crm.dynamics.com/main.aspx?pagetype=entitylist&etn=account',
+  'secondary',
+)
+```
+
+**Parameters:**
+
+- `url: string` — The URL to open (must use `https:` or `http:` protocol)
+- `connectionTarget?: 'primary' | 'secondary'` — Which connection's browser profile to use. Defaults to `'primary'`.
+
+**Returns:** `Promise<void>`
+
 ## Terminal {{ anchor: true }}
 
 Create and manage terminal sessions (context-aware to your tool).
@@ -307,6 +336,75 @@ Close a terminal.
 ```typescript
 await toolboxAPI.terminal.close(terminal.id)
 ```
+
+## Invocation API {{ anchor: true }}
+
+The Invocation API enables inter-tool communication — one tool can launch another, pass prefill data, and receive a return value when the callee finishes.
+
+### `toolboxAPI.invocation.launchTool(targetToolId, prefillData?, options?)`
+
+<RequiresVersion>1.2.0</RequiresVersion>
+
+Launch another installed tool from within your tool and optionally pass prefill data. Returns a Promise that resolves with the data the target tool sends back via `returnData()`, or `null` if the target tool closes without returning data.
+
+```typescript
+// Tool A: launch an entity-picker tool and wait for the result
+const result = await toolboxAPI.invocation.launchTool(
+  '@my-org/entity-picker',
+  { entityName: 'account' },
+)
+
+if (result) {
+  console.log('Selected ID:', result.selectedId)
+  console.log('Selected name:', result.selectedName)
+}
+```
+
+**Parameters:**
+
+- `targetToolId: string` — npm package name (toolId) of the tool to launch
+- `prefillData?: Record<string, unknown>` — Data to pre-populate the target tool's state
+- `options?: object` — Optional connection overrides: `{ primaryConnectionId?, secondaryConnectionId? }`
+
+**Returns:** `Promise<unknown>` — Data returned by the target tool, or `null` if it closes without returning data
+
+### `toolboxAPI.invocation.getLaunchContext()`
+
+<RequiresVersion>1.2.0</RequiresVersion>
+
+Read the prefill data passed by the tool that launched this tool. Returns `null` if this tool was not launched via an inter-tool invocation.
+
+```typescript
+// Tool B: read the launch context on startup
+const ctx = await toolboxAPI.invocation.getLaunchContext()
+
+if (ctx) {
+  console.log('Launched with entity:', ctx.entityName)
+  // Pre-populate UI based on ctx...
+}
+```
+
+**Returns:** `Promise<Record<string, unknown> | null>`
+
+### `toolboxAPI.invocation.returnData(returnData)`
+
+<RequiresVersion>1.2.0</RequiresVersion>
+
+Return data back to the tool that launched this tool. This resolves the `Promise` returned by the caller's `launchTool()` call. If this tool was not launched by another tool, the call is a no-op.
+
+```typescript
+// Tool B: after the user makes a selection, return it to the caller
+await toolboxAPI.invocation.returnData({
+  selectedId: 'guid-here',
+  selectedName: 'Contoso Ltd',
+})
+```
+
+**Parameters:**
+
+- `returnData: Record<string, unknown>` — Data to pass back to the caller
+
+**Returns:** `Promise<void>`
 
 ## Tool Context {{ anchor: true }}
 
