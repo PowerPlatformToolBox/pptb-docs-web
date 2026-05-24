@@ -242,7 +242,7 @@ console.log('All data fetched:', account, contact, opportunities)
 
 ### `toolboxAPI.utils.openInConnectionBrowser(url, connectionTarget?)`
 
-<RequiresVersion>1.2.0</RequiresVersion>
+<RequiresVersion>1.2.2</RequiresVersion>
 
 Open a URL in the external browser associated with the tool's active connection. When the connection has a browser profile configured (e.g. a specific Chrome or Edge profile), the URL is opened in that browser and profile so the user is already authenticated. Falls back to the system default browser when no profile is configured.
 
@@ -343,7 +343,7 @@ The Invocation API enables inter-tool communication — one tool can launch anot
 
 ### `toolboxAPI.invocation.launchTool(targetToolId, prefillData?, options?)`
 
-<RequiresVersion>1.2.0</RequiresVersion>
+<RequiresVersion>1.2.2-beta</RequiresVersion>
 
 Launch another installed tool from within your tool and optionally pass prefill data. Returns a Promise that resolves with the data the target tool sends back via `returnData()`, or `null` if the target tool closes without returning data.
 
@@ -370,7 +370,7 @@ if (result) {
 
 ### `toolboxAPI.invocation.getLaunchContext()`
 
-<RequiresVersion>1.2.0</RequiresVersion>
+<RequiresVersion>1.2.2-beta</RequiresVersion>
 
 Read the prefill data passed by the tool that launched this tool. Returns `null` if this tool was not launched via an inter-tool invocation.
 
@@ -388,7 +388,7 @@ if (ctx) {
 
 ### `toolboxAPI.invocation.returnData(returnData)`
 
-<RequiresVersion>1.2.0</RequiresVersion>
+<RequiresVersion>1.2.2-beta</RequiresVersion>
 
 Return data back to the tool that launched this tool. This resolves the `Promise` returned by the caller's `launchTool()` call. If this tool was not launched by another tool, the call is a no-op.
 
