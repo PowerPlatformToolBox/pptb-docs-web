@@ -406,7 +406,7 @@ getKnownCapabilityTags(): Promise<Array<{ tag: string; description: string }>>
 | `solution-selector` | Pick a Power Platform solution |
 
 <Note type="information">
-  The registry is updated without an app release — new tags are added to the Supabase `capability_tags` table and become immediately discoverable via `getKnownCapabilityTags()`. The TypeScript `KnownCapabilityTag` union type is updated in the next `@pptb/types` release.
+  The registry is updated without an app release — new tags are added to backend table and become immediately discoverable via `getKnownCapabilityTags()`.
 </Note>
 
 For IDE auto-complete on capability tags, import `CapabilityTag` from `@pptb/types`:
@@ -459,7 +459,7 @@ async function openEntityPicker(entityName: string) {
 
 ## End-to-End Scenario {{ anchor: true }}
 
-This section walks through a real-world example: **FetchXML Studio (FXS)** exposes a "Send To ▾" flyout that lets users push the current FetchXML query into another installed tool — such as **DRB** (Dataverse Rest Builder) or **DMS** (Data Migration Studio) — without expecting a return value.
+This section walks through a real-world example: **FetchXML Studio (FXS)** exposes a "Send To ▾" flyout that lets users push the current FetchXML query into another installed tool — such as **BDS** (Bulk Data Studio) or **DM** (Data Migrator) — without expecting a return value.
 
 ### Scenario Steps
 
@@ -467,13 +467,13 @@ This section walks through a real-world example: **FetchXML Studio (FXS)** expos
 | --- | --- |
 | 1 | User composes a FetchXML query in FXS. |
 | 2 | User clicks the **"Send To ▾"** flyout button. |
-| 3 | PPTB queries all installed tools declaring the `"fetchxml"` capability. Both DRB and DMS qualify. The flyout lists them. |
-| 4 | User selects **DMS**. |
-| 5 | PPTB opens DMS, inheriting FXS's active Dataverse connection. |
-| 6 | DMS requires a secondary connection — PPTB automatically shows the multi-connection selector. The user picks the target environment. |
-| 7 | DMS opens pre-populated with the FetchXML from step 1. |
-| 8 | Because `noReturn: true` was set, **no banner is shown** in the DMS window. |
-| 9 | The user continues in DMS independently. Closing DMS resolves the Promise on the FXS side with `null`. |
+| 3 | PPTB queries all installed tools declaring the `"fetchxml"` capability. Both BDS and DM qualify. The flyout lists them. |
+| 4 | User selects **DM**. |
+| 5 | PPTB opens DM, inheriting FXS's active Dataverse connection. |
+| 6 | DM requires a secondary connection — PPTB automatically shows the multi-connection selector. The user picks the target environment. |
+| 7 | DM opens pre-populated with the FetchXML from step 1. |
+| 8 | Because `noReturn: true` was set, **no banner is shown** in the DM window. |
+| 9 | The user continues in DM independently. Closing DM resolves the Promise on the FXS side with `null`. |
 
 ### Step 1 — Both callee tools declare the `"fetchxml"` capability
 
@@ -501,7 +501,7 @@ async function setupSendToFlyout() {
 }
 ```
 
-### Step 3 — User selects DMS; FXS launches it with `noReturn: true`
+### Step 3 — User selects DM; FXS launches it with `noReturn: true`
 
 ```typescript
 async function sendCurrentQueryToTool(targetToolId: string) {
@@ -528,7 +528,7 @@ async function sendCurrentQueryToTool(targetToolId: string) {
 }
 ```
 
-### Step 4 — DMS reads the prefill data
+### Step 4 — DM reads the prefill data
 
 ```typescript
 async function main() {
@@ -539,7 +539,7 @@ async function main() {
     if (fetchXml) {
       loadQueryIntoEditor(fetchXml);
     }
-    // DMS does NOT call returnData — FXS launched it with noReturn: true.
+    // DM does NOT call returnData — FXS launched it with noReturn: true.
   } else {
     renderEmptyEditor();
   }
@@ -549,28 +549,28 @@ main();
 ```
 
 <Note type="information">
-  DMS does not need to detect `noReturn` explicitly. The `noReturn` flag only suppresses the banner — it does not change the invocation lifecycle. If `returnData` is never called and the tool closes, the caller's Promise resolves with `null`.
+  DM does not need to detect `noReturn` explicitly. The `noReturn` flag only suppresses the banner — it does not change the invocation lifecycle. If `returnData` is never called and the tool closes, the caller's Promise resolves with `null`.
 </Note>
 
 ### Full Sequence Diagram
 
 ```
-FXS (Caller)                        PPTB Shell                       DMS (Callee)
+FXS (Caller)                        PPTB Shell                       DM (Callee)
 ────────────                         ──────────                       ────────────
 findToolsByCapability("fetchxml")
-  → [DRB, DMS]
+  → [BDS, DM]
 
-User clicks "Send to DMS"
-launchTool("dms", { fetchXml },
+User clicks "Send to DM"
+launchTool("dm", { fetchXml },
   { noReturn: true })
         │
         ▼
-                            DMS needs secondary connection
+                            DM needs secondary connection
                             → show multi-connection selector
                             ← user picks target env
                                     │
                                     ▼
-                            Launch DMS (primary = FXS conn,
+                            Launch DM (primary = FXS conn,
                                        secondary = user pick)
                             No banner shown (noReturn: true)
                                     │
@@ -578,11 +578,11 @@ launchTool("dms", { fetchXml },
                                                          getLaunchContext()
                                                            → { fetchXml: "…" }
                                                          loadQueryIntoEditor(fetchXml)
-                                                         // user works in DMS …
+                                                         // user works in DM …
 
-User closes DMS tab normally
+User closes DM tab normally
         ◄──────────────────────────────────────────────
-Promise resolves (null)     DMS closed
+Promise resolves (null)     DM closed
 // No result to process
 ```
 
