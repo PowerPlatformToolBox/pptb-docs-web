@@ -1,0 +1,743 @@
+export const metadata = {
+  title: 'Inter-Tool Invocation',
+  description:
+    'Learn how to launch other installed PPTB tools from your tool, pass data to pre-populate their state, and receive results back — enabling rich, seamless cross-tool workflows.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Part 1 – Callee (Accepting Invocations)', id: 'part-1-callee' },
+  { title: 'Declaring the Invocation Contract', id: 'declaring-the-invocation-contract' },
+  { title: 'Reading the Launch Context', id: 'reading-the-launch-context' },
+  { title: 'Returning Data to the Caller', id: 'returning-data-to-the-caller' },
+  { title: 'Standalone vs. Invoked Mode', id: 'standalone-vs-invoked-mode' },
+  { title: 'Complete Callee Example', id: 'complete-callee-example' },
+  { title: 'Part 2 – Caller (Launching Other Tools)', id: 'part-2-caller' },
+  { title: 'Launching a Tool', id: 'launching-a-tool' },
+  { title: 'Handling the Return Value', id: 'handling-the-return-value' },
+  { title: 'Connection Auto-Inheritance', id: 'connection-auto-inheritance' },
+  { title: 'Tag-Based Capability Discovery', id: 'tag-based-capability-discovery' },
+  { title: 'Complete Caller Example', id: 'complete-caller-example' },
+  { title: 'End-to-End Scenario', id: 'end-to-end-scenario' },
+  { title: 'Invocation Lifecycle', id: 'invocation-lifecycle' },
+  { title: 'Validation and Tooling', id: 'validation-and-tooling' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+]
+
+# Inter-Tool Invocation
+
+Let one tool hand off to another — pass data in, get a result back, and keep the user's workflow uninterrupted. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+Inter-Tool Invocation lets any installed PPTB tool **launch another installed tool**, pre-populate it with data, and optionally **receive a result** when the second tool finishes.
+
+```
+Tool A (Caller)                            Tool B (Callee)
+──────────────                             ───────────────
+invocation.launchTool(                     invocation.getLaunchContext()
+  "@my-org/entity-picker",      ─────►       → { entityName: "account" }
+  { entityName: "account" }
+)                                          // user picks a record …
+
+        ◄──────────────────────────────    invocation.returnData(
+result                                       { selectedId: "a1b2c3",
+= { selectedId: "a1b2c3",                    selectedName: "Contoso" }
+  selectedName: "Contoso" }               )
+                                           ← PPTB auto-closes callee window
+```
+
+**Key properties at a glance:**
+
+| Property | Detail |
+| --- | --- |
+| **Promise-based** | `launchTool()` returns a `Promise` that resolves when the callee calls `returnData()`, or resolves to `null` if the callee closes without returning. |
+| **Isolated windows** | The callee opens in its own BrowserView, just like a normally launched tool. |
+| **Auto-close callee** | After `returnData()` is called, PPTB **automatically closes the callee window** — the callee doesn't need to close itself. |
+| **Connection auto-inheritance** | The callee automatically inherits the caller's active Dataverse connection (can be overridden). |
+| **One-at-a-time** | Only one active callee per caller is supported. A second `launchTool` while a callee is active rejects immediately. |
+| **Optional contract** | Shape of prefill data and return value is declared in `pptb.config.json` and validated by `pptb-validate`, but not enforced at runtime. |
+| **Capability tags** | Callee tools declare capability tags; callers discover matching installed tools by tag. |
+| **"Return to Caller" banner** | PPTB injects a dismissable banner in the callee window so users can return to the caller at any time. |
+| **Graceful degradation** | Both data payloads are plain JSON (`Record<string, unknown>`), so missing fields degrade gracefully. |
+
+---
+
+## Part 1 – Callee (Accepting Invocations) {{ anchor: true }}
+
+A **callee** is a tool that _receives_ a launch request from another tool. You declare what data you accept and what you return, then read the context on startup and send back your result when done.
+
+### Declaring the Invocation Contract {{ anchor: true }}
+
+Create a `pptb.config.json` file at the **root of your tool package** (next to `package.json`). This file tells PPTB — and any caller — what data your tool accepts as input and what it returns as output.
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `invocation.version` | **Yes** (when `invocation` is present) | Semver version of your contract (e.g. `"1.0.0"`). Bump when the shape of `prefill` or `returnTopic` changes. |
+| `invocation.capabilities` | No | Array of capability tag strings (e.g. `["entity-picker"]`). Used by callers to discover your tool. |
+| `invocation.prefill` | No | JSON-schema–style object describing the data a caller can pass in. |
+| `invocation.prefill.properties` | No | Map of property names to `{ type?, enum?, items? }` descriptors. |
+| `invocation.returnTopic` | No | JSON-schema–style object describing the data your tool returns. |
+| `invocation.returnTopic.properties` | No | Map of property names to `{ type?, enum?, items? }` descriptors. |
+
+Supported `type` values: `"string"`, `"number"`, `"boolean"`, `"object"`, `"array"`.
+Use `"enum"` to restrict a string property to a fixed set of values.
+Use `"items"` to describe the element type of an array.
+
+**Example `pptb.config.json`:**
+
+```json
+{
+  "invocation": {
+    "version": "1.0.0",
+    "capabilities": ["entity-picker"],
+    "prefill": {
+      "properties": {
+        "entityName": { "type": "string" },
+        "allowMultiSelect": { "type": "boolean" }
+      }
+    },
+    "returnTopic": {
+      "properties": {
+        "selectedId": { "type": "string" },
+        "selectedName": { "type": "string" }
+      }
+    }
+  }
+}
+```
+
+<Note type="information">
+  Run `pptb-validate` in your tool directory to validate both `package.json` and `pptb.config.json` before publishing. See [Local Validation](/tool-development/validation) for details.
+</Note>
+
+---
+
+### Reading the Launch Context {{ anchor: true }}
+
+When your tool starts up, call `toolboxAPI.invocation.getLaunchContext()` to check whether another tool launched it and to read any prefill data.
+
+```typescript
+const ctx = await toolboxAPI.invocation.getLaunchContext();
+
+if (ctx !== null) {
+  // Tool was launched via inter-tool invocation
+  const entityName = ctx.entityName as string;
+  // … use prefill data to set up your UI …
+} else {
+  // Tool was opened normally by the user
+}
+```
+
+**Signature:**
+
+```typescript
+getLaunchContext(): Promise<Record<string, unknown> | null>
+```
+
+- Returns the prefill data object when invoked by another tool.
+- Returns `null` when opened directly by the user.
+- All values are `unknown` — cast or validate them before use.
+
+---
+
+### Returning Data to the Caller {{ anchor: true }}
+
+Once the user completes their task (selects a record, fills a form, etc.), call `toolboxAPI.invocation.returnData()` to send the result back.
+
+```typescript
+await toolboxAPI.invocation.returnData({
+  selectedId: "a1b2c3d4-...",
+  selectedName: "Contoso Ltd.",
+});
+// PPTB automatically closes this window after delivering the result.
+```
+
+**Signature:**
+
+```typescript
+returnData(returnData: Record<string, unknown>): Promise<void>
+```
+
+- Resolves the `Promise` the caller is awaiting in `launchTool()`.
+- **PPTB automatically closes the callee window** after delivery — no need to close it yourself.
+- If the tool was **not** launched by another tool, this call is a **no-op** — safe to call unconditionally.
+
+---
+
+### Standalone vs. Invoked Mode {{ anchor: true }}
+
+A well-behaved callee works in both modes without any special configuration.
+
+| Mode | `getLaunchContext()` returns | Expected behaviour |
+| --- | --- | --- |
+| Standalone (normal launch) | `null` | Show the full UI, no pre-populated state |
+| Invoked by another tool | `Record<string, unknown>` | Pre-populate UI from context, show a confirm / return action |
+
+```typescript
+async function initTool() {
+  const ctx = await toolboxAPI.invocation.getLaunchContext();
+
+  if (ctx) {
+    // Invoked mode — show a compact, targeted picker UI
+    renderPickerUI({
+      entityName: ctx.entityName as string,
+      allowMultiSelect: (ctx.allowMultiSelect as boolean) ?? false,
+      onConfirm: async (selection) => {
+        await toolboxAPI.invocation.returnData(selection);
+        // PPTB will auto-close this window after returnData completes
+      },
+    });
+  } else {
+    // Standalone mode — show the full explorer UI
+    renderFullExplorerUI();
+  }
+}
+```
+
+---
+
+### Complete Callee Example {{ anchor: true }}
+
+A minimal but complete callee for an entity-picker tool.
+
+**`pptb.config.json`**
+
+```json
+{
+  "invocation": {
+    "version": "1.0.0",
+    "capabilities": ["entity-picker"],
+    "prefill": {
+      "properties": {
+        "entityName": { "type": "string" },
+        "allowMultiSelect": { "type": "boolean" }
+      }
+    },
+    "returnTopic": {
+      "properties": {
+        "selectedId": { "type": "string" },
+        "selectedName": { "type": "string" }
+      }
+    }
+  }
+}
+```
+
+**`index.ts`**
+
+```typescript
+async function main() {
+  const ctx = await toolboxAPI.invocation.getLaunchContext();
+
+  if (ctx) {
+    // Invoked by another tool — show a targeted picker
+    const entityName = (ctx.entityName as string) ?? "account";
+    const records = await loadRecords(entityName);
+
+    renderPicker(records, async (selected) => {
+      // Send the selection back; PPTB auto-closes this window
+      await toolboxAPI.invocation.returnData({
+        selectedId: selected.id,
+        selectedName: selected.name,
+      });
+    });
+  } else {
+    // Standalone — show the full entity browser
+    renderFullBrowser();
+  }
+}
+
+main();
+```
+
+---
+
+## Part 2 – Caller (Launching Other Tools) {{ anchor: true }}
+
+A **caller** is a tool that _initiates_ an invocation — it opens another tool, optionally passes data, and waits for a result.
+
+### Launching a Tool {{ anchor: true }}
+
+Use `toolboxAPI.invocation.launchTool()` to open another installed tool and pass it prefill data.
+
+```typescript
+const result = await toolboxAPI.invocation.launchTool(
+  "@my-org/entity-picker",   // npm package name of the target tool
+  { entityName: "account" }, // prefill data (should match callee's prefill schema)
+);
+```
+
+**Signature:**
+
+```typescript
+launchTool(
+  targetToolId: string,
+  prefillData?: Record<string, unknown>,
+  options?: {
+    primaryConnectionId?: string | null;
+    secondaryConnectionId?: string | null;
+    noReturn?: boolean;
+  },
+): Promise<unknown>
+```
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `targetToolId` | `string` | The npm package name of the tool to launch (e.g. `"@my-org/entity-picker"`). Must be installed. |
+| `prefillData` | `Record<string, unknown>` | Optional data to pre-populate the callee's state. Shape should match the callee's `invocation.prefill` schema. |
+| `options.primaryConnectionId` | `string \| null` | Override the primary Dataverse connection for the callee. Omit to auto-inherit the caller's connection. |
+| `options.secondaryConnectionId` | `string \| null` | Override the secondary Dataverse connection. Omit to let PPTB prompt for it if the callee is a multi-connection tool. |
+| `options.noReturn` | `boolean` | When `true`, signals the caller does not expect data back. The "Return to [Caller]" banner is suppressed in the callee. The Promise still resolves with `null` when the callee closes. |
+
+**Return value:** A `Promise` that resolves with the `Record<string, unknown>` passed to `returnData()` by the callee, or `null` if:
+- the callee closes without calling `returnData`, or
+- the user clicks the "Return to [this tool]" banner before `returnData` is called.
+
+<Note type="warning">
+  Only one callee per caller is active at a time. Calling `launchTool` a second time while a callee is still open throws `"A callee invocation is already in progress"`.
+</Note>
+
+<Note type="warning">
+  The target tool must be **installed** in PPTB. If it is not found, `launchTool` throws an error.
+</Note>
+
+<Note type="information">
+  If the callee declares `features.multiConnection: "required"` or `"optional"` and no `options.secondaryConnectionId` is provided, PPTB automatically opens the multi-connection selector before launching the callee. If the user cancels, `launchTool` throws `"Connection selection cancelled"`.
+</Note>
+
+---
+
+### Handling the Return Value {{ anchor: true }}
+
+Always check for `null` before using the result. The Promise resolves to `null` in two scenarios:
+
+1. The user closes the callee window without calling `returnData`.
+2. The user clicks the **"Return to [CallerTool]"** banner before the callee calls `returnData`.
+
+```typescript
+const result = await toolboxAPI.invocation.launchTool(
+  "@my-org/entity-picker",
+  { entityName: "contact" },
+);
+
+if (result !== null) {
+  const { selectedId, selectedName } = result as {
+    selectedId: string;
+    selectedName: string;
+  };
+  // Use the selection returned by the callee
+  populateField("regardingobjectid", selectedId, selectedName);
+} else {
+  // User dismissed the picker without selecting — no change needed
+}
+```
+
+---
+
+### Connection Auto-Inheritance {{ anchor: true }}
+
+By default, the callee **automatically inherits the caller's active Dataverse connection** — no extra configuration needed.
+
+```typescript
+// Callee automatically receives the same primary connection as this tool
+const result = await toolboxAPI.invocation.launchTool(
+  "@my-org/entity-picker",
+  { entityName: "account" },
+);
+```
+
+To override with a specific connection, pass `options.primaryConnectionId`:
+
+```typescript
+const result = await toolboxAPI.invocation.launchTool(
+  "@my-org/solution-importer",
+  { solutionName: "MySolution" },
+  { primaryConnectionId: specificConnectionId },
+);
+```
+
+Pass `null` to launch the callee with no connection at all:
+
+```typescript
+const result = await toolboxAPI.invocation.launchTool(
+  "@my-org/entity-picker",
+  {},
+  { primaryConnectionId: null },
+);
+```
+
+---
+
+### Tag-Based Capability Discovery {{ anchor: true }}
+
+Instead of hard-coding a tool ID, you can discover all installed tools that declare a given capability tag — great for building dynamic flyouts or "send to" menus.
+
+```typescript
+const pickers = await toolboxAPI.invocation.findToolsByCapability("entity-picker");
+// pickers: Tool[] — all installed tools with "entity-picker" in their capabilities
+
+if (pickers.length > 0) {
+  const picker = pickers[0] as { id: string };
+  const result = await toolboxAPI.invocation.launchTool(
+    picker.id,
+    { entityName: "account" },
+  );
+}
+```
+
+**Signatures:**
+
+```typescript
+findToolsByCapability(tag: CapabilityTag): Promise<unknown[]>
+getKnownCapabilityTags(): Promise<Array<{ tag: string; description: string }>>
+```
+
+- `findToolsByCapability` — returns an array of matching installed `Tool` objects (empty array if none found).
+- `getKnownCapabilityTags` — returns the full capability registry (fetched from Supabase, cached for 5 minutes, falls back to a built-in list when offline).
+
+**Well-known capability tags:**
+
+| Tag | Description |
+| --- | --- |
+| `fetchxml` | Accept or process FetchXML queries |
+| `entity-picker` | Browse and select a Dataverse entity (table) |
+| `record-selector` | Browse and select a Dataverse record |
+| `solution-selector` | Pick a Power Platform solution |
+
+<Note type="information">
+  The registry is updated without an app release — new tags are added to backend table and become immediately discoverable via `getKnownCapabilityTags()`.
+</Note>
+
+For IDE auto-complete on capability tags, import `CapabilityTag` from `@pptb/types`:
+
+```typescript
+import type { CapabilityTag } from "@pptb/types/pptbConfig";
+
+const tag: CapabilityTag = "fetchxml"; // IDE will suggest known tags
+const tools = await toolboxAPI.invocation.findToolsByCapability(tag);
+```
+
+---
+
+### Complete Caller Example {{ anchor: true }}
+
+```typescript
+async function openEntityPicker(entityName: string) {
+  let result: unknown;
+
+  try {
+    result = await toolboxAPI.invocation.launchTool(
+      "@my-org/entity-picker",
+      { entityName, allowMultiSelect: false },
+      // primaryConnectionId omitted → callee inherits this tool's connection
+    );
+  } catch (err) {
+    // Tool not installed, already has an active callee, or launch failed
+    await toolboxAPI.utils.showNotification({
+      title: "Cannot open picker",
+      body: err instanceof Error ? err.message : String(err),
+      type: "error",
+    });
+    return;
+  }
+
+  if (result === null) {
+    // User dismissed the picker (closed window or clicked "Return to Caller")
+    return;
+  }
+
+  const { selectedId, selectedName } = result as {
+    selectedId: string;
+    selectedName: string;
+  };
+  setSelectedRecord(selectedId, selectedName);
+}
+```
+
+---
+
+## End-to-End Scenario {{ anchor: true }}
+
+This section walks through a real-world example: **FetchXML Studio (FXS)** exposes a "Send To ▾" flyout that lets users push the current FetchXML query into another installed tool — such as **BDS** (Bulk Data Studio) or **DM** (Data Migrator) — without expecting a return value.
+
+### Scenario Steps
+
+| Step | What happens |
+| --- | --- |
+| 1 | User composes a FetchXML query in FXS. |
+| 2 | User clicks the **"Send To ▾"** flyout button. |
+| 3 | PPTB queries all installed tools declaring the `"fetchxml"` capability. Both BDS and DM qualify. The flyout lists them. |
+| 4 | User selects **DM**. |
+| 5 | PPTB opens DM, inheriting FXS's active Dataverse connection. |
+| 6 | DM requires a secondary connection — PPTB automatically shows the multi-connection selector. The user picks the target environment. |
+| 7 | DM opens pre-populated with the FetchXML from step 1. |
+| 8 | Because `noReturn: true` was set, **no banner is shown** in the DM window. |
+| 9 | The user continues in DM independently. Closing DM resolves the Promise on the FXS side with `null`. |
+
+### Step 1 — Both callee tools declare the `"fetchxml"` capability
+
+```json
+{
+  "invocation": {
+    "version": "1.0.0",
+    "capabilities": ["fetchxml"],
+    "prefill": {
+      "properties": {
+        "fetchXml": { "type": "string" }
+      }
+    }
+  }
+}
+```
+
+### Step 2 — FXS discovers `fetchxml`-capable tools and builds the flyout
+
+```typescript
+// Called during tool initialisation
+async function setupSendToFlyout() {
+  const fetchXmlTools = await toolboxAPI.invocation.findToolsByCapability("fetchxml");
+  renderSendToFlyout(fetchXmlTools as Array<{ id: string; name: string }>);
+}
+```
+
+### Step 3 — User selects DM; FXS launches it with `noReturn: true`
+
+```typescript
+async function sendCurrentQueryToTool(targetToolId: string) {
+  const currentFetchXml = getEditorContent();
+
+  try {
+    await toolboxAPI.invocation.launchTool(
+      targetToolId,
+      { fetchXml: currentFetchXml },
+      {
+        // primaryConnectionId omitted → FXS's active connection is inherited
+        // secondaryConnectionId omitted → PPTB shows selector if DMS requires it
+        noReturn: true,
+      },
+    );
+    // Resolves with null once DMS is closed
+  } catch (err) {
+    toolboxAPI.utils.showNotification({
+      title: "Send To failed",
+      body: err instanceof Error ? err.message : String(err),
+      type: "error",
+    });
+  }
+}
+```
+
+### Step 4 — DM reads the prefill data
+
+```typescript
+async function main() {
+  const ctx = await toolboxAPI.invocation.getLaunchContext();
+
+  if (ctx) {
+    const fetchXml = ctx.fetchXml as string | undefined;
+    if (fetchXml) {
+      loadQueryIntoEditor(fetchXml);
+    }
+    // DM does NOT call returnData — FXS launched it with noReturn: true.
+  } else {
+    renderEmptyEditor();
+  }
+}
+
+main();
+```
+
+<Note type="information">
+  DM does not need to detect `noReturn` explicitly. The `noReturn` flag only suppresses the banner — it does not change the invocation lifecycle. If `returnData` is never called and the tool closes, the caller's Promise resolves with `null`.
+</Note>
+
+### Full Sequence Diagram
+
+```
+FXS (Caller)                        PPTB Shell                       DM (Callee)
+────────────                         ──────────                       ────────────
+findToolsByCapability("fetchxml")
+  → [BDS, DM]
+
+User clicks "Send to DM"
+launchTool("dm", { fetchXml },
+  { noReturn: true })
+        │
+        ▼
+                            DM needs secondary connection
+                            → show multi-connection selector
+                            ← user picks target env
+                                    │
+                                    ▼
+                            Launch DM (primary = FXS conn,
+                                       secondary = user pick)
+                            No banner shown (noReturn: true)
+                                    │
+                                    ▼
+                                                         getLaunchContext()
+                                                           → { fetchXml: "…" }
+                                                         loadQueryIntoEditor(fetchXml)
+                                                         // user works in DM …
+
+User closes DM tab normally
+        ◄──────────────────────────────────────────────
+Promise resolves (null)     DM closed
+// No result to process
+```
+
+---
+
+## Invocation Lifecycle {{ anchor: true }}
+
+Understanding the full lifecycle helps when reasoning about edge cases.
+
+```
+Caller calls launchTool(...)
+        │
+        ▼
+One-at-a-time check: rejects if caller already has an active callee
+        │
+        ▼
+PPTB creates a new BrowserView for the callee
+Dataverse connection auto-inherited from caller (unless overridden)
+        │
+        ▼
+Callee loads and receives toolContext with:
+  • toolId, instanceId
+  • callerInstanceId  ← present only during invocations
+  • prefillData       ← the object passed by the caller
+  • connectionId      ← auto-inherited from caller's connection
+        │
+        ▼
+PPTB injects "Return to [CallerToolName]" banner in the callee window
+(skipped if launchTool was called with noReturn: true)
+        │
+        ▼
+Callee calls getLaunchContext() → returns prefillData
+        │
+        ▼  (user interacts with callee UI)
+        │
+    ┌───┴──────────────────────────┬──────────────────────────┐
+    │                              │                          │
+    ▼                              ▼                          ▼
+Callee calls returnData(...)  User closes callee window  User clicks "Return to Caller" banner
+    │                              │                          │
+    ▼                              ▼                          ▼
+PPTB sends result to caller   PPTB sends null to caller  PPTB sends null to caller
+PPTB auto-closes callee               │                  PPTB auto-closes callee
+    │                                 │                          │
+    └──────────────────┬──────────────┘──────────────────────────┘
+                       │
+                       ▼
+        Caller's Promise resolves (returnData value OR null)
+```
+
+**Key points to remember:**
+
+- The callee opens in its **own window** (BrowserView) and appears as a separate tab in the PPTB tool panel.
+- `launchTool()` **never rejects under normal operation** — it always resolves (possibly with `null`). Rejections only occur if the tool is not installed, the caller already has an active callee, or the launch itself fails.
+- **Auto-close**: after `returnData` is called, PPTB automatically closes the callee. The callee does not need to close itself.
+- **Banner early-return**: if the user clicks "Return to [CallerToolName]" before `returnData` is called, the caller's Promise resolves with `null` and the callee window is closed.
+- **Banner dismiss (✕)**: clicking ✕ hides the banner for the session but does **not** end the invocation. The callee stays open and can still call `returnData` normally.
+- **One-at-a-time**: only one active callee per caller. A second `launchTool` while a callee is active rejects with `"A callee invocation is already in progress"`.
+- A callee that never calls `returnData` keeps the caller's Promise pending until the user closes the callee window.
+
+---
+
+## Validation and Tooling {{ anchor: true }}
+
+### `pptb-validate`
+
+Run `pptb-validate` from your tool directory to validate both `package.json` and `pptb.config.json`:
+
+```bash
+npx pptb-validate
+# or, if @pptb/types is installed locally:
+./node_modules/.bin/pptb-validate
+```
+
+The validator checks:
+
+- `invocation.version` is present and a valid semver string.
+- `invocation.capabilities` (when present) is an array of non-empty strings, each a recognised capability tag (a warning is issued for unrecognised tags).
+- `invocation.prefill.properties` values are valid JSON-schema property descriptors.
+- `invocation.returnTopic.properties` values are valid JSON-schema property descriptors.
+
+See [Local Validation](/tool-development/validation) for a full CLI reference.
+
+### TypeScript Types
+
+The `@pptb/types` package ships full type definitions for the invocation API:
+
+```typescript
+// All methods live on toolboxAPI.invocation
+toolboxAPI.invocation.getLaunchContext()         // Promise<Record<string, unknown> | null>
+toolboxAPI.invocation.returnData(data)           // Promise<void>  (auto-closes callee after call)
+toolboxAPI.invocation.launchTool(...)            // Promise<unknown>
+toolboxAPI.invocation.findToolsByCapability(tag) // Promise<unknown[]>  — tag is CapabilityTag
+toolboxAPI.invocation.getKnownCapabilityTags()   // Promise<Array<{ tag: string; description: string }>>
+```
+
+For auto-complete on capability tags, import from the bundled declaration file:
+
+```typescript
+import type {
+  PPTBConfig,
+  InvocationConfig,
+  CapabilityTag,
+  KnownCapabilityTag,
+} from "@pptb/types/pptbConfig";
+
+// IDE will suggest known tags when typing:
+const tag: CapabilityTag = "fetchxml";
+const tools = await toolboxAPI.invocation.findToolsByCapability(tag);
+```
+
+---
+
+## Troubleshooting {{ anchor: true }}
+
+### `launchTool` throws "Tool not found"
+
+The target tool is not installed. Ask the user to install it from the PPTB Marketplace, or verify that the `targetToolId` exactly matches the `name` field in the tool's `package.json`.
+
+### `launchTool` throws "A callee invocation is already in progress"
+
+Your tool already has an active callee open. Wait for the current invocation to resolve (or reject) before calling `launchTool` again. Only one callee per caller is supported.
+
+### `getLaunchContext()` returns `null` when expecting prefill data
+
+The tool was opened directly by the user rather than via `launchTool`. Ensure the caller is using `toolboxAPI.invocation.launchTool()` and not the standard tool launch mechanism.
+
+### Caller `Promise` resolves with `null` unexpectedly
+
+One of the following occurred:
+
+1. The callee window was closed by the user before `returnData()` was called.
+2. The user clicked the "Return to [CallerTool]" banner button before the callee called `returnData()`.
+
+Both are by design — always handle the `null` case in the caller.
+
+### Changes to `pptb.config.json` are not picked up
+
+Capabilities and the invocation contract are read when a tool is **installed**. If you changed `pptb.config.json` in a locally-loaded development tool, reload or reinstall the tool in PPTB.
+
+### `returnData` appears to do nothing
+
+Confirm that `getLaunchContext()` returned a non-null value first. If it returned `null`, `returnData` is a no-op because the tool was not launched by another tool.
+
+### `findToolsByCapability` returns an empty array
+
+No installed tools declare the queried capability tag in their `pptb.config.json`. Verify the target tool's `pptb.config.json` has the correct tag in `invocation.capabilities` and was reinstalled after the change.
+
+---
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/api-reference/toolbox-api" arrow="right">
+    <>ToolBox API Reference</>
+  </Button>
+  <Button href="/tool-development/validation" variant="outline">
+    <>Local Validation</>
+  </Button>
+</div>

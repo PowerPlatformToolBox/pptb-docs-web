@@ -284,6 +284,10 @@ export const navigation: Array<NavGroup> = [
         title: 'Local Validation',
         href: '/tool-development/validation',
       },
+      {
+        title: 'Inter-Tool Invocation',
+        href: '/tool-development/inter-tool-invocation',
+      },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
     ],
   },
