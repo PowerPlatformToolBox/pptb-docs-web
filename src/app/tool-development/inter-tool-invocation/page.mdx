@@ -1,3 +1,5 @@
+import DiscordRequestForm from '@/components/DiscordRequestForm'
+
 export const metadata = {
   title: 'Inter-Tool Invocation',
   description:
@@ -18,6 +20,9 @@ export const sections = [
   { title: 'Connection Auto-Inheritance', id: 'connection-auto-inheritance' },
   { title: 'Tag-Based Capability Discovery', id: 'tag-based-capability-discovery' },
   { title: 'Complete Caller Example', id: 'complete-caller-example' },
+  { title: 'Publishing and Versioning', id: 'publishing-and-versioning' },
+  { title: 'Publishing', id: 'publishing' },
+  { title: 'Versioning', id: 'versioning' },
   { title: 'End-to-End Scenario', id: 'end-to-end-scenario' },
   { title: 'Invocation Lifecycle', id: 'invocation-lifecycle' },
   { title: 'Validation and Tooling', id: 'validation-and-tooling' },
@@ -407,7 +412,10 @@ getKnownCapabilityTags(): Promise<Array<{ tag: string; description: string }>>
 
 <Note type="information">
   The registry is updated without an app release — new tags are added to backend table and become immediately discoverable via `getKnownCapabilityTags()`.
+  If you need a capability tag that is not in the registry, submit a request to the PPTB team to have it added.
 </Note>
+
+<DiscordRequestForm />
 
 For IDE auto-complete on capability tags, import `CapabilityTag` from `@pptb/types`:
 
@@ -418,7 +426,10 @@ const tag: CapabilityTag = "fetchxml"; // IDE will suggest known tags
 const tools = await toolboxAPI.invocation.findToolsByCapability(tag);
 ```
 
----
+<Note type="information">
+  Capability tags are a powerful way to build flexible, extensible tools that can integrate with any other tool declaring the same tag — without needing to know specific tool IDs in advance.
+  For example, a "Send To ▾" flyout can list all installed tools with the `"fetchxml"` tag, letting the user pick their preferred tool for processing a FetchXML query.
+</Note>
 
 ### Complete Caller Example {{ anchor: true }}
 
@@ -456,6 +467,35 @@ async function openEntityPicker(entityName: string) {
 ```
 
 ---
+
+## Publishing and Versioning {{ anchor: true }}
+
+### Publishing {{ anchor: true }}
+
+When you publish your tool to npm, ensure that `pptb.config.json` is included in the published package (next to `package.json`) so that PPTB can read the invocation contract when the tool is installed.
+To include `pptb.config.json` in the npm package, add the following to your `package.json`:
+
+```json
+{
+  "files": [
+    "dist",
+    "npm-shrinkwrap.json",
+    "pptb.config.json"
+  ],
+}
+```
+
+<Note type="important">
+  If `pptb.config.json` is missing from the published package, your tool will not be discoverable by capability and callers will not know what prefill data to send or what return data to expect.
+</Note>
+
+### Versioning {{ anchor: true }}
+
+When you publish a new version of your tool, the invocation contract is automatically updated in PPTB. However, if you change the shape of `prefill` or `returnTopic`, you should also bump the `invocation.version` field in `pptb.config.json` to signal to callers that the contract has changed.
+
+<Note type="warning">
+  PPTB does not enforce version compatibility — if a caller built against version 1.0.0 launches version 2.0.0 of the callee, it is the caller's responsibility to handle any differences in the prefill or return data shape. Always design your contract with graceful degradation in mind.
+</Note>
 
 ## End-to-End Scenario {{ anchor: true }}
 
