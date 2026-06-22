@@ -15,6 +15,7 @@ export const sections = [
   { title: 'Release Process', id: 'release-process' },
   { title: 'Documentation', id: 'documentation' },
   { title: 'Testing', id: 'testing' },
+  { title: "Troubleshooting", id: 'troubleshooting' },
   { title: 'Resources', id: 'resources' },
   { title: 'Getting Help', id: 'getting-help' },
   { title: 'Next Steps', id: 'next-steps' },
@@ -324,6 +325,18 @@ Currently establishing testing infrastructure:
 2. Manually test your changes
 3. Document test scenarios
 4. Test on multiple platforms when possible
+
+## Troubleshooting {{ anchor: true }}
+
+### Electron won't start
+
+Getting the following error `throw new Error('Electron failed to install correctly, please delete node_modules/electron and try installing again');`
+
+Manually trigger Electron's install script
+
+```bash
+node node_modules/electron/install.js
+```
 
 ## Resources
 
