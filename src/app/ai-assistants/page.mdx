@@ -1,0 +1,108 @@
+export const metadata = {
+  title: 'AI Assistants',
+  description:
+    'Learn how Power Platform ToolBox lets supported AI assistants discover and run your installed tools through the built-in MCP server.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Two Ways to Run Tools', id: 'two-ways-to-run-tools' },
+  { title: 'Guided Tool Runs', id: 'guided-tool-runs' },
+  { title: 'Automated Tool Runs', id: 'automated-tool-runs' },
+  { title: 'What Assistants Can Do', id: 'what-assistants-can-do' },
+  { title: 'What to Expect', id: 'what-to-expect' },
+  { title: 'Security and Access', id: 'security-and-access' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
+
+# AI Assistants
+
+Power Platform ToolBox can expose your installed tools to supported AI assistants through its built-in MCP server. That means an assistant can discover the tools you already use in PPTB and run them on your behalf, either with a visible UI or as part of an automated flow. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+This feature is aimed at people who want to combine PPTB with an AI assistant such as Claude Desktop or Visual Studio Code.
+
+PPTB includes built-in buttons for both clients so you can connect them without manually assembling the integration details. This guide stays high-level and focuses on what the feature enables, not on client-specific setup steps.
+
+## Two Ways to Run Tools {{ anchor: true }}
+
+PPTB supports two styles of assistant-driven tool execution:
+
+| Run style | What it feels like | Best for |
+| --- | --- | --- |
+| Guided tool run | The tool opens its normal UI and the assistant works with that interactive experience | Pickers, review screens, confirmation steps, anything where a person should stay in the loop |
+| Automated tool run | The tool completes the task without opening its UI | Background actions, repeatable workflows, CI jobs, or agent-driven orchestrations |
+
+The assistant chooses the run style based on what the tool supports and what the task requires.
+
+## Guided Tool Runs {{ anchor: true }}
+
+In a guided tool run, the assistant launches the tool the same way a person would, with the tool interface visible inside PPTB.
+
+This is useful when the task needs:
+
+- a user to review data before continuing
+- a picker or form that depends on human choice
+- an existing tool that has not added an automated runtime yet
+
+From the user's perspective, this is the safest and most familiar path because the tool still behaves like a normal PPTB experience.
+
+## Automated Tool Runs {{ anchor: true }}
+
+In an automated tool run, the assistant calls a tool that has been prepared to work without its regular UI.
+
+This is useful when the task needs:
+
+- repeatable background execution
+- integration into larger agent workflows
+- unattended processing
+- a direct JSON result that the assistant can reason over immediately
+
+Not every tool supports automated runs. Tool authors must explicitly add that runtime.
+
+## What Assistants Can Do {{ anchor: true }}
+
+Once connected, an assistant can work with the tools you have installed in PPTB to:
+
+- discover what tools are available
+- understand what inputs a tool expects
+- launch a tool with pre-filled arguments
+- wait for a result when the tool is designed to return one
+- combine multiple tool calls into a larger workflow
+
+In practice, this makes PPTB tools usable as building blocks inside assistant-driven tasks instead of only as standalone desktop experiences.
+
+## What to Expect {{ anchor: true }}
+
+The exact experience depends on the tool:
+
+- Some tools are informational and return data directly.
+- Some tools ask for user interaction and are better suited to guided runs.
+- Some tools may support both styles, letting the assistant choose the right approach.
+
+If a tool is not exposed for assistant use, it will not appear in the assistant's list of available tools.
+
+## Security and Access {{ anchor: true }}
+
+PPTB does not automatically make every installed tool available for every kind of agent workflow.
+
+- Tool authors control whether a tool is invokable by assistants.
+- Automated runs can use caller-provided authentication or a saved PPTB connection when supported by the tool and runtime.
+- Input and output payloads follow each tool's declared contract, which helps keep assistant calls predictable.
+
+<Note type="information">
+  If you are evaluating a tool for assistant use, look for documentation that
+  explains whether it supports guided runs, automated runs, or both.
+</Note>
+
+## Next Steps {{ anchor: true }}
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-installation" arrow="right">
+    <>Install and manage tools</>
+  </Button>
+  <Button href="/tool-development/agent-integration" variant="outline">
+    <>Build agent-ready tools</>
+  </Button>
+</div>

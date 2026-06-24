@@ -244,6 +244,7 @@ export const navigation: Array<NavGroup> = [
     links: [
       { title: 'Introduction', href: '/' },
       { title: 'Quick Start', href: '/quickstart' },
+      { title: 'AI Assistants', href: '/ai-assistants' },
       { title: 'Tool Installation', href: '/tool-installation' },
       { title: 'Authentication', href: '/authentication' },
       { title: 'Access to Data', href: '/data-access' },
@@ -291,6 +292,10 @@ export const navigation: Array<NavGroup> = [
       {
         title: 'Inter-Tool Invocation',
         href: '/tool-development/inter-tool-invocation',
+      },
+      {
+        title: 'Agent Integration',
+        href: '/tool-development/agent-integration',
       },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
     ],
