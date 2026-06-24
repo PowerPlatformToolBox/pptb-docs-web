@@ -53,6 +53,10 @@ Organized into namespaces:
 - **terminal** - Create and manage terminals (context-aware)
 - **events** - Subscribe to platform events (tool-specific)
 
+<Note type="important">
+  For connection typing in `@pptb/types`: `DataverseConnection` is deprecated and renamed to `Connection`. The `Connection` model also includes `enabledForPowerPlatformAPI?: boolean` and `scopesForPowerPlatformAPI?: string[]`.
+</Note>
+
 ### Dataverse API (`window.dataverseAPI`)
 
 Complete HTTP client for Dataverse:
@@ -61,6 +65,13 @@ Complete HTTP client for Dataverse:
 - **FetchXML** queries
 - **Metadata** operations
 - **Execute** actions and functions
+
+### PowerPlatform API (`window.powerplatformAPI`)
+
+Direct access to Power Platform service endpoints through namespaced clients.
+
+- **Namespaced access** - Call operations via `window.powerplatformAPI.<Namespace>.<Method>(...)`
+- **Shared methods** - Each namespace exposes `Get`, `Post`, `Put`, `Patch`, and `Delete`
 
 ## Quick Start {{ anchor: true }}
 

@@ -1,0 +1,103 @@
+export const metadata = {
+  title: 'PowerPlatform API',
+  description:
+    'Reference for the PowerPlatform API exposed to tool webviews for Power Platform service operations',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Shared Client Methods', id: 'shared-client-methods' },
+  { title: 'Namespace Catalog', id: 'namespace-catalog' },
+]
+
+# PowerPlatform API
+
+The PowerPlatform API provides direct access to Power Platform service endpoints from tool webviews. {{ className: 'lead' }}
+
+For the Microsoft reference, see [Power Platform REST API documentation](https://learn.microsoft.com/en-us/rest/api/power-platform/).
+
+<Note type="warning">
+  For complete TypeScript definitions, install the `@pptb/types` package: ```bash npm install --save-dev @pptb/types ```
+</Note>
+
+## Overview {{ anchor: true }}
+
+Use the API through `window.powerplatformAPI`. The surface is organized into service namespaces, and each namespace exposes the same shared HTTP client methods.
+
+<Note type="important">
+  **Prerequisite setup is required before using `window.powerplatformAPI`:**
+
+  1. Create and configure your own Microsoft Entra app registration for Power Platform API authentication, following [Enable programmability and API support](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2).
+  2. Configure the required Power Platform API permissions on that app registration, based on [Programmability permission reference](https://learn.microsoft.com/en-us/power-platform/admin/programmability-permission-reference).
+  3. In your Power Platform ToolBox connection settings, populate the App Registration **Client ID**.
+  4. In that same connection, enable the **Enabled for Power Platform** option.
+
+  You can inspect this state from the ToolBox connections API through `Connection.enabledForPowerPlatformAPI` and `Connection.scopesForPowerPlatformAPI`.
+</Note>
+
+## Shared Client Methods {{ anchor: true }}
+
+Every namespace on `window.powerplatformAPI` exposes the same method shape.
+
+### `Get(path?, connectionTarget?, headers?)`
+
+Make a `GET` request to the namespace endpoint.
+
+### `Post(path?, body?, connectionTarget?, headers?)`
+
+Make a `POST` request to the namespace endpoint.
+
+### `Put(path?, body?, connectionTarget?, headers?)`
+
+Make a `PUT` request to the namespace endpoint.
+
+### `Patch(path?, body?, connectionTarget?, headers?)`
+
+Make a `PATCH` request to the namespace endpoint.
+
+### `Delete(path?, connectionTarget?, headers?, body?)`
+
+Make a `DELETE` request to the namespace endpoint. A request body is supported when the API requires payload deletion.
+
+**Common parameters:**
+
+- `path?: string` - Relative path after the namespace base URL, including query string when needed
+- `body?: unknown` - Optional request payload for write operations
+- `connectionTarget?: 'primary' | 'secondary'` - Optional connection target, defaults to `primary`
+- `headers?: Record<string, string>` - Optional custom request headers
+
+**Returns:** `Promise<PowerPlatformResponse>`
+
+```typescript
+const powerplatform = window.powerplatformAPI
+
+const response = await powerplatform.EnvironmentManagement.Get(
+  'environments?api-version=2024-10-01',
+)
+
+console.log(response)
+```
+
+## Namespace Catalog {{ anchor: true }}
+
+The type file currently exposes these namespaces. Each one uses the same shared client methods, so the usage pattern stays consistent.
+
+| Namespace | Example Usage |
+| --- | --- |
+| `Analytics` | `await powerplatform.Analytics.Get('reports?api-version=2024-10-01')` |
+| `AppManagement` | `await powerplatform.AppManagement.Get('apps?api-version=2024-10-01')` |
+| `Authorization` | `await powerplatform.Authorization.Get('roles?api-version=2024-10-01')` |
+| `Connectivity` | `await powerplatform.Connectivity.Get('connections?api-version=2024-10-01')` |
+| `CopilotStudio` | `await powerplatform.CopilotStudio.Get('environments?api-version=2024-10-01')` |
+| `Dynamics` | `await powerplatform.Dynamics.Get('environments?api-version=2024-10-01')` |
+| `EnvironmentManagement` | `await powerplatform.EnvironmentManagement.Get('environments?api-version=2024-10-01')` |
+| `Governance` | `await powerplatform.Governance.Get('policies?api-version=2024-10-01')` |
+| `Licensing` | `await powerplatform.Licensing.Get('subscriptions?api-version=2024-10-01')` |
+| `PowerApps` | `await powerplatform.PowerApps.Get('environments/{environmentId}/apps/{app}?api-version=2024-10-01')` |
+| `PowerAutomate` | `await powerplatform.PowerAutomate.Get('flows?api-version=2024-10-01')` |
+| `PowerPages` | `await powerplatform.PowerPages.Get('sites?api-version=2024-10-01')` |
+| `ResourceQuery` | `await powerplatform.ResourceQuery.Get('queries?api-version=2024-10-01')` |
+| `UserManagement` | `await powerplatform.UserManagement.Get('users?api-version=2024-10-01')` |
+| `WorkflowAgents` | `await powerplatform.WorkflowAgents.Get('agents?api-version=2024-10-01')` |
+
+These examples show the naming pattern from the type file and the style of relative paths each namespace accepts. The actual operation path depends on the specific Power Platform API you are calling.
