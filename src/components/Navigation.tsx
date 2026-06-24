@@ -263,6 +263,10 @@ export const navigation: Array<NavGroup> = [
         title: 'Dataverse API',
         href: '/tool-development/api-reference/dataverse-api',
       },
+      {
+        title: 'PowerPlatform API',
+        href: '/tool-development/api-reference/powerplatform-api',
+      },
       { title: 'Events API', href: '/tool-development/api-reference/events' },
       {
         title: 'Settings API',
@@ -312,10 +316,7 @@ export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
         <TopLevelNavItem href="https://www.powerplatformtoolbox.com">
           Website
         </TopLevelNavItem>
-        <TopLevelNavItem
-          href="https://github.com/PowerPlatformToolBox"
-          newTab
-        >
+        <TopLevelNavItem href="https://github.com/PowerPlatformToolBox" newTab>
           GitHub
         </TopLevelNavItem>
         {navigation.map((group, groupIndex) => (

@@ -25,6 +25,10 @@ The ToolBox API provides access to platform features and utilities. {{ className
 
 Get information about the active Dataverse connection(s).
 
+<Note type="important">
+  In `@pptb/types`, `DataverseConnection` is deprecated and has been renamed to `Connection`.
+</Note>
+
 ### `toolboxAPI.connections.getActiveConnection()`
 
 <RequiresVersion>1.2.0</RequiresVersion>
@@ -43,10 +47,10 @@ if (connection) {
 }
 ```
 
-**Returns:** `Promise<DataverseConnection | null>`
+**Returns:** `Promise<Connection | null>`
 
 ```typescript
-interface DataverseConnection {
+interface Connection {
   id: string // Unique identifier of the connection
   name: string // Friendly name of the connection
   url: string // Base URL of the Dataverse instance
@@ -56,8 +60,31 @@ interface DataverseConnection {
   categoryColor?: string // Hex color code for the category badge (added in 1.2.0)
   createdAt: string // ISO date string of when the connection was created
   lastUsedAt?: string // ISO date string of when the connection was last used
+  enabledForPowerPlatformAPI?: boolean // True when this connection is enabled for Power Platform API usage
+  scopesForPowerPlatformAPI?: string[] // Granted scopes for Power Platform API calls
   isActive?: boolean // @deprecated legacy field retained for backwards compatibility
 }
+
+// Deprecated compatibility alias
+type DataverseConnection = Connection
+```
+
+Example values that may appear in `scopesForPowerPlatformAPI`:
+
+```typescript
+[
+  'https://api.powerplatform.com/EnvironmentManagement.Environments.Read',
+  'https://api.powerplatform.com/EnvironmentManagement.Groups.Read',
+  'https://api.powerplatform.com/EnvironmentManagement.Groups.ReadWrite',
+  'https://api.powerplatform.com/EnvironmentManagement.Settings.Read',
+  'https://api.powerplatform.com/EnvironmentManagement.Settings.ReadWrite',
+  'https://api.powerplatform.com/Governance.CrossTenantConnectionReports.Read',
+  'https://api.powerplatform.com/Governance.CrossTenantConnectionReports.ReadWrite',
+  'https://api.powerplatform.com/PowerApps.Apps.Play',
+  'https://api.powerplatform.com/PowerApps.Apps.Read',
+  'https://api.powerplatform.com/PowerAutomate.Flows.Read',
+  'https://api.powerplatform.com/.default',
+]
 ```
 
 ## Secondary Connections {{ anchor: true }}
@@ -110,21 +137,10 @@ if (secondaryConnection) {
 }
 ```
 
-**Returns:** `Promise<DataverseConnection | null>`
+**Returns:** `Promise<Connection | null>`
 
 ```typescript
-interface DataverseConnection {
-  id: string // Unique identifier of the connection
-  name: string // Friendly name of the connection
-  url: string // Base URL of the Dataverse instance
-  environment: 'Dev' | 'Test' | 'UAT' | 'Production' // Environment classification
-  environmentColor?: string // Hex color code associated with the environment (added in 1.2.0)
-  category?: string // Category label assigned to the connection (added in 1.2.0)
-  categoryColor?: string // Hex color code for the category badge (added in 1.2.0)
-  createdAt: string // ISO date string of when the connection was created
-  lastUsedAt?: string // ISO date string of when the connection was last used
-  isActive?: boolean // @deprecated legacy field retained for backwards compatibility
-}
+// Same `Connection` type as documented above.
 ```
 
 When interacting with dataverse and you want to use the secondary connection, pass the connectionTarget parameter as 'secondary'. ConnectionTarget is optional and defaults to 'primary'.
