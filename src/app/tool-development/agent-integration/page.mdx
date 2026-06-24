@@ -1,0 +1,241 @@
+export const metadata = {
+  title: 'Agent Integration',
+  description:
+    'Expose your PPTB tool to AI assistants through MCP, support guided and automated tool runs, and return structured results safely.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'MCP Contract', id: 'mcp-contract' },
+  { title: 'Guided and Automated Runs', id: 'guided-and-automated-runs' },
+  { title: 'Declare Tool Metadata', id: 'declare-tool-metadata' },
+  { title: 'Add an Automated Runtime', id: 'add-an-automated-runtime' },
+  { title: 'Invocation Metadata', id: 'invocation-metadata' },
+  { title: 'Design for Both Run Styles', id: 'design-for-both-run-styles' },
+  { title: 'Validation and Testing', id: 'validation-and-testing' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
+
+# Agent Integration
+
+Power Platform ToolBox can expose selected tools to AI assistants through its built-in MCP server. As a tool developer, you can decide whether your tool is discoverable by assistants, what input it accepts, what result it returns, and whether it supports only guided runs or both guided and automated runs. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+Agent integration builds on the same invocation model used for inter-tool workflows, but the caller is an external assistant instead of another PPTB tool.
+
+At a high level, you need to do three things:
+
+1. Declare an invocation contract.
+2. Mark the tool as invokable by agents.
+3. Add an automated runtime if you want the tool to work without opening its UI.
+
+## MCP Contract {{ anchor: true }}
+
+There are two distinct layers in the contract:
+
+| Layer | Purpose |
+| --- | --- |
+| `invocation` | Describes the input payload the caller can send and the structured result the tool may return |
+| `agents` | Declares that the tool is available to assistants and how it should behave when called through MCP |
+
+The same `prefill` and `returnTopic` shapes used by PPTB invocation are also what assistants rely on for predictable tool calls.
+
+## Guided and Automated Runs {{ anchor: true }}
+
+These docs use end-user language for the two execution styles:
+
+| User-facing term | MCP runtime value | Meaning |
+| --- | --- | --- |
+| Guided tool run | `executionMode: "windowed"` | PPTB opens the tool UI and the assistant works through the normal interactive experience |
+| Automated tool run | `executionMode: "headless"` | PPTB runs the tool without opening the UI and returns a structured result when available |
+
+Guided runs are a good fit for existing UI-driven tools. Automated runs are a good fit for repeatable tasks, direct data returns, and unattended workflows.
+
+## Declare Tool Metadata {{ anchor: true }}
+
+Add both `invocation` and `agents` to `pptb.config.json`.
+
+```json
+{
+  "invocation": {
+    "version": "1.0.0",
+    "capabilities": ["fetchxml-builder"],
+    "prefill": {
+      "properties": {
+        "entityName": { "type": "string" }
+      }
+    },
+    "returnTopic": {
+      "properties": {
+        "fetchXml": { "type": "string" }
+      }
+    }
+  },
+  "agents": {
+    "version": "1.0.0",
+    "invokable": true,
+    "modes": ["one-way", "two-way"],
+    "defaultMode": "two-way",
+    "timeoutMS": 12000,
+    "headless": true,
+    "executionModes": [
+        "windowed",
+        "headless"
+    ],
+    "defaultExecutionMode": "headless",
+    "headlessEntry": "dist/headless.js"
+  }
+}
+```
+
+Field summary:
+
+- `agents.invokable` exposes the tool through MCP discovery.
+- `agents.modes` declares whether the tool supports fire-and-forget calls, result-returning calls, or both.
+- `agents.defaultMode` defines the fallback when the caller does not specify one.
+- `agents.timeoutMS` gives a timeout hint for result-returning calls.
+- `agents.headless` enables automated headless execution of the tool.
+- `agents.executionModes` lists the supported execution modes (e.g., `windowed`, `headless`).
+- `agents.defaultExecutionMode` sets the default execution mode when none is specified.
+- `agents.headlessEntry` points to the compiled automated runtime entry point.
+
+<Note type="important">
+  In prose we refer to automated runs, but the runtime field value remains
+  `executionMode: "headless"`. Use the real field names and values in your
+  code and configuration.
+</Note>
+
+## Add an Automated Runtime {{ anchor: true }}
+
+If you want your tool to support automated runs, export an `invokeHeadless(input, context)` function from a file that PPTB can discover.
+
+PPTB checks for an automated entry in this order:
+
+1. `agents.headlessEntry` in `pptb.config.json`
+2. `dist/headless.js`
+3. `headless.js`
+4. `package.json.main`
+
+This sample is based on the HTML sample tool and returns a simple FetchXML payload without opening the UI:
+
+```javascript
+/// <reference types="@pptb/types" />
+
+async function invokeHeadless(input, context) {
+  const { toolId, toolName, invocationMode, authToken, updateProgress, logger } =
+    context
+
+  logger.info(
+    `Starting headless run for ${toolName} (${toolId}) in mode ${invocationMode}`,
+  )
+  updateProgress(10, 'validating input')
+
+  const entityName =
+    typeof input.entityName === 'string' && input.entityName.trim() !== ''
+      ? input.entityName.trim()
+      : 'account'
+
+  if (authToken) {
+    updateProgress(40, 'auth token received')
+  } else {
+    updateProgress(40, 'running without auth token')
+  }
+
+  updateProgress(80, 'building FetchXML')
+
+  const fetchXml = `<fetch top="10">
+  <entity name="${entityName}">
+    <attribute name="name" />
+    <attribute name="${entityName}id" />
+    <order attribute="name" />
+  </entity>
+</fetch>`
+
+  updateProgress(100, 'done')
+  logger.info(`Headless run complete for entity: ${entityName}`)
+
+  return { fetchXml }
+}
+
+module.exports = {
+  invokeHeadless,
+}
+```
+
+For two-way calls, return a JSON object that matches `invocation.returnTopic`.
+
+## Invocation Metadata {{ anchor: true }}
+
+Assistants can pass PPTB-specific metadata under `arguments.__pptb`.
+
+```json
+{
+  "entityName": "account",
+  "__pptb": {
+    "mode": "two-way",
+    "executionMode": "headless",
+    "timeoutMs": 60000,
+    "authToken": "optional-caller-token",
+    "connectionName": "optional-saved-connection"
+  }
+}
+```
+
+Key fields:
+
+- `mode`: `one-way` or `two-way`
+- `executionMode`: `windowed` or `headless`
+- `timeoutMs`: per-call timeout hint
+- `authToken`: optional token provided by the caller
+- `connectionName`: optional saved PPTB connection name
+
+When your UI-based tool is launched through MCP, `toolboxAPI.invocation.getLaunchContext()` includes the original prefill data and a `__pptb` metadata object such as:
+
+```json
+{
+  "entityName": "account",
+  "__pptb": {
+    "source": "mcp",
+    "mode": "two-way",
+    "correlationId": "mcp-...",
+    "timeoutMs": 60000,
+    "expectsResponse": true
+  }
+}
+```
+
+## Design for Both Run Styles {{ anchor: true }}
+
+If your tool supports both guided and automated runs, keep the contract aligned across both paths.
+
+- Accept the same core input shape in the UI and automated runtime.
+- Return the same result shape regardless of how the tool was executed.
+- Treat automated runs as task-oriented operations, not hidden UI automation.
+- Use progress updates and structured logging so callers can reason about long-running work.
+- Keep secrets out of logs and return payloads.
+
+The cleanest pattern is to move business logic into shared functions and have both the UI path and `invokeHeadless` call the same domain layer.
+
+## Validation and Testing {{ anchor: true }}
+
+Before publishing or sharing your tool with assistant users:
+
+1. Validate `pptb.config.json` locally with [Local Validation](/tool-development/validation).
+2. Check that the tool appears in MCP discovery only when `agents.invokable` is `true`.
+3. Test both `one-way` and `two-way` calls if you advertise both modes.
+4. Confirm that your automated runtime returns a payload matching `returnTopic`.
+5. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
+
+If a call fails, compare the request and response payloads against `prefill` and `returnTopic`, then verify that the automated entry file can be discovered from your built output.
+
+## Next Steps {{ anchor: true }}
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/inter-tool-invocation" arrow="right">
+    <>Learn invocation patterns</>
+  </Button>
+  <Button href="/tool-development/manifest" variant="outline">
+    <>Review manifest fields</>
+  </Button>
+</div>
