@@ -248,87 +248,6 @@ await toolboxAPI.utils.showNotification({
 })
 ```
 
-### Loading States
-
-Show loading indicators for long-running operations:
-
-```typescript
-async function exportLargeDataset() {
-  try {
-    await toolboxAPI.utils.showLoading('Exporting data...')
-    
-    // Fetch data
-    const data = await dataverseAPI.queryData('accounts?$top=1000')
-    
-    // Process and save
-    const filePath = await toolboxAPI.fileSystem.saveFile(
-      'export.json',
-      JSON.stringify(data, null, 2)
-    )
-    
-    await toolboxAPI.utils.hideLoading()
-    
-    if (filePath) {
-      await toolboxAPI.utils.showNotification({
-        title: 'Export Complete',
-        body: `Data exported to ${filePath}`,
-        type: 'success'
-      })
-    }
-  } catch (error) {
-    await toolboxAPI.utils.hideLoading()
-    
-    console.error('Export failed:', error)
-    
-    await toolboxAPI.utils.showNotification({
-      title: 'Export Failed',
-      body: error.message,
-      type: 'error'
-    })
-  }
-}
-```
-
-### Progress Updates
-
-For operations with multiple steps, update the loading message:
-
-```typescript
-async function complexOperation() {
-  try {
-    await toolboxAPI.utils.showLoading('Step 1: Fetching accounts...')
-    const accounts = await dataverseAPI.queryData('accounts?$top=100')
-    
-    await toolboxAPI.utils.showLoading('Step 2: Fetching contacts...')
-    const contacts = await dataverseAPI.queryData('contacts?$top=100')
-    
-    await toolboxAPI.utils.showLoading('Step 3: Processing data...')
-    const processed = processData(accounts, contacts)
-    
-    await toolboxAPI.utils.showLoading('Step 4: Saving results...')
-    await saveResults(processed)
-    
-    await toolboxAPI.utils.hideLoading()
-    
-    await toolboxAPI.utils.showNotification({
-      title: 'Success',
-      body: 'Operation completed successfully',
-      type: 'success'
-    })
-  } catch (error) {
-    await toolboxAPI.utils.hideLoading()
-    
-    console.error('Operation failed:', error)
-    
-    await toolboxAPI.utils.showNotification({
-      title: 'Error',
-      body: error.message,
-      type: 'error'
-    })
-  }
-}
-```
-
 ## Best Practices {{ anchor: true }}
 
 ### 1. Always Use Try-Catch
@@ -441,9 +360,6 @@ try {
   if (terminal) {
     await toolboxAPI.terminal.close(terminal.id)
   }
-  
-  // Always hide loading
-  await toolboxAPI.utils.hideLoading()
 }
 ```
 

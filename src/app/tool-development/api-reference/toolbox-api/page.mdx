@@ -215,30 +215,6 @@ document.body.classList.add(`theme-${theme}`)
 
 **Returns:** `Promise<'light' | 'dark'>`
 
-### `toolboxAPI.utils.showLoading(message)` / `hideLoading()`
-
-<Deprecated>1.2.1</Deprecated>
-
-Show/hide a loading overlay.
-
-```typescript
-await toolboxAPI.utils.showLoading('Fetching data from Dataverse...')
-
-try {
-  // Perform long-running operations
-  const data = await fetchLargeDataset()
-  processData(data)
-
-  await toolboxAPI.utils.showNotification({
-    title: 'Success',
-    body: 'Data processed successfully',
-    type: 'success',
-  })
-} finally {
-  await toolboxAPI.utils.hideLoading()
-}
-```
-
 ### `toolboxAPI.utils.executeParallel(...promises)`
 
 <RequiresVersion>1.0.17</RequiresVersion>
