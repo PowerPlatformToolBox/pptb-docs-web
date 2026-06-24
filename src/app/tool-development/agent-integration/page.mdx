@@ -1,13 +1,13 @@
 export const metadata = {
   title: 'Agent Integration',
   description:
-    'Expose your PPTB tool to AI assistants through MCP, support guided and automated tool runs, and return structured results safely.',
+    'Expose your PPTB tool to AI assistants through MCP, support interactive and automated tool runs, and return structured results safely.',
 }
 
 export const sections = [
   { title: 'Overview', id: 'overview' },
   { title: 'MCP Contract', id: 'mcp-contract' },
-  { title: 'Guided and Automated Runs', id: 'guided-and-automated-runs' },
+  { title: 'Interactive and Automated Runs', id: 'interactive-and-automated-runs' },
   { title: 'Declare Tool Metadata', id: 'declare-tool-metadata' },
   { title: 'Add an Automated Runtime', id: 'add-an-automated-runtime' },
   { title: 'Invocation Metadata', id: 'invocation-metadata' },
@@ -18,7 +18,7 @@ export const sections = [
 
 # Agent Integration
 
-Power Platform ToolBox can expose selected tools to AI assistants through its built-in MCP server. As a tool developer, you can decide whether your tool is discoverable by assistants, what input it accepts, what result it returns, and whether it supports only guided runs or both guided and automated runs. {{ className: 'lead' }}
+Power Platform ToolBox can expose selected tools to AI assistants through its built-in MCP server. As a tool developer, you can decide whether your tool is discoverable by assistants, what input it accepts, what result it returns, and whether it supports only interactive runs or both interactive and automated runs. {{ className: 'lead' }}
 
 ## Overview {{ anchor: true }}
 
@@ -41,16 +41,16 @@ There are two distinct layers in the contract:
 
 The same `prefill` and `returnTopic` shapes used by PPTB invocation are also what assistants rely on for predictable tool calls.
 
-## Guided and Automated Runs {{ anchor: true }}
+## Interactive and Automated Runs {{ anchor: true }}
 
 These docs use end-user language for the two execution styles:
 
 | User-facing term | MCP runtime value | Meaning |
 | --- | --- | --- |
-| Guided tool run | `executionMode: "windowed"` | PPTB opens the tool UI and the assistant works through the normal interactive experience |
+| Interactive tool run | `executionMode: "windowed"` | PPTB opens the tool UI and the assistant works through the normal interactive experience |
 | Automated tool run | `executionMode: "headless"` | PPTB runs the tool without opening the UI and returns a structured result when available |
 
-Guided runs are a good fit for existing UI-driven tools. Automated runs are a good fit for repeatable tasks, direct data returns, and unattended workflows.
+Interactive runs are a good fit for existing UI-driven tools. Automated runs are a good fit for repeatable tasks, direct data returns, and unattended workflows.
 
 ## Declare Tool Metadata {{ anchor: true }}
 
@@ -207,7 +207,7 @@ When your UI-based tool is launched through MCP, `toolboxAPI.invocation.getLaunc
 
 ## Design for Both Run Styles {{ anchor: true }}
 
-If your tool supports both guided and automated runs, keep the contract aligned across both paths.
+If your tool supports both interactive and automated runs, keep the contract aligned across both paths.
 
 - Accept the same core input shape in the UI and automated runtime.
 - Return the same result shape regardless of how the tool was executed.

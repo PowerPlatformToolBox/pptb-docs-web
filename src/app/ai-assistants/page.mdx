@@ -7,7 +7,7 @@ export const metadata = {
 export const sections = [
   { title: 'Overview', id: 'overview' },
   { title: 'Two Ways to Run Tools', id: 'two-ways-to-run-tools' },
-  { title: 'Guided Tool Runs', id: 'guided-tool-runs' },
+  { title: 'Interactive Tool Runs', id: 'interactive-tool-runs' },
   { title: 'Automated Tool Runs', id: 'automated-tool-runs' },
   { title: 'What Assistants Can Do', id: 'what-assistants-can-do' },
   { title: 'What to Expect', id: 'what-to-expect' },
@@ -31,14 +31,14 @@ PPTB supports two styles of assistant-driven tool execution:
 
 | Run style | What it feels like | Best for |
 | --- | --- | --- |
-| Guided tool run | The tool opens its normal UI and the assistant works with that interactive experience | Pickers, review screens, confirmation steps, anything where a person should stay in the loop |
+| Interactive tool run | The tool opens its normal UI and the assistant works with that interactive experience | Pickers, review screens, confirmation steps, anything where a person should stay in the loop |
 | Automated tool run | The tool completes the task without opening its UI | Background actions, repeatable workflows, CI jobs, or agent-driven orchestrations |
 
 The assistant chooses the run style based on what the tool supports and what the task requires.
 
-## Guided Tool Runs {{ anchor: true }}
+## Interactive Tool Runs {{ anchor: true }}
 
-In a guided tool run, the assistant launches the tool the same way a person would, with the tool interface visible inside PPTB.
+In an interactive tool run, the assistant launches the tool the same way a person would, with the tool interface visible inside PPTB.
 
 This is useful when the task needs:
 
@@ -78,7 +78,7 @@ In practice, this makes PPTB tools usable as building blocks inside assistant-dr
 The exact experience depends on the tool:
 
 - Some tools are informational and return data directly.
-- Some tools ask for user interaction and are better suited to guided runs.
+- Some tools ask for user interaction and are better suited to interactive runs.
 - Some tools may support both styles, letting the assistant choose the right approach.
 
 If a tool is not exposed for assistant use, it will not appear in the assistant's list of available tools.
@@ -93,7 +93,7 @@ PPTB does not automatically make every installed tool available for every kind o
 
 <Note type="information">
   If you are evaluating a tool for assistant use, look for documentation that
-  explains whether it supports guided runs, automated runs, or both.
+  explains whether it supports interactive runs, automated runs, or both.
 </Note>
 
 ## Next Steps {{ anchor: true }}
