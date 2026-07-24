@@ -11,6 +11,7 @@ export const sections = [
     id: 'additional-installation-methods',
   },
   { title: 'Managing Installed Tools', id: 'managing-installed-tools' },
+  { title: 'Working with Multiple Tools', id: 'working-with-multiple-tools' },
   { title: 'Tool Registry System', id: 'tool-registry-system' },
   { title: 'Tool Permissions', id: 'tool-permissions' },
   { title: 'Troubleshooting', id: 'troubleshooting' },
@@ -125,6 +126,20 @@ The **Installed Tools** panel shows all installed tools:
 
 2. Confirm uninstallation.
 3. Tool and any stored preferences are removed
+
+## Working with Multiple Tools {{ anchor: true }}
+
+When you have several tools open, you can keep two tools visible at the same
+time using side-by-side view.
+
+Use this to compare environments, copy values between tools, or monitor one
+tool while working in another.
+
+<div className="not-prose mt-4">
+  <Button href="/tool-installation/side-by-side-view" variant="text" arrow="right">
+    <>Open Side-by-Side View Guide</>
+  </Button>
+</div>
 
 ## Tool Registry System {{ anchor: true }}
 
@@ -279,6 +294,9 @@ Reason: Uses custom web fonts for professional appearance
 <div className="not-prose mt-6 flex gap-3">
   <Button href="/quickstart" variant="text" arrow="right">
     <>Quick Start</>
+  </Button>
+  <Button href="/tool-installation/side-by-side-view" variant="text" arrow="right">
+    <>Side-by-Side Tool View</>
   </Button>
   <Button href="/authentication" variant="text" arrow="right">
     <>Authentication</>

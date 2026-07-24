@@ -244,9 +244,13 @@ export const navigation: Array<NavGroup> = [
     links: [
       { title: 'Introduction', href: '/' },
       { title: 'Quick Start', href: '/quickstart' },
-      { title: 'AI Assistants', href: '/ai-assistants' },
       { title: 'Tool Installation', href: '/tool-installation' },
+      {
+        title: 'Side-by-Side Tool View',
+        href: '/tool-installation/side-by-side-view',
+      },
       { title: 'Authentication', href: '/authentication' },
+      { title: 'AI Assistants', href: '/ai-assistants' },
       {
         title: 'Entra App Registration Setup',
         href: '/authentication/entra-app-registration',

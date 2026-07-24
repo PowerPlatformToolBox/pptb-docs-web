@@ -1,0 +1,93 @@
+export const metadata = {
+  title: 'Side-by-Side Tool View',
+  description:
+    'Use split view in Power Platform ToolBox to work with two tool panes side by side.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Open Side-by-Side View', id: 'open-side-by-side-view' },
+  { title: 'Work with Both Panes', id: 'work-with-both-panes' },
+  { title: 'Resize the Panes', id: 'resize-the-panes' },
+  { title: 'Return to Single View', id: 'return-to-single-view' },
+  { title: 'Tips', id: 'tips' },
+]
+
+# Side-by-Side Tool View
+
+Need to compare data, copy values, or cross-check settings between tools? Side-by-side view lets you keep two tool panes visible at the same time. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+In side-by-side view:
+
+- One tool pane is shown on the left and one on the right
+- Each pane can have its own tab group
+- You can move tabs between panes
+- You can drag the divider to resize pane width
+
+<Note type="important">
+  You must have at least two regular tool tabs open before you can activate side-by-side view.
+</Note>
+
+## Open Side-by-Side View {{ anchor: true }}
+
+1. Open at least two tools in the main workspace.
+2. Right-click the tab you want to place in the right pane.
+3. Select **Split Right**.
+
+Power Platform ToolBox creates two panes:
+
+- The selected tab becomes the right pane
+- Another open tool tab stays in the left pane
+
+## Work with Both Panes {{ anchor: true }}
+
+### Switch active tool in a pane
+
+- Click a tab in the left tab bar to change the left pane tool.
+- Click a tab in the right tab bar to change the right pane tool.
+
+### Move tabs between panes
+
+You can move tools in two ways:
+
+1. Right-click a tab and select:
+   - **Move to Right Pane**
+   - **Move to Left Pane**
+2. Drag and drop a tab from one pane's tab bar to the other.
+
+## Resize the Panes {{ anchor: true }}
+
+Drag the vertical divider between the two panes:
+
+- Move left to give more room to the right pane
+- Move right to give more room to the left pane
+
+<Note type="information">
+  The divider position is saved, so your preferred split ratio is reused in future sessions.
+</Note>
+
+## Return to Single View {{ anchor: true }}
+
+Side-by-side view automatically returns to single view when one pane becomes empty.
+
+Common ways this happens:
+
+- Close the last tab in one pane
+- Move the last tab from one pane into the other pane
+
+## Tips {{ anchor: true }}
+
+- Use side-by-side when validating configuration between environments.
+- Keep one pane on a tool and use the other for quick reference tools.
+- Combine this with pinned tabs to keep important tools easy to access.
+
+<div className="not-prose mt-6 flex gap-3">
+  <Button href="/tool-installation" variant="text" arrow="left">
+    <>Back to Tool Installation</>
+  </Button>
+  <Button href="/quickstart" variant="text" arrow="right">
+    <>Quick Start</>
+  </Button>
+</div>
