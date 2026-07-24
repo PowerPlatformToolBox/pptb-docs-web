@@ -302,6 +302,10 @@ export const navigation: Array<NavGroup> = [
         href: '/tool-development/validation',
       },
       {
+        title: 'Debugging Your Tool',
+        href: '/tool-development/debugging',
+      },
+      {
         title: 'Inter-Tool Invocation',
         href: '/tool-development/inter-tool-invocation',
       },
