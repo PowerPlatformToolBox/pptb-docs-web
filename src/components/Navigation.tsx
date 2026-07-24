@@ -298,20 +298,20 @@ export const navigation: Array<NavGroup> = [
         href: '/tool-development/csp-configuration',
       },
       {
-        title: 'Local Validation',
-        href: '/tool-development/validation',
-      },
-      {
-        title: 'Debugging Your Tool',
-        href: '/tool-development/debugging',
-      },
-      {
         title: 'Inter-Tool Invocation',
         href: '/tool-development/inter-tool-invocation',
       },
       {
         title: 'Agent Integration',
         href: '/tool-development/agent-integration',
+      },
+      {
+        title: 'Local Validation',
+        href: '/tool-development/validation',
+      },
+      {
+        title: 'Debugging Your Tool',
+        href: '/tool-development/debugging',
       },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
     ],
