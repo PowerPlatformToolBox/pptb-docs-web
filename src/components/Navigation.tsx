@@ -247,6 +247,10 @@ export const navigation: Array<NavGroup> = [
       { title: 'AI Assistants', href: '/ai-assistants' },
       { title: 'Tool Installation', href: '/tool-installation' },
       { title: 'Authentication', href: '/authentication' },
+      {
+        title: 'Entra App Registration Setup',
+        href: '/authentication/entra-app-registration',
+      },
       { title: 'Access to Data', href: '/data-access' },
     ],
   },
@@ -267,6 +271,10 @@ export const navigation: Array<NavGroup> = [
       {
         title: 'PowerPlatform API',
         href: '/tool-development/api-reference/powerplatform-api',
+      },
+      {
+        title: 'Entra App Registration Setup',
+        href: '/authentication/entra-app-registration',
       },
       { title: 'Events API', href: '/tool-development/api-reference/events' },
       {

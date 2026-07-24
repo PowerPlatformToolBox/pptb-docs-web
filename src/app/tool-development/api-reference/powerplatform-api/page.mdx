@@ -27,10 +27,13 @@ Use the API through `window.powerplatformAPI`. The surface is organized into ser
 <Note type="important">
   **Prerequisite setup is required before using `window.powerplatformAPI`:**
 
-  1. Create and configure your own Microsoft Entra app registration for Power Platform API authentication, following [Enable programmability and API support](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2).
-  2. Configure the required Power Platform API permissions on that app registration, based on [Programmability permission reference](https://learn.microsoft.com/en-us/power-platform/admin/programmability-permission-reference).
-  3. In your Power Platform ToolBox connection settings, populate the App Registration **Client ID**.
-  4. In that same connection, enable the **Enabled for Power Platform** option.
+  1. Configure your Microsoft Entra app registration using the end-user guide: **[Entra App Registration Setup](/authentication/entra-app-registration)**.
+  2. In your Power Platform ToolBox connection settings, populate the App Registration **Client ID**.
+  3. Enable **Enabled for Power Platform API** in that connection when you want to call `window.powerplatformAPI`.
+
+  Microsoft references:
+  - [Enable programmability and API support](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2)
+  - [Programmability permission reference](https://learn.microsoft.com/en-us/power-platform/admin/programmability-permission-reference)
 
   You can inspect this state from the ToolBox connections API through `Connection.enabledForPowerPlatformAPI` and `Connection.scopesForPowerPlatformAPI`.
 </Note>
