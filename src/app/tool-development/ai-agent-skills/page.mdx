@@ -1,0 +1,119 @@
+export const metadata = {
+  title: 'AI Agent Skills',
+  description:
+    'Use the pptb-agent-skills repository to teach Claude Code and GitHub Copilot how to scaffold, fix, and publish Power Platform ToolBox tools.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'What the Skill Teaches', id: 'what-the-skill-teaches' },
+  { title: 'Prerequisites', id: 'prerequisites' },
+  { title: 'Installing the Skill', id: 'installing-the-skill' },
+  { title: 'Using the Skill', id: 'using-the-skill' },
+  { title: 'Reference Files', id: 'reference-files' },
+  { title: 'Scope and Limitations', id: 'scope-and-limitations' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
+
+# AI Agent Skills
+
+[pptb-agent-skills](https://github.com/PowerPlatformToolBox/pptb-agent-skills) is a companion repository that teaches AI coding assistants — Claude Code, Cowork, and GitHub Copilot — how to build tools for Power Platform ToolBox. Instead of relying on generic web-app boilerplate, the skill is grounded directly in these docs and in the `generator-pptb` scaffolding tool. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+The repository ships a single [Skill](https://github.com/PowerPlatformToolBox/pptb-agent-skills) called `tool-dev`, built on the open `SKILL.md` standard (YAML frontmatter + Markdown body). Claude Skills and GitHub Copilot Agent Skills both read the same file, so there is no separate entry point per assistant.
+
+Once the skill is installed in your project, you can describe what you want in plain language — scaffold a tool, fix a failing manifest, wire up inter-tool invocation, expose a tool to agents — and the assistant follows the workflow documented in the skill instead of guessing.
+
+<Note type="warning">
+  This skill is not yet tested end-to-end against real build prompts. Try it
+  against a couple of realistic prompts (see [Using the Skill](#using-the-skill))
+  before relying on it in a pipeline or generator.
+</Note>
+
+## What the Skill Teaches {{ anchor: true }}
+
+The `tool-dev` skill walks an assistant through the same lifecycle described throughout this Tool Development section:
+
+- Scaffolding a new tool with `yo pptb` / `generator-pptb` and picking an appropriate framework
+- Fixing `package.json` and `pptb.config.json` so they pass `pptb-validate`, using the same rules documented in [Package Manifest](/tool-development/manifest)
+- Wiring up inter-tool invocation (`launchTool`, `getLaunchContext`, `returnData`) as described in [Inter-Tool Invocation](/tool-development/inter-tool-invocation)
+- Exposing a tool to AI assistants over MCP — the `agents` block and `invokeHeadless` entry point covered in [Agent Integration](/tool-development/agent-integration)
+
+<Note type="important">
+  The agent-integration workflow the skill describes can be ahead of what a
+  given installed `desktop-app` version actually ships. The skill flags this
+  inline; treat generated `agents`/`invokeHeadless` code the same way you would
+  treat it if you wrote it by hand — validate it against your installed PPTB
+  version.
+</Note>
+
+## Prerequisites {{ anchor: true }}
+
+- **Node.js and npm** — the workflow runs `yo`, `generator-pptb`, and `@pptb/types` (which provides the `pptb-validate` CLI). The skill does not install these for you; the assistant installs them per-project as it works through the steps.
+- **PPTB desktop app** installed locally if you want the assistant to exercise the debug loop (`dev-watch` → Load Local Tool) described in [Debugging Your Tool](/tool-development/debugging). Not required just to scaffold or validate a tool.
+- **Claude Code / Cowork** or **GitHub Copilot** with project or repo skills enabled, so the deployed `SKILL.md` is actually picked up.
+
+## Installing the Skill {{ anchor: true }}
+
+Clone or download [pptb-agent-skills](https://github.com/PowerPlatformToolBox/pptb-agent-skills), then copy the `tool-dev/` folder into your project in the location your assistant expects.
+
+### Claude Code / Cowork
+
+```bash
+cp -r tool-dev/ <project>/.claude/skills/pptb-tool-dev/
+```
+
+### GitHub Copilot
+
+```bash
+cp -r tool-dev/ <repo>/.github/skills/pptb-tool-dev/
+```
+
+Both assistants read the same `SKILL.md` and `references/` folder directly from either location — there is nothing agent-specific to configure beyond where the folder lives.
+
+## Using the Skill {{ anchor: true }}
+
+Once deployed, ask your assistant naturally. The `description` field in `tool-dev/SKILL.md` is what triggers the skill, so no special command syntax is required. A few example prompts and what the assistant should do in response:
+
+- *"Scaffold a PPTB tool that lets me bulk-update account records"* → runs `yo pptb`, picks a framework, wires up `dataverseAPI` calls, and writes a manifest that passes `pptb-validate`.
+- *"My tool's `package.json` keeps failing `pptb-validate`, here's the file"* → skips scaffolding, reads the actual file, and fixes it against the manifest schema.
+- *"Make my tool launchable from another PPTB tool"* → wires up `launchTool` / `getLaunchContext` / `returnData` without re-scaffolding anything.
+- *"Expose my tool to an agent via MCP"* → adds the `agents` block and an `invokeHeadless` entry point.
+
+## Reference Files {{ anchor: true }}
+
+`SKILL.md` is deliberately short. It defers to a `references/` folder that is loaded on demand, so the assistant only pulls in the documentation it needs for the task at hand:
+
+| File | Covers |
+| --- | --- |
+| `references/manifest.md` | `package.json` and `pptb.config.json` schema and validation rules |
+| `references/apis.md` | `toolboxAPI` / `dataverseAPI` / `powerplatformAPI` quick reference |
+| `references/build-and-csp.md` | IIFE bundling gotchas and CSP configuration |
+| `references/invocation.md` | Inter-tool invocation (`launchTool` / `getLaunchContext` / `returnData`) |
+| `references/agent-integration.md` | MCP/agent exposure, `invokeHeadless`, execution modes |
+| `references/debugging-publishing.md` | The `dev-watch` loop, the `pptb-validate` CLI, `npm publish`, and registry submission |
+
+<Note type="information">
+  If you maintain a tool generator or template, you can drop `manifest.md` and
+  `build-and-csp.md` directly into a scaffolded project (for example as
+  `.ai-context/`) so an assistant working inside an already-generated tool has
+  the manifest and CSP rules on hand without loading the full skill.
+</Note>
+
+## Scope and Limitations {{ anchor: true }}
+
+- The skill scaffolds via `generator-pptb` (`yo pptb`) only.
+- [`sample-tools`](https://github.com/PowerPlatformToolBox/sample-tools) is intentionally **not** used as a scaffold source — it is considered outdated by the maintainers.
+- `Power-Maverick/PPTB-Tools` is referenced only as a pattern/convention example for real, shipped tools — never as a scaffolding template.
+
+## Next Steps {{ anchor: true }}
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development" arrow="right">
+    <>Tool Development Guide</>
+  </Button>
+  <Button href="/tool-development/agent-integration" variant="outline">
+    <>Agent Integration</>
+  </Button>
+</div>

@@ -262,6 +262,7 @@ export const navigation: Array<NavGroup> = [
     title: 'Tool Development',
     links: [
       { title: 'Overview', href: '/tool-development' },
+      { title: 'AI Agent Skills', href: '/tool-development/ai-agent-skills' },
       { title: 'Package Manifest', href: '/tool-development/manifest' },
       { title: 'API Reference', href: '/tool-development/api-reference' },
       {
