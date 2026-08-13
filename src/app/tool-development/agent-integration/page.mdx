@@ -227,6 +227,12 @@ Before publishing or sharing your tool with assistant users:
 4. Confirm that your automated runtime returns a payload matching `returnTopic`.
 5. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
 
+To start MCP Inspector for debugging, run:
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
 If a call fails, compare the request and response payloads against `prefill` and `returnTopic`, then verify that the automated entry file can be discovered from your built output.
 
 ## Next Steps {{ anchor: true }}
