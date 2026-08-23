@@ -246,6 +246,10 @@ export const navigation: Array<NavGroup> = [
       { title: 'Quick Start', href: '/quickstart' },
       { title: 'Tool Installation', href: '/tool-installation' },
       {
+        title: 'Private Marketplace',
+        href: '/tool-installation/private-marketplace',
+      },
+      {
         title: 'Side-by-Side Tool View',
         href: '/tool-installation/side-by-side-view',
       },

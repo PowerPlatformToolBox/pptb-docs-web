@@ -1,0 +1,231 @@
+export const metadata = {
+  title: 'Private Marketplace',
+  description:
+    'Configure and enable private marketplace sources in Power Platform ToolBox.',
+}
+
+export const sections = [
+  { title: 'How It Works', id: 'how-it-works' },
+  { title: 'Prerequisites', id: 'prerequisites' },
+  { title: 'Create the Registry', id: 'create-the-registry' },
+  { title: 'Package and Host Tools', id: 'package-and-host-tools' },
+  { title: 'Enable the Marketplace', id: 'enable-the-marketplace' },
+  { title: 'Azure Blob Storage', id: 'azure-blob-storage' },
+  { title: 'Security', id: 'security' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+]
+
+# Private Marketplace
+
+Add an internal tool catalog to Power Platform ToolBox by hosting a registry file and enabling it as a private marketplace source. {{ className: 'lead' }}
+
+<Note type="important">
+  Private marketplace v1 supports registry and package URLs that already
+  contain access information, such as read-only SAS tokens. Interactive Entra
+  ID authentication for private sources is not supported in v1.
+</Note>
+
+## How It Works {{ anchor: true }}
+
+Power Platform ToolBox can load tools from the built-in marketplace and one or more private sources. The app combines all enabled sources into a single marketplace.
+
+- Tools retain the name of their marketplace source.
+- A private tool takes precedence when it has the same `id` as a tool in the built-in marketplace.
+- An unavailable source does not prevent other enabled sources from loading.
+- The built-in source is enabled by default. It can be disabled only after at least one private source is enabled.
+
+## Prerequisites {{ anchor: true }}
+
+Before configuring the app, prepare:
+
+1. An HTTPS endpoint that returns a valid registry JSON document.
+2. A `tools` array in the registry document.
+3. A downloadable `.tar.gz` archive for each tool.
+4. Registry and package URLs that are reachable from every computer that will use the marketplace.
+5. Read access to any protected registry or package URL.
+
+<Note type="information">
+  A private network endpoint is suitable when every user connects through the
+  same corporate network or VPN. Otherwise, use a protected internet-facing
+  endpoint.
+</Note>
+
+## Create the Registry {{ anchor: true }}
+
+Create a `registry.json` file with a top-level `tools` array:
+
+```json
+{
+  "tools": [
+    {
+      "id": "contoso-environment-reviewer",
+      "name": "Environment Reviewer",
+      "description": "Reviews environment configuration against Contoso standards.",
+      "authors": ["Contoso Platform Team"],
+      "version": "1.0.0",
+      "downloadUrl": "https://marketplace.contoso.com/packages/contoso-environment-reviewer-1.0.0.tar.gz",
+      "status": "active"
+    }
+  ]
+}
+```
+
+Each entry should provide:
+
+<Properties>
+  <Property name="id">
+    A stable, unique tool identifier. A private entry with the same ID as a
+    built-in entry overrides it.
+  </Property>
+  <Property name="name">The display name shown in the marketplace.</Property>
+  <Property name="version">The published tool version.</Property>
+  <Property name="downloadUrl">
+    The HTTPS location of the tool package, including access parameters when
+    required.
+  </Property>
+  <Property name="status">
+    Use `active` to make the tool available in the marketplace.
+  </Property>
+  <Property name="authors">
+    One or more author names. This value supplies the marketplace's **by**
+    label.
+  </Property>
+</Properties>
+
+## Package and Host Tools {{ anchor: true }}
+
+Run the following command from the directory that contains the tool's `package.json`:
+
+```bash
+tar -czf contoso-environment-reviewer-1.0.0.tar.gz .
+```
+
+Upload the archive and `registry.json` to an HTTPS host. Set each `downloadUrl` to the final package URL, then verify both URLs from a user computer before enabling the source:
+
+```bash
+curl --fail "https://marketplace.contoso.com/registry.json"
+curl --fail --head "https://marketplace.contoso.com/packages/contoso-environment-reviewer-1.0.0.tar.gz"
+```
+
+## Enable the Marketplace {{ anchor: true }}
+
+1. Open **Settings** in the Power Platform ToolBox desktop app.
+2. Find the **Marketplace Sources** section.
+3. Select **Add source**.
+4. Choose **Private** as the source type.
+5. Enter a descriptive label, such as **Contoso Marketplace**.
+6. Enter the full HTTPS URL of `registry.json`. Include its access query string when the endpoint requires one.
+7. Enable the source and save the settings.
+8. Open **Tools Marketplace** and confirm that tools from the new source appear.
+
+You can keep the built-in source enabled to show public and private tools together. To show only private tools, first enable a private source and then disable the built-in source.
+
+## Azure Blob Storage {{ anchor: true }}
+
+Azure Blob Storage can host both the registry and packages in a private container. In v1, users access the blobs through HTTPS URLs containing read-only SAS tokens.
+
+The following example uses Microsoft Entra authentication for administration and does not expose storage account keys:
+
+```bash
+resourceGroup="<resource-group>"
+location="<region>"
+storageAccount="<globally-unique-storage-account>"
+containerName="pptb-tools"
+
+az storage account create \
+  --name "$storageAccount" \
+  --resource-group "$resourceGroup" \
+  --location "$location" \
+  --sku Standard_LRS \
+  --kind StorageV2 \
+  --https-only true \
+  --min-tls-version TLS1_2
+
+az storage container create \
+  --account-name "$storageAccount" \
+  --name "$containerName" \
+  --auth-mode login \
+  --public-access off
+
+az storage blob upload \
+  --account-name "$storageAccount" \
+  --container-name "$containerName" \
+  --name registry.json \
+  --file ./registry.json \
+  --auth-mode login
+
+az storage blob upload \
+  --account-name "$storageAccount" \
+  --container-name "$containerName" \
+  --name packages/contoso-environment-reviewer-1.0.0.tar.gz \
+  --file ./contoso-environment-reviewer-1.0.0.tar.gz \
+  --auth-mode login
+```
+
+Generate a read-only SAS token for each blob. Choose the shortest expiry that is practical for your users:
+
+```bash
+az storage blob generate-sas \
+  --account-name "$storageAccount" \
+  --container-name "$containerName" \
+  --name registry.json \
+  --permissions r \
+  --expiry "<UTC-expiry-in-ISO-8601-format>" \
+  --https-only \
+  --auth-mode login
+```
+
+Append the returned query string to the registry blob URL and enter the complete value as the marketplace source URL:
+
+```text
+https://<storage-account>.blob.core.windows.net/pptb-tools/registry.json?<sas-token>
+```
+
+Generate a separate read-only SAS token for each package and include it in the corresponding `downloadUrl` in `registry.json`:
+
+```text
+https://<storage-account>.blob.core.windows.net/pptb-tools/packages/contoso-environment-reviewer-1.0.0.tar.gz?<sas-token>
+```
+
+<Warning>
+  Expired SAS tokens stop registry refreshes or package downloads. Update the
+  source URL and package URLs before their tokens expire.
+</Warning>
+
+## Security {{ anchor: true }}
+
+- Grant read-only access to registry and package blobs.
+- Use HTTPS and short-lived SAS tokens with the smallest possible scope.
+- Treat marketplace URLs containing SAS tokens as secrets. Do not commit them to source control or share them in logs.
+- Keep the container private and use Entra ID with least-privilege Azure RBAC for uploads and administration.
+- Validate and approve tool packages before publishing them.
+- Use Azure Front Door, API Management, or an authenticated proxy when you need centralized access controls beyond v1 SAS support.
+
+## Troubleshooting {{ anchor: true }}
+
+### The source does not load
+
+- Confirm the source is enabled and the registry URL returns HTTP 200 from the user's computer.
+- Check that the SAS token has not expired and includes read permission.
+- Validate that the response is JSON with a top-level `tools` array.
+- Check the desktop app logs for the warning associated with the source.
+
+### A tool is missing or cannot be installed
+
+- Set the tool's `status` to `active`.
+- Confirm its `downloadUrl` is reachable and its token permits reads.
+- Verify the package is a `.tar.gz` archive containing the expected tool files.
+- Check for duplicate IDs. A private source intentionally replaces a built-in entry with the same `id`.
+
+### The author is blank
+
+Add `authors` as an array of names or a comma-separated string in the tool entry.
+
+<div className="not-prose mt-6 flex gap-3">
+  <Button href="/tool-installation" variant="text" arrow="left">
+    <>Back to Tool Installation</>
+  </Button>
+  <Button href="/tool-development/publishing" variant="text" arrow="right">
+    <>Publish a Tool</>
+  </Button>
+</div>
