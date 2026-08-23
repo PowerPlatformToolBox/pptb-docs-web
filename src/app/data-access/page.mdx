@@ -57,6 +57,11 @@ Some tools genuinely need to go further. A tool might need to:
 
 When a tool was built to do any of these things, it declares the websites it needs access to. Power Platform ToolBox then shows you this prompt so that **you** are always in control of what gets connected.
 
+The app also checks these permissions every time a tool launches. If a tool
+update adds access to new websites, the prompt appears again and highlights only
+the new permissions. Websites you previously approved are included as read-only
+context.
+
 ## Should I allow it? {{ anchor: true }}
 
 Ask yourself two questions before clicking **Allow**:
@@ -80,6 +85,9 @@ It **cannot** suddenly access other websites that were not listed. The list is f
 ## What happens if I deny it? {{ anchor: true }}
 
 The tool will not launch. Website access is required for the tool to run, so denying it prevents the tool from starting entirely.
+
+If this prompt was triggered because a tool update added new permissions,
+denying them leaves your previous consent unchanged and cancels this launch.
 
 If you want to use the tool, you will need to allow access when prompted. If you are unsure whether the listed websites are safe, check the tool's documentation or reach out to its author before proceeding.
 

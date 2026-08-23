@@ -180,18 +180,22 @@ Power Platform ToolBox uses a VS Code-style marketplace architecture:
 
 Tools may required additional permissions beyond standard Dataverse access.
 
-The first time you launch the tool, or the required permissions change, you will see a permission consent dialog.
+The first time you launch the tool, or when a tool update adds new permissions, you will see a permission consent dialog.
 
 [![PPTB Tool Permissions](images/screenshots/toolsinstallation-additionalpermissions.png)](images/screenshots/toolsinstallation-additionalpermissions.png)
 
 Review the requested permissions carefully before accepting.
 
+When permissions are added, the dialog highlights only the new permissions that
+need your decision. Permissions you previously approved remain visible as
+read-only context.
+
 Additional details on permissions, please see the Tool Developer documentation [here](/tool-development/csp-configuration).
 
 <Note type="important">
-  If you decline, the tool won't load. If you accept, your choice is saved and
-  you won't see the dialog again for that tool, unless the permissions requested
-  change.
+  If you decline, the tool won't load. When declining permissions added by an
+  update, your existing consent record remains unchanged. If you accept, your
+  choice is saved until the tool requests additional permissions.
 </Note>
 
 ### Staying Safe

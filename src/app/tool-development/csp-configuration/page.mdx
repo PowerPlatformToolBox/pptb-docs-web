@@ -60,9 +60,11 @@ Rather than weakening security for all tools, PPTB allows each tool to request o
     3. **Grant or Decline**: You can choose to accept or decline the permissions
        - If you Accept: The tool will load with the requested CSP exceptions
        - If you Decline: The tool will not load
-    4. **Stored Consent**: If you accept, your consent is stored and you won't be asked again for that tool
-    5. **Security Enforcement**: The system enforces that CSP exceptions are only applied if consent has been granted
-    6. **Revoke Consent**: You can revoke consent at any time via the IPC API
+    4. **Stored Consent**: If you accept, your consent is stored for the approved permissions
+    5. **Permission Changes**: On each launch, the app checks the tool's current CSP permissions against the stored consent record. If an update adds permissions, the consent dialog appears again with the new permissions highlighted and previously approved permissions shown as read-only context
+    6. **Re-consent**: If you accept, the new permissions are added to the stored consent. If you decline, the existing consent record remains unchanged and the tool does not launch
+    7. **Security Enforcement**: The system enforces that CSP exceptions are only applied if consent has been granted
+    8. **Revoke Consent**: You can revoke consent at any time via the IPC API
   </Col>
 </Row>
 
@@ -120,7 +122,7 @@ Tools can specify CSP exceptions in their `package.json` manifest:
   }
 }
 ```
-<Note type="important">Once the CSP Exception is added, the tool must be reloaded to trigger the consent dialog on next launch.</Note>
+<Note type="important">Once a CSP exception is added, the tool must be reloaded. On the next launch, the app detects permissions that were not included in the previous consent and requests re-consent.</Note>
 
 ## Security Considerations {{ anchor: true }}
 
@@ -130,11 +132,13 @@ CSP Enforcement Flow:
 
 1. Tool's CSP exceptions are read from `package.json` during installation/loading
 2. When a tool is launched, the system checks if it has CSP exceptions
-3. If exceptions exist, the system checks if user has granted consent
-4. If not granted, a consent dialog is shown to the user
-5. When the tool's HTML is served, `WebviewProtocolManager` checks consent status
-6. CSP exceptions are only applied if consent has been granted
-7. Without consent, the tool receives only the default restrictive CSP
+3. If exceptions exist, the system compares them with the user's stored consent record
+4. If consent has not been granted, a consent dialog shows all requested permissions
+5. If new permissions have been added since consent was granted, a re-consent dialog highlights only the new permissions and shows previously approved permissions as read-only context
+6. Declining initial consent or re-consent cancels the launch; declining re-consent does not modify the existing consent record
+7. When the tool's HTML is served, `WebviewProtocolManager` checks consent status
+8. CSP exceptions are only applied if consent has been granted
+9. Without consent, the tool receives only the default restrictive CSP
 
 <Note type="important">
   This ensures that even if a tool declares CSP exceptions, they are not applied until the user explicitly grants permission.
