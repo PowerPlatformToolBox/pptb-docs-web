@@ -6,6 +6,7 @@ export const metadata = {
 
 export const sections = [
   { title: 'How ToolBox uses data', id: 'how-toolbox-uses-data' },
+  { title: 'Error diagnostics and privacy', id: 'error-diagnostics-and-privacy' },
   { title: 'What is this prompt?', id: 'what-is-this-prompt' },
   { title: 'Why does it appear?', id: 'why-does-it-appear' },
   { title: 'Should I allow it?', id: 'should-i-allow-it' },
@@ -24,15 +25,29 @@ Power Platform ToolBox itself connects to a small number of external services to
 **Tool Registry (Supabase)**
 When you browse or install tools from the built-in tool store, the application fetches the list of available tools from a hosted registry. This is how you see what tools are available and download them. No personal data is sent — it is a read-only look-up.
 
-{/* **Error Tracking (Sentry)**
-The application uses [Sentry.io](https://sentry.io/) to automatically capture crash reports and errors. This helps the team find and fix bugs quickly. Reports are anonymous and contain no Power Platform data or credentials. You can turn this off at any time in the application settings. */}
-
 **Dataverse Connections**
 When you add a connection to a Dataverse environment, the application communicates directly with that environment using your credentials. This data stays between your machine and your environment — it is not routed through any ToolBox-owned server.
 
 <Note>
   Power Platform ToolBox does **NOT** collect, store, or sell your Power Platform data. Your Dataverse connections and their data remain private to you.
 </Note>
+
+## Error diagnostics and privacy {{ anchor: true }}
+
+Power Platform ToolBox can send anonymous diagnostic information to [Sentry](https://sentry.io/) to help the maintainers find and fix application errors. This is **optional**: no diagnostic events are sent unless you select **Yes** in the privacy prompt.
+
+When enabled, diagnostics can include:
+
+- An anonymous installation ID
+- The installed ToolBox version
+- Your operating system and CPU architecture
+- Application warnings, errors, crash details, and the technical context needed to diagnose them
+
+Before an event leaves the application, a privacy filter removes common personally identifiable or sensitive information from error messages and their associated context. This includes email addresses, IP addresses, file paths that contain user names, Dataverse environment URLs, GUIDs, credentials, authorization headers, passwords, secrets, and tokens. Sentry receives only the anonymous installation ID as user context.
+
+Power Platform ToolBox does not intentionally include your Power Platform data or credentials in diagnostic events. The privacy filter is applied to every outbound Sentry event, including messages, exception details, tags, breadcrumbs, request data, and additional context.
+
+You can change your choice at any time under **Settings → Telemetry → Sentry Log Collection**. Select **No** to stop future diagnostic events; previously collected events are not affected. A restart may be required for the new setting to apply fully.
 
 ## What is this prompt? {{ anchor: true }}
 
