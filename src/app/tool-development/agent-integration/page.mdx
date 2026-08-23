@@ -10,6 +10,7 @@ export const sections = [
   { title: 'Interactive and Automated Runs', id: 'interactive-and-automated-runs' },
   { title: 'Declare Tool Metadata', id: 'declare-tool-metadata' },
   { title: 'Add an Automated Runtime', id: 'add-an-automated-runtime' },
+  { title: 'Report Progress and Logs', id: 'report-progress-and-logs' },
   { title: 'Invocation Metadata', id: 'invocation-metadata' },
   { title: 'Design for Both Run Styles', id: 'design-for-both-run-styles' },
   { title: 'Validation and Testing', id: 'validation-and-testing' },
@@ -165,6 +166,33 @@ module.exports = {
 
 For two-way calls, return a JSON object that matches `invocation.returnTopic`.
 
+## Report Progress and Logs {{ anchor: true }}
+
+Automated runs can publish progress and runtime messages through the context passed to `invokeHeadless`. PPTB stores these updates with the job and displays them in the invocation detail view on the **MCP Server** page.
+
+```javascript
+async function invokeHeadless(input, context) {
+  context.logger.debug('Received invocation input')
+  context.logger.info('Starting data retrieval')
+  context.updateProgress(25, 'loading records')
+
+  try {
+    const result = await loadRecords(input)
+
+    context.updateProgress(100, 'done')
+    context.logger.info(`Loaded ${result.records.length} records`)
+    return result
+  } catch (error) {
+    context.logger.error('Data retrieval failed')
+    throw error
+  }
+}
+```
+
+The logger supports `debug`, `info`, `warn`, and `error`. PPTB bounds the number of messages retained for each job, so logs are useful for diagnostics but should not be treated as permanent storage.
+
+Keep messages concise and avoid logging access tokens, connection identifiers, complete input payloads, or sensitive result data. Throw an error when the invocation cannot complete; PPTB records the failure state and makes the error available in the invocation details.
+
 ## Invocation Metadata {{ anchor: true }}
 
 Assistants can pass PPTB-specific metadata under `arguments.__pptb`.
@@ -225,7 +253,8 @@ Before publishing or sharing your tool with assistant users:
 2. Check that the tool appears in MCP discovery only when `agents.invokable` is `true`.
 3. Test both `one-way` and `two-way` calls if you advertise both modes.
 4. Confirm that your automated runtime returns a payload matching `returnTopic`.
-5. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
+5. Confirm that progress, runtime logs, results, and failures appear correctly in the PPTB MCP Server invocation details.
+6. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
 
 To start MCP Inspector for debugging, run:
 

@@ -6,11 +6,13 @@ export const metadata = {
 
 export const sections = [
   { title: 'Overview', id: 'overview' },
+  { title: 'Find Agent-Ready Tools', id: 'find-agent-ready-tools' },
+  { title: 'Connect an Assistant', id: 'connect-an-assistant' },
   { title: 'Two Ways to Run Tools', id: 'two-ways-to-run-tools' },
   { title: 'Interactive Tool Runs', id: 'interactive-tool-runs' },
   { title: 'Automated Tool Runs', id: 'automated-tool-runs' },
   { title: 'What Assistants Can Do', id: 'what-assistants-can-do' },
-  { title: 'What to Expect', id: 'what-to-expect' },
+  { title: 'Monitor Invocations', id: 'monitor-invocations' },
   { title: 'Security and Access', id: 'security-and-access' },
   { title: 'Next Steps', id: 'next-steps' },
 ]
@@ -23,7 +25,29 @@ Power Platform ToolBox can expose your installed tools to supported AI assistant
 
 This feature is aimed at people who want to combine PPTB with an AI assistant such as Claude Desktop or Visual Studio Code.
 
-PPTB includes built-in buttons for both clients so you can connect them without manually assembling the integration details. This guide stays high-level and focuses on what the feature enables, not on client-specific setup steps.
+Agentic AI capabilities are available from the **MCP Server** page in PPTB and no longer require enabling a preview feature.
+
+## Find Agent-Ready Tools {{ anchor: true }}
+
+Tools that support automated MCP execution display an MCP badge in the Home, Tools, and Marketplace views. Use the **MCP enabled** filter in Tools or Marketplace to narrow the list to compatible tools.
+
+The badge specifically identifies tools that can run without opening their UI. Other tools may still support interactive assistant-driven runs.
+
+## Connect an Assistant {{ anchor: true }}
+
+Open the **MCP Server** page from the activity bar to start or stop the built-in server and connect a supported client.
+
+PPTB includes **Connect Claude Desktop** and **Connect Visual Studio Code** actions, so you do not need to assemble the client configuration manually. Each client displays one of these connection states:
+
+| Status | Meaning |
+| --- | --- |
+| Connected | The PPTB MCP server entry is present and valid in the client's configuration |
+| Not configured | No PPTB MCP server entry was found for the client |
+| Invalid | A PPTB entry exists, but its configuration cannot be used |
+
+After connecting a client, restart or reload that client if it does not discover the server immediately.
+
+Enable **Keep MCP Server Running** when you want PPTB to automatically make MCP available again as tools are opened or restored. Leave it disabled when you prefer to control the server manually.
 
 ## Two Ways to Run Tools {{ anchor: true }}
 
@@ -73,15 +97,18 @@ Once connected, an assistant can work with the tools you have installed in PPTB 
 
 In practice, this makes PPTB tools usable as building blocks inside assistant-driven tasks instead of only as standalone desktop experiences.
 
-## What to Expect {{ anchor: true }}
+## Monitor Invocations {{ anchor: true }}
 
-The exact experience depends on the tool:
+The **MCP Server** page refreshes while it is open and lists assistant-driven tool invocations. Select an invocation to inspect:
 
-- Some tools are informational and return data directly.
-- Some tools ask for user interaction and are better suited to interactive runs.
-- Some tools may support both styles, letting the assistant choose the right approach.
+- status and progress
+- tool runtime messages
+- structured result data
+- failure details
 
-If a tool is not exposed for assistant use, it will not appear in the assistant's list of available tools.
+Use **Clear logs** to remove the displayed invocation history. Clearing logs does not change whether a tool is available to assistants.
+
+The exact details depend on the tool. Automated tools can report live progress and structured results, while interactive tools may require you to complete work in the opened tool window.
 
 ## Security and Access {{ anchor: true }}
 
@@ -90,6 +117,7 @@ PPTB does not automatically make every installed tool available for every kind o
 - Tool authors control whether a tool is invokable by assistants.
 - Automated runs can use caller-provided authentication or a saved PPTB connection when supported by the tool and runtime.
 - Input and output payloads follow each tool's declared contract, which helps keep assistant calls predictable.
+- Invocation details can include tool-provided messages and result data. Review them before sharing diagnostics, and do not place secrets in tool output or logs.
 
 <Note type="information">
   If you are evaluating a tool for assistant use, look for documentation that
