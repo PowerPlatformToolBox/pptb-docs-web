@@ -246,6 +246,10 @@ export const navigation: Array<NavGroup> = [
       { title: 'Quick Start', href: '/quickstart' },
       { title: 'Tool Installation', href: '/tool-installation' },
       {
+        title: 'Verified and Unverified Tools',
+        href: '/tool-installation/verified-tools',
+      },
+      {
         title: 'Private Marketplace',
         href: '/tool-installation/private-marketplace',
       },
@@ -319,6 +323,10 @@ export const navigation: Array<NavGroup> = [
         href: '/tool-development/debugging',
       },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
+      {
+        title: 'Tool Maturity Model',
+        href: '/tool-development/maturity-model',
+      },
     ],
   },
   {

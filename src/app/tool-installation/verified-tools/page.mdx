@@ -1,0 +1,58 @@
+export const metadata = {
+  title: 'Verified and Unverified Tools',
+  description:
+    'Understand what Verified and Unverified labels mean when choosing tools in the PPTB Marketplace.',
+}
+
+export const sections = [
+  { title: 'Verified Tools', id: 'verified-tools' },
+  { title: 'Unverified Tools', id: 'unverified-tools' },
+  { title: 'Choosing a Tool', id: 'choosing-a-tool' },
+  { title: 'For Tool Authors', id: 'for-tool-authors' },
+]
+
+# Verified and Unverified Tools
+
+Marketplace labels help you understand how each tool has been reviewed before you install it. {{ className: 'lead' }}
+
+<Note type="information">
+  Verified and Unverified labels are shown in PPTB v1.2.6 and later. Older app versions do not display these labels in the UI.
+</Note>
+
+## Verified Tools {{ anchor: true }}
+
+A **Verified** tool has passed a human review by the PPTB team. Reviewers check that it is documented, maintained, secure, compatible with PPTB, and ready to use. Verified tools display a checkmark badge and are sorted to the top of the marketplace.
+
+<div className="not-prose my-6 flex items-center gap-3">
+  <span className="flex h-10 w-10 items-center justify-center rounded border border-zinc-200 bg-white">
+    <img src="/images/verified-badge.svg" alt="Verified checkmark badge" width="24" height="24" />
+  </span>
+  <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+    Look for this checkmark beside Verified tools.
+  </span>
+</div>
+
+PPTB continues to monitor Verified tools. The badge can be removed when a serious security issue appears, permissions change, maintenance falls behind, or the tool does not keep up with a breaking PPTB API change.
+
+## Unverified Tools {{ anchor: true }}
+
+Every marketplace tool begins as **Unverified** and completes automated validation. Unverified means the tool has not completed the additional human verification review; it does not by itself mean that the tool was rejected or is low quality.
+
+An Unverified tool may also be waiting for review or re-verification after an update or maintenance issue.
+
+## Choosing a Tool {{ anchor: true }}
+
+The Verified badge is an extra trust signal, not a substitute for choosing a tool that fits your needs. Before installing any tool, review its description, author, permissions, documentation, version, downloads, and user reviews.
+
+## For Tool Authors {{ anchor: true }}
+
+The [Tool Maturity Model](/tool-development/maturity-model) explains how to request verification, what reviewers check, and how to keep or regain the badge.
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-installation" arrow="left">
+    <>Tool Installation</>
+  </Button>
+  <Button href="/tool-development/maturity-model" variant="outline" arrow="right">
+    <>Verification for Authors</>
+  </Button>
+</div>

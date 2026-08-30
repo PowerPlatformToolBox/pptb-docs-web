@@ -1,0 +1,139 @@
+export const metadata = {
+  title: 'Tool Maturity Model',
+  description:
+    'Learn how PPTB Marketplace verification works, what reviewers check, and how to keep the Verified badge.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Request Verification', id: 'request-verification' },
+  { title: 'Reviewer Checklist', id: 'reviewer-checklist' },
+  { title: 'Review Outcome', id: 'review-outcome' },
+  { title: 'Keeping the Badge', id: 'keeping-the-badge' },
+  { title: 'Reinstatement', id: 'reinstatement' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
+
+# Tool Maturity Model
+
+Use this guide to prepare your marketplace tool for Verified status, request a review, and understand the checks that keep the badge active. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+Every marketplace tool starts as **Unverified** and completes automated validation. A **Verified** tool has also passed a human review, displays a checkmark badge, and is sorted to the top of the marketplace.
+
+<div className="not-prose my-6 flex items-center gap-3">
+  <span className="flex h-10 w-10 items-center justify-center rounded border border-zinc-200 bg-white">
+    <img src="/images/verified-badge.svg" alt="Verified checkmark badge" width="24" height="24" />
+  </span>
+  <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+    This checkmark identifies a Verified tool in the marketplace.
+  </span>
+</div>
+
+## Request Verification {{ anchor: true }}
+
+After your tool is available in the marketplace:
+
+1. Open **My Tools**.
+2. Find the Unverified tool you own and select **Get Verified**.
+3. Look for the confirmation email. It confirms that your request is queued and states the **1–2 week review SLA**.
+4. Wait for the approval or rejection email. Reviews are handled in submission order and do not include a back-and-forth stage with the reviewer.
+
+<Note type="important">
+  **Do not update your tool while its verification request is queued or under
+  review.** Any update automatically cancels the request. You will receive an
+  email and must submit a new request from **My Tools**.
+</Note>
+
+Before requesting verification, publish and test the version you want reviewed. Run [`pptb-validate`](/tool-development/validation) and resolve every validation error first. Verification is a separate human review performed after the normal [publishing and marketplace submission process](/tool-development/publishing).
+
+## Reviewer Checklist {{ anchor: true }}
+
+All **Required** items must pass. **Optional** items are recorded to help improve quality, but they do not determine approval.
+
+### Documentation
+
+- **Required — README quality:** Show the tool UI with a screenshot or GIF, explain what the tool does, and provide installation and run instructions. A new user should be able to get started without asking for missing steps.
+- **Required — CSP exceptions documented:** For every `cspExceptions` entry, explain why the tool must connect to that external domain. Remove exceptions that the tool does not need. See [CSP Configuration](/tool-development/csp-configuration).
+
+### Code & Security
+
+- **Required — No critical or high CVEs:** Run `npm audit` against the dependency tree and resolve every critical or high-severity vulnerability before requesting review.
+- **Required — No deprecated PPTB APIs or unsupported methods:** Do not call removed or unsupported APIs. Deprecated API use is flagged. It is a soft gate rather than an automatic blocker when an active migration is demonstrably in progress.
+
+### UI & Experience
+
+- **Required — Reacts to the PPTB app theme:** Support both light and dark mode without requiring manual configuration, and keep the interface legible in each theme.
+- **Required — Has an icon:** Bundle a valid SVG under `dist` and reference it with the top-level `icon` field. HTTP or HTTPS icon URLs are not accepted. See the [Package Manifest](/tool-development/manifest).
+- **Optional — Basic colour contrast:** Check text and interactive controls in both themes. This is not a strict WCAG audit, but obvious contrast failures are recorded.
+- **Optional — No console errors on load:** Open the browser console during initial tool load and resolve errors. Warnings are acceptable, and console errors are not a hard blocker.
+
+### Versioning
+
+- **Required — Version 1.0.0 or greater:** Publish version `1.0.0` or later to signal that the tool is ready for production use.
+
+### Maintenance & Ownership
+
+- **Required — Healthy bug response:** Reviewers assess open bug reports using the thresholds below. The **10-day and 30-day clocks measure time from issue creation to the first maintainer response, not time to close**.
+
+| Result | What the reviewer checks |
+|---|---|
+| **Pass** | Fewer than 5 open bugs, with a maintainer response to every bug within 10 days. |
+| **Flag** | 5 or more open bugs, or any bug has gone more than 10 days without a maintainer response. The reviewer uses judgment. |
+| **Blocker** | Any bug has gone more than 30 days without a maintainer response. |
+
+- **Required — Active contributor:** Name at least one reachable contributor who is accountable for the tool and has been recently active through commits or issue responses.
+- **Required — Up to date with breaking changes:** Show that the tool has been updated for breaking dependency and PPTB API changes.
+
+### Usage & Trust Signals
+
+- **Required — Meets 2 of 3 usage metrics:** The tool must meet any two thresholds in the following table.
+
+| Metric | Threshold | What it demonstrates |
+|---|---:|---|
+| Monthly active users (MAU) | 10 or more | Ongoing use, with a low threshold that does not unduly penalise newer tools. |
+| Total downloads | 50 or more | Cumulative adoption; considered with MAU so inactive downloads do not stand alone. |
+| Reviews | At least 1 rated 3 or above | A real user has provided a positive-enough trust signal. |
+
+<Note type="information">
+  A reviewer may waive the usage requirement for a new tool with no usage
+  history when the tool demonstrably meets all other criteria to a high
+  standard. New, high-quality tools do not need to wait for usage data before
+  requesting verification.
+</Note>
+
+## Review Outcome {{ anchor: true }}
+
+The review ends with a single approval or rejection decision:
+
+- **Approved:** PPTB grants the Verified badge, displays the checkmark, and sorts the tool to the top of the marketplace.
+- **Rejected:** The email lists every failed required criterion. You can correct the issues and submit another request immediately; the new request receives a full review.
+
+Optional findings may be included, but they do not cause rejection.
+
+## Keeping the Badge {{ anchor: true }}
+
+PPTB runs nightly automated governance checks on Verified tools. The following triggers are currently active:
+
+| Trigger | Badge impact | What you need to do |
+|---|---|---|
+| Critical or high CVE detected | **Removed immediately** | Resolve the vulnerable dependency, publish an updated tool, and request full re-verification. PPTB emails you when the badge is removed. |
+| New CSP exception added | **Removed immediately** | Ensure the new exception is necessary and documented, then request full re-verification. PPTB emails you when the badge is removed. |
+| Bug health threshold breached | **2-week grace period** | Address the bug-health breach during the grace period. The badge remains in place for two weeks and is removed if the breach is unresolved. |
+| PPTB API breaking change not addressed | **2 weeks after release** | Update and publish the tool for the breaking change. PPTB announces deprecations two weeks before release, emails again at release, and removes the badge if the tool is still unresolved two weeks after release. |
+
+## Reinstatement {{ anchor: true }}
+
+Every route back to Verified requires the same full review. There is no shortcut or lighter re-verification track, and the tool appears as **Unverified** while re-verification is in progress.
+
+## Next Steps {{ anchor: true }}
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/validation" arrow="left">
+    <>Validate Your Tool</>
+  </Button>
+  <Button href="/tool-development/publishing" variant="outline" arrow="right">
+    <>Publish Your Tool</>
+  </Button>
+</div>
