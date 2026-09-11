@@ -257,6 +257,10 @@ export const navigation: Array<NavGroup> = [
         title: 'Side-by-Side Tool View',
         href: '/tool-installation/side-by-side-view',
       },
+      {
+        title: 'Report a Concern',
+        href: '/tool-installation/report-a-concern',
+      },
       { title: 'Authentication', href: '/authentication' },
       { title: 'AI Assistants', href: '/ai-assistants' },
       {

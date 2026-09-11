@@ -6,6 +6,8 @@ export const metadata = {
 
 export const sections = [
   { title: 'Tool Marketplace', id: 'tool-marketplace' },
+  { title: 'Rating Tools', id: 'rating-tools' },
+  { title: 'Reporting a Concern', id: 'reporting-a-concern' },
   {
     title: 'Additional Installation Methods',
     id: 'additional-installation-methods',
@@ -37,7 +39,7 @@ The Tools Marketplace provides a centralized catalog of available tools:
    [![PPTB Tools details](images/screenshots/toolsinstallation-marketplace2.png)](images/screenshots/toolsinstallation-marketplace2.png)
    - Name and description
    - Author and version
-   - Download count
+   - Download count and ratings
    - Required permissions (if any above Dataverse access)
    - An author provided description of the tool
    - Screenshots (if available)
@@ -57,6 +59,29 @@ Organizations can add one or more private marketplace sources for internal tools
 <div className="not-prose mt-4">
   <Button href="/tool-installation/private-marketplace" variant="text" arrow="right">
     <>Set Up a Private Marketplace</>
+  </Button>
+</div>
+
+## Rating Tools {{ anchor: true }}
+
+You can rate tools directly from the desktop app without needing to sign in or navigate to the web:
+
+1. Open the tool details page in the **Tools Marketplace** or from your **Installed Tools**.
+2. View community ratings and average score for the tool.
+3. Select your rating (1 to 5 stars) and submit your feedback.
+4. Your rating is captured and submitted directly within the app.
+
+<Note type="information">
+  In-app ratings help the community identify great tools and provide valuable feedback to tool authors. Ratings are also one of the trust signals evaluated in the [Tool Maturity Model](/tool-development/maturity-model).
+</Note>
+
+## Reporting a Concern {{ anchor: true }}
+
+If a tool appears to be spam, unsafe, inappropriate, or otherwise in violation of the PPTB community standards, you can flag it directly from the app using **Report a Concern**, available from the tool detail tab, the sidebar context menu, or the app menu.
+
+<div className="not-prose mt-4">
+  <Button href="/tool-installation/report-a-concern" variant="text" arrow="right">
+    <>Learn How to Report a Concern</>
   </Button>
 </div>
 

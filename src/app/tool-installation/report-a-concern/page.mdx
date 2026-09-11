@@ -1,0 +1,78 @@
+export const metadata = {
+  title: 'Report a Concern',
+  description:
+    'Learn how to flag a tool in Power Platform ToolBox that appears to violate community standards, such as spam, unsafe code, or inappropriate content.',
+}
+
+export const sections = [
+  { title: 'When to Report a Tool', id: 'when-to-report-a-tool' },
+  { title: 'How to Report a Tool', id: 'how-to-report-a-tool' },
+  { title: 'What Information Is Sent', id: 'what-information-is-sent' },
+  { title: 'What Happens Next', id: 'what-happens-next' },
+  { title: 'Privacy', id: 'privacy' },
+  { title: 'Next Steps', id: 'next-steps' },
+]
+
+# Report a Concern
+
+Help keep the PPTB marketplace safe by flagging any tool, verified or not, that appears to violate community standards. {{ className: 'lead' }}
+
+## When to Report a Tool {{ anchor: true }}
+
+Use **Report a Concern** if a tool appears to be:
+
+- **Spam** — duplicate, low-effort, or misleading listings
+- **Malicious** — unsafe code, malware, or attempts to exfiltrate data or credentials
+- **Inappropriate** — offensive, abusive, or otherwise unsuitable content
+- **A community values violation** — anything that conflicts with the PPTB community standards
+- **Other** — any other concern not covered above (a description is required in this case)
+
+<Note type="information">
+  You can report any tool in the marketplace, not just Verified tools. Reporting does not require you to sign in.
+</Note>
+
+## How to Report a Tool {{ anchor: true }}
+
+The **Report a Concern** action is available from three places in the desktop app:
+
+1. The **Tool Detail** tab for a tool
+2. The right-click context menu on an installed tool in the sidebar
+3. The app's **Report a Concern** menu item, shown below **Tool Feedback** when a tool is open
+
+To submit a report:
+
+1. Open the report form from one of the entry points above.
+2. Choose a **reason** for the report (spam, malicious, inappropriate, community values, or other).
+3. Add an optional **description** with more details. A description is required when you choose **Other**.
+4. Optionally provide an **email address** if you're open to being contacted for follow-up.
+5. Select **Submit**.
+
+## What Information Is Sent {{ anchor: true }}
+
+Along with your reason and optional description, PPTB automatically attaches some context to help the review team triage the report:
+
+- The tool's ID, name, and version
+- The tool's maturity status (for example, Verified) at the time of the report
+- Where the report was filed from (tool detail, sidebar, or app menu)
+- Your ToolBox app version and an anonymous per-installation identifier
+
+No personal information is sent unless you choose to provide an email address.
+
+## What Happens Next {{ anchor: true }}
+
+Once submitted, a report can't be edited or withdrawn from the app. To prevent duplicate submissions, PPTB remembers locally that you've already reported a specific tool and shows an **already reported** state if you try again. Reports are reviewed by the PPTB team, who may remove a tool's Verified status or take it down from the marketplace if a violation is confirmed.
+
+## Privacy {{ anchor: true }}
+
+Reports are submitted directly to PPTB's secure backend and can't be read back, listed, or edited from the app after submission. Only the PPTB team can review and act on submitted reports.
+
+## Next Steps {{ anchor: true }}
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-installation" arrow="left">
+    <>Tool Installation</>
+  </Button>
+  <Button href="/tool-installation/verified-tools" variant="outline" arrow="right">
+    <>Verified and Unverified Tools</>
+  </Button>
+</div>
