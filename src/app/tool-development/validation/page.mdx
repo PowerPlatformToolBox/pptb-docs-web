@@ -126,8 +126,10 @@ The validator checks every field that the official review pipeline inspects:
 | `configurations.website` | ⚠️ optional | If present: must be a valid HTTPS URL |
 | `configurations.funding` | ⚠️ optional | If present: must be a valid URL |
 | `cspExceptions` | ⚠️ optional | Each directive must be an array of valid origin strings |
-| `features.multiConnection` | ⚠️ optional | If present: must be `"required"`, `"optional"`, or `"none"` |
+| `features.multiConnection` | Required with `features` | Must be `"required"`, `"optional"`, or `"none"` |
+| `features.connectionRequirement` | ⚠️ optional | If present: must be `"required"` or `"optional"`; defaults to `"required"` |
 | `features.minAPI` | ⚠️ optional | If present: must be a valid semantic version string |
+| `features.enabledForPowerPlatformAPI` | ⚠️ optional | If present: must be `true` or `false` |
 
 **Approved licenses:** `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `GPL-2.0`, `GPL-3.0`, `LGPL-3.0`, `ISC`, `AGPL-3.0-only`
 

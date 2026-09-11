@@ -91,7 +91,9 @@ Ensure all required fields are present:
   },
   "features": {
     // Optional section to declare special features your tool needs
-    "multiConnection": "optional", // or "required" if your tool needs multiple connections
+    "multiConnection": "optional", // "none", "optional", or "required"
+    "connectionRequirement": "required", // set to "optional" for connectionless tools
+    "enabledForPowerPlatformAPI": true, // required when using window.powerplatformAPI
     "minAPI": "1.2.0" // minimum supported ToolBox API version
   }
 }
@@ -138,7 +140,8 @@ Ensure all required fields are present:
     Content Security Policy exceptions if needed
   </Property>
   <Property name="features" type="object">
-    Special features your tool requires (e.g., `multiConnection`, `minAPI`)
+    Special features your tool requires (e.g., `multiConnection`,
+    `connectionRequirement`, `enabledForPowerPlatformAPI`, `minAPI`)
   </Property>
 </Properties>
 

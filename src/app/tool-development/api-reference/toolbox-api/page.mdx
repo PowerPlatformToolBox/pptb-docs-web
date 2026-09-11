@@ -5,6 +5,7 @@ export const metadata = {
 }
 
 export const sections = [
+  { title: 'Tool Lifecycle', id: 'tool-lifecycle' },
   { title: 'Connections', id: 'connections' },
   { title: 'Secondary Connections', id: 'secondary-connections' },
   { title: 'Utils', id: 'utils' },
@@ -20,6 +21,38 @@ The ToolBox API provides access to platform features and utilities. {{ className
 <Note type="warning">
   For complete TypeScript definitions, install the `@pptb/types` package: ```bash npm install --save-dev @pptb/types ```
 </Note>
+
+## Tool Lifecycle {{ anchor: true }}
+
+Use these methods to prevent a user from accidentally closing a tool that has unsaved work or an operation in progress. The guard applies only to the current tool instance.
+
+### `toolboxAPI.preventClose()`
+
+<RequiresVersion>1.2.6</RequiresVersion>
+
+Prevents the current tool instance from closing. When the user closes its tab or quits Power Platform ToolBox, the host displays a warning and offers an **Ignore & Close** override.
+
+**Returns:** `Promise<boolean>`
+
+### `toolboxAPI.releasePreventClose()`
+
+<RequiresVersion>1.2.6</RequiresVersion>
+
+Releases the prevent-close state previously set for the current tool instance. Call this after saving changes, completing the protected operation, or when the user discards their work.
+
+**Returns:** `Promise<boolean>`
+
+```typescript
+async function saveChanges() {
+  await toolboxAPI.preventClose()
+
+  try {
+    await persistChanges()
+  } finally {
+    await toolboxAPI.releasePreventClose()
+  }
+}
+```
 
 ## Connections {{ anchor: true }}
 

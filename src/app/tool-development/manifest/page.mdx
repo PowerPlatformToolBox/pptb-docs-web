@@ -74,19 +74,36 @@ Nested inside the top-level `configurations` key.
 
 ## Features Object {{ anchor: true }}
 
-Declare ToolBox-specific capabilities your tool needs. Omit this section entirely if neither field applies.
+Declare ToolBox-specific capabilities your tool needs. Omit this section entirely when your tool uses the default connection behavior and does not use the Power Platform API. When present, `multiConnection` is required.
 
 | Field | Type | Values | Description | Sample |
 |-------|------|--------|-------------|--------|
-| `multiConnection` | `string` | `"optional"` \| `"required"` | Whether the tool supports or requires a second Dataverse connection | `"optional"` |
+| `multiConnection` | `string` | `"none"` \| `"optional"` \| `"required"` | Connection cardinality: one connection, an optional second connection, or a required second connection | `"optional"` |
+| `connectionRequirement` | `string` | `"required"` \| `"optional"` | Whether the tool needs any connection. Defaults to `"required"` | `"optional"` |
 | `minAPI` | `string` | SemVer | Minimum ToolBox API version the tool requires | `"1.2.0"` |
+| `enabledForPowerPlatformAPI` | `boolean` | `true` \| `false` | Opt the tool in to the Power Platform API. Set to `true` before using `window.powerplatformAPI` | `true` |
 
 ```json
 "features": {
   "multiConnection": "optional",
+  "connectionRequirement": "required",
+  "enabledForPowerPlatformAPI": true,
   "minAPI": "1.2.0"
 }
 ```
+
+### Creating Connectionless Tools
+
+Set `connectionRequirement` to `"optional"` when the tool can run without a Dataverse connection. Combine it with `multiConnection: "none"` to let the user open the tool with either zero or one connection.
+
+```json
+"features": {
+  "multiConnection": "none",
+  "connectionRequirement": "optional"
+}
+```
+
+For tools that can work without a connection but can also use multiple connections, set `connectionRequirement` to `"optional"` and `multiConnection` to `"optional"` or `"required"`. The tool can then open with zero, one, or two connections.
 
 ### Specifying a Minimum API Version
 
@@ -187,6 +204,8 @@ The supported CSP directives are:
   },
   "features": {
     "multiConnection": "optional",
+    "connectionRequirement": "required",
+    "enabledForPowerPlatformAPI": true,
     "minAPI": "1.2.0"
   },
   "cspExceptions": {

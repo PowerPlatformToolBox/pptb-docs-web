@@ -30,6 +30,7 @@ Use the API through `window.powerplatformAPI`. The surface is organized into ser
   1. Configure your Microsoft Entra app registration using the end-user guide: **[Entra App Registration Setup](/authentication/entra-app-registration)**.
   2. In your Power Platform ToolBox connection settings, populate the App Registration **Client ID**.
   3. Enable **Enabled for Power Platform API** in that connection when you want to call `window.powerplatformAPI`.
+  4. In your tool's `package.json`, set `features.enabledForPowerPlatformAPI` to `true`.
 
   Microsoft references:
   - [Enable programmability and API support](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2)
@@ -37,6 +38,15 @@ Use the API through `window.powerplatformAPI`. The surface is organized into ser
 
   You can inspect this state from the ToolBox connections API through `Connection.enabledForPowerPlatformAPI` and `Connection.scopesForPowerPlatformAPI`.
 </Note>
+
+```json
+"features": {
+  "multiConnection": "none",
+  "enabledForPowerPlatformAPI": true
+}
+```
+
+`enabledForPowerPlatformAPI` declares that the tool uses this API; it does not enable the API for a connection. Users must still enable **Enabled for Power Platform API** for each connection the tool uses.
 
 ## Shared Client Methods {{ anchor: true }}
 
