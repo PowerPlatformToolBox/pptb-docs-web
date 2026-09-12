@@ -162,7 +162,7 @@ az storage blob upload \
   --auth-mode login
 ```
 
-Generate a read-only SAS token for each blob. Choose the shortest expiry that is practical for your users:
+Generate a read-only SAS token for each blob. The user who runs this command must have the **Storage Blob Data Reader** role on the storage account. Choose the shortest expiry that is practical for your users:
 
 ```bash
 az storage blob generate-sas \
