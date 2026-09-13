@@ -245,6 +245,13 @@ export const navigation: Array<NavGroup> = [
       { title: 'Introduction', href: '/' },
       { title: 'Quick Start', href: '/quickstart' },
       { title: 'Tool Installation', href: '/tool-installation' },
+      { title: 'Authentication', href: '/authentication' },
+      { title: 'AI Assistants', href: '/ai-assistants' },
+    ],
+  },
+  {
+    title: 'Advanced & Admin',
+    links: [
       {
         title: 'Verified and Unverified Tools',
         href: '/tool-installation/verified-tools',
@@ -261,8 +268,6 @@ export const navigation: Array<NavGroup> = [
         title: 'Report a Concern',
         href: '/tool-installation/report-a-concern',
       },
-      { title: 'Authentication', href: '/authentication' },
-      { title: 'AI Assistants', href: '/ai-assistants' },
       {
         title: 'Entra App Registration Setup',
         href: '/authentication/entra-app-registration',
@@ -323,8 +328,16 @@ export const navigation: Array<NavGroup> = [
         href: '/tool-development/validation',
       },
       {
-        title: 'Debugging Your Tool',
+        title: 'Debugging Overview',
         href: '/tool-development/debugging',
+      },
+      {
+        title: 'Debugging (Desktop App)',
+        href: '/tool-development/debugging/desktop',
+      },
+      {
+        title: 'Debugging (VS Code Extension)',
+        href: '/tool-development/debugging/vscode',
       },
       { title: 'Publishing Tools', href: '/tool-development/publishing' },
       {
@@ -335,9 +348,29 @@ export const navigation: Array<NavGroup> = [
   },
   {
     title: 'ToolBox Development',
+    links: [{ title: 'Overview', href: '/toolbox-development' }],
+  },
+  {
+    title: 'ToolBox Dev — Desktop App',
     links: [
-      { title: 'Getting Started', href: '/toolbox-development' },
-      { title: 'Architecture', href: '/toolbox-development/architecture' },
+      { title: 'Getting Started', href: '/toolbox-development/desktop' },
+      {
+        title: 'Architecture',
+        href: '/toolbox-development/desktop/architecture',
+      },
+    ],
+  },
+  {
+    title: 'ToolBox Dev — VS Code Extension',
+    links: [
+      {
+        title: 'Getting Started',
+        href: '/toolbox-development/vscode-extension',
+      },
+      {
+        title: 'Architecture',
+        href: '/toolbox-development/vscode-extension/architecture',
+      },
     ],
   },
   {

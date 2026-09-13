@@ -1,0 +1,65 @@
+export const metadata = {
+  title: 'Architecture — VS Code Extension',
+  description:
+    'Understanding the architecture of the Power Platform ToolBox VS Code Extension - extension host, webviews, and current parity with the Desktop App',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Extension Host', id: 'extension-host' },
+  { title: 'Webview UI', id: 'webview-ui' },
+  { title: 'Tool Bridge', id: 'tool-bridge' },
+  { title: 'Current Parity Notes', id: 'current-parity-notes' },
+]
+
+# ToolBox Architecture — VS Code Extension
+
+How the Power Platform ToolBox VS Code Extension is structured, and how it hosts tools inside VS Code webviews. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+The extension follows a two-part architecture common to VS Code extensions: an **extension host** process (Node.js, runs in the background) and one or more **webviews** (Chromium-based, render UI), communicating over VS Code's `postMessage` bridge.
+
+## Extension Host {{ anchor: true }}
+
+Source lives under `src/`:
+
+<Properties>
+  <Property name="extension.ts">
+    Entry point — activates the extension, registers commands, views, and panels.
+  </Property>
+  <Property name="managers/">
+    Business logic: connections, tool installation, marketplace, settings.
+  </Property>
+  <Property name="panels/">
+    Webview panel wrappers — `connectionPanel.ts`, `cspPermissionsPanel.ts`, `toolHostPanel.ts`, `toolPanel.ts`.
+  </Property>
+  <Property name="providers/">
+    Tree data providers for the Activity Bar views (connections, installed tools, marketplace).
+  </Property>
+  <Property name="registrations/">
+    Command registrations (`pptb.tools.launch`, `pptb.connections.connect`, etc.).
+  </Property>
+  <Property name="statusbar/">
+    Status bar items (e.g. active connection indicator).
+  </Property>
+  <Property name="polyfill/toolboxAPI.js">
+    The `toolboxAPI` runtime injected into each tool's webview.
+  </Property>
+</Properties>
+
+## Webview UI {{ anchor: true }}
+
+Source lives under `webviews/`, written in React/TypeScript:
+
+- **connection/** — connection management UI
+- **toolHost/** — hosts the list of installed/marketplace tools and launches them
+- **toolTool/** — renders an individual tool inside its own webview
+
+## Tool Bridge {{ anchor: true }}
+
+A tool calls `window.toolboxAPI.*` the same way it would in the Desktop App. The `polyfill/toolboxAPI.js` runtime translates each call into an `invoke()` message sent via `postMessage` to `toolPanel.ts` in the extension host, which handles it in a command switch and posts the result back.
+
+## Current Parity Notes {{ anchor: true }}
+
+The extension implements most of the Desktop App's tool-facing surface, but a few capabilities are still rolling out. See the [Feature Comparison table](https://github.com/PowerPlatformToolBox/vscode-extension#feature-comparison-vs-code-extension-vs-desktop-app) in the vscode-extension repo for the full breakdown. Notably, `toolPanel.ts` currently throws `"Tool invocation is not yet available in VS Code host."` for `launchTool()` — Inter-Tool Invocation, Agent Integration (MCP), headless invocation, and the standalone CLI are Desktop-only today. These are flagged with a <HostSupport hosts="desktop" /> badge throughout the [Tool Development](/tool-development) docs.

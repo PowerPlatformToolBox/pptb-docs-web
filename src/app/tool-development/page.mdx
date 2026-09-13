@@ -6,6 +6,7 @@ export const metadata = {
 
 export const sections = [
   { title: 'Overview', id: 'overview' },
+  { title: 'Host Environments', id: 'host-environments' },
   { title: 'API Architecture', id: 'api-architecture' },
   { title: 'Quick Start', id: 'quick-start' },
   { title: 'Testing Your Tool', id: 'testing-your-tool' },
@@ -45,6 +46,19 @@ Tools are web applications that run in isolated environments and communicate wit
   teaches these assistants how to scaffold, fix, and publish PPTB tools using the same
   rules documented on this site.
 </Note>
+
+## Host Environments {{ anchor: true }}
+
+A tool is built once and can run in either host PPTB ships today:
+
+- **Desktop App** — the Electron application ([desktop-app](https://github.com/PowerPlatformToolBox/desktop-app))
+- **VS Code Extension** — runs inside VS Code ([vscode-extension](https://github.com/PowerPlatformToolBox/vscode-extension), [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=PowerPlatformToolBox.power-platform-toolbox))
+
+Both hosts load your tool into the same kind of sandboxed webview and expose the same `toolboxAPI`/`dataverseAPI`/`powerplatformAPI` surface, so most tools require no host-specific code. A small number of capabilities are still rolling out to the VS Code Extension — each is flagged inline throughout these docs with a badge like this:
+
+<HostSupport hosts="desktop" />
+
+Today that applies to the **Terminal API**, **Inter-Tool Invocation**, and **Agent Integration (MCP)**. Everything else — the manifest, Dataverse/PowerPlatform/Settings/Events APIs, CSP configuration, publishing, and validation — behaves the same in both hosts.
 
 ## API Architecture {{ anchor: true }}
 

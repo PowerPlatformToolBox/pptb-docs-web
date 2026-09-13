@@ -24,6 +24,15 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/**/*': ['./src/app/**/*.mdx'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/toolbox-development/architecture',
+        destination: '/toolbox-development/desktop/architecture',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withSearch(withMDX(nextConfig))

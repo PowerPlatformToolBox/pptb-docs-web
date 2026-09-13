@@ -1,0 +1,54 @@
+export const metadata = {
+  title: 'Debugging in the VS Code Extension',
+  description:
+    'How to debug a PPTB tool running inside the VS Code Extension host using the Webview Developer Tools.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Install Your Tool', id: 'install-your-tool' },
+  { title: 'Open Webview Developer Tools', id: 'open-webview-developer-tools' },
+  { title: 'Debug with DevTools', id: 'debug-with-devtools' },
+  { title: 'Iterating on a Fix', id: 'iterating-on-a-fix' },
+]
+
+# Debugging in the VS Code Extension
+
+Debug a tool while it runs inside the ToolBox VS Code Extension host. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+<HostSupport hosts="desktop" label="Local tool debug loader" />
+
+The VS Code Extension hosts tools the same way the Desktop App does — in a sandboxed webview, driven by the same `toolboxAPI` surface. The one difference is how you get your tool's code in front of you: the Desktop App can load an unpublished local build directly, while the VS Code Extension always runs a **published** copy of your tool installed from the marketplace. For most bug reports and pre-release verification, that's exactly what you want to debug against — the same build your users will run.
+
+## Install Your Tool {{ anchor: true }}
+
+1. Publish your build (or a pre-release version) following the [Publishing Your Tool](/tool-development/publishing) guide.
+2. In VS Code, open the **Power Platform ToolBox** view in the Activity Bar.
+3. Install or update the tool from **Marketplace**, then select it under **Installed Tools** and click **Launch**.
+
+## Open Webview Developer Tools {{ anchor: true }}
+
+Each tool renders in its own VS Code webview. To inspect it:
+
+1. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
+2. Run **Developer: Open Webview Developer Tools**.
+3. Select your tool's webview if prompted — VS Code opens a Chromium DevTools window attached to it.
+
+## Debug with DevTools {{ anchor: true }}
+
+The same DevTools panels you'd use in the Desktop App are available here:
+
+- **Console** — run `toolboxAPI` calls live, and read `console.log`/`console.error` output from your tool
+- **Network** — inspect Dataverse/Power Platform HTTP requests and responses
+- **Sources** — set breakpoints if your published build includes source maps
+
+<Note type="information">
+  Source maps only help here if you publish your tool with `sourcemap: true` in your build config. Consider publishing a `-beta`/pre-release version with source maps enabled while you're actively debugging, and disabling them for your final stable release.
+</Note>
+
+## Iterating on a Fix {{ anchor: true }}
+
+Because the VS Code host always runs a published build, the fastest inner loop for writing and testing a fix is still the [Desktop App debugging workflow](/tool-development/debugging/desktop), which loads your unpublished local build directly. Once your fix works there, publish a new version (or pre-release) and reinstall it in VS Code to confirm it behaves the same way in that host.
+

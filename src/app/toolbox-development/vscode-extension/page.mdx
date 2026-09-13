@@ -1,0 +1,140 @@
+export const metadata = {
+  title: 'ToolBox Development — VS Code Extension',
+  description:
+    'Get started developing the Power Platform ToolBox VS Code Extension - setup, build, and release process',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Prerequisites', id: 'prerequisites' },
+  { title: 'Getting Started', id: 'getting-started' },
+  { title: 'Project Structure', id: 'project-structure' },
+  { title: 'Building', id: 'building' },
+  { title: 'Pull Request Guidelines', id: 'pull-request-guidelines' },
+  { title: 'Releasing', id: 'releasing' },
+]
+
+# ToolBox Development — VS Code Extension
+
+Learn how to set up your development environment and contribute to the Power Platform ToolBox VS Code Extension. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+The VS Code Extension is built with:
+
+- **TypeScript** - Extension host and webview UI
+- **React** - Webview UI components
+- **Webpack** - Build tooling
+- **VS Code Extension API** - Tree views, webview panels, commands, status bar
+
+Repository: [github.com/PowerPlatformToolBox/vscode-extension](https://github.com/PowerPlatformToolBox/vscode-extension). Published at the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=PowerPlatformToolBox.power-platform-toolbox).
+
+## Prerequisites {{ anchor: true }}
+
+- **Node.js 20 or higher** - [Download](https://nodejs.org/)
+- **npm 10 or higher**
+- **VS Code 1.85.0 or higher**
+
+## Getting Started {{ anchor: true }}
+
+### 1. Fork and Clone
+
+```bash
+git clone https://github.com/PowerPlatformToolBox/vscode-extension.git
+cd vscode-extension
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure Environment
+
+Copy the environment template and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+| --- | --- |
+| `PPTB_SUPABASE_URL` | URL for the PPTB Supabase backend |
+| `PPTB_SUPABASE_ANON_KEY` | Anonymous key for the PPTB Supabase backend |
+
+<Note type="information">
+  Reach out to the maintainers if you need access to the Supabase backend.
+</Note>
+
+### 4. Launch the Extension Development Host
+
+```bash
+code .
+```
+
+Press `F5` to launch an Extension Development Host with the extension loaded.
+
+## Project Structure {{ anchor: true }}
+
+```
+src/                      # Extension host source (TypeScript)
+  extension.ts            # Entry point
+  managers/               # Business logic managers
+  panels/                 # Webview panel wrappers
+  providers/               # Tree data providers
+  registrations/          # Command registrations
+  statusbar/              # Status bar items
+  utils/                  # Shared utilities
+  polyfill/               # toolboxAPI polyfill injected into tool webviews
+webviews/                 # Webview UI source (React/TypeScript)
+  connection/             # Connection management webview
+  toolHost/               # Tool host webview
+  toolTool/               # Tool configuration webview
+resources/                # Static assets (icons)
+dist/                     # Compiled output (generated)
+```
+
+## Building {{ anchor: true }}
+
+```bash
+# Development build (incremental)
+npm run compile
+
+# Watch mode (rebuilds on save)
+npm run watch
+
+# Production build
+npm run package
+
+# Run ESLint
+npm run lint
+
+# Format with Prettier
+npm run format
+```
+
+## Pull Request Guidelines {{ anchor: true }}
+
+1. Create a feature branch from `main`, using conventional commit prefixes (`feat:`, `fix:`, `chore:`, `docs:`).
+2. Ensure `npm run lint` and `npm run package` pass before opening a PR.
+3. Open a PR against `main` with a clear title and description.
+
+## Releasing {{ anchor: true }}
+
+Releases are automated via GitHub Actions:
+
+1. Update the `version` field in `package.json`.
+2. Commit the version bump and push to `main`.
+3. Create and push a matching tag: `git tag v0.2.0 && git push origin v0.2.0`.
+
+The release workflow builds, packages, and publishes the extension to the VS Code Marketplace automatically.
+
+<div className="not-prose mb-16 mt-6 flex gap-3">
+  <Button href="/toolbox-development/vscode-extension/architecture" arrow="right">
+    <>Architecture Guide</>
+  </Button>
+  <Button href="/contributing" variant="outline">
+    <>Contributing Guide</>
+  </Button>
+</div>

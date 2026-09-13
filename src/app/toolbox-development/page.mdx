@@ -1,0 +1,48 @@
+export const metadata = {
+  title: 'ToolBox Development',
+  description:
+    'Contribute to the Power Platform ToolBox platform itself - choose the Desktop App or VS Code Extension track',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Desktop App', id: 'desktop-app' },
+  { title: 'VS Code Extension', id: 'vscode-extension' },
+]
+
+# ToolBox Development
+
+Power Platform ToolBox ships as two separate host applications, each with its own codebase. Pick the track that matches what you want to contribute to. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+- **Desktop App** — the original Electron application, distributed as Windows/macOS/Linux installers.
+- **VS Code Extension** — a newer host that runs tools inside VS Code, distributed via the VS Code Marketplace.
+
+Both hosts implement the same tool-facing APIs (see [Tool Development](/tool-development)), but they are built, tested, and released independently as separate repositories.
+
+## Desktop App {{ anchor: true }}
+
+Electron + TypeScript + Vite. Repository: [desktop-app](https://github.com/PowerPlatformToolBox/desktop-app).
+
+<div className="not-prose mb-16 mt-6 flex gap-3">
+  <Button href="/toolbox-development/desktop" arrow="right">
+    <>Get Started</>
+  </Button>
+  <Button href="/toolbox-development/desktop/architecture" variant="outline">
+    <>Architecture</>
+  </Button>
+</div>
+
+## VS Code Extension {{ anchor: true }}
+
+TypeScript VS Code extension with React-based webviews. Repository: [vscode-extension](https://github.com/PowerPlatformToolBox/vscode-extension). Published at the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=PowerPlatformToolBox.power-platform-toolbox).
+
+<div className="not-prose mb-16 mt-6 flex gap-3">
+  <Button href="/toolbox-development/vscode-extension" arrow="right">
+    <>Get Started</>
+  </Button>
+  <Button href="/toolbox-development/vscode-extension/architecture" variant="outline">
+    <>Architecture</>
+  </Button>
+</div>
