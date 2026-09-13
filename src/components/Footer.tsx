@@ -89,6 +89,14 @@ function GitHubIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
+function LinkedInIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" {...props}>
+      <path d="M5.35 6.67H2.18V17h3.17V6.67ZM3.77 2A1.84 1.84 0 1 0 3.8 5.67 1.84 1.84 0 0 0 3.77 2ZM17 10.72c0-3.12-1.67-4.57-3.9-4.57-1.8 0-2.6.99-3.05 1.68V6.67H6.88V17h3.17v-5.12c0-1.35.26-2.66 1.93-2.66 1.64 0 1.66 1.53 1.66 2.75V17h3.17v-6.28H17Z" />
+    </svg>
+  )
+}
+
 function DiscordIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true" {...props}>
@@ -131,7 +139,13 @@ function SmallPrint() {
         >
           Follow us on GitHub
         </SocialLink>
-        <SocialLink href="https://discord.gg/pptoolbox" icon={DiscordIcon}>
+        <SocialLink
+          href="https://www.linkedin.com/company/power-platform-toolbox"
+          icon={LinkedInIcon}
+        >
+          Follow us on LinkedIn
+        </SocialLink>
+        <SocialLink href="https://discord.gg/efwAu9sXyJ" icon={DiscordIcon}>
           Join our Discord server
         </SocialLink>
       </div>

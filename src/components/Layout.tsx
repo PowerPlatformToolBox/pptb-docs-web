@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { EditLink } from '@/components/EditLink'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { HeroPattern } from '@/components/HeroPattern'
 import { Navigation } from '@/components/Navigation'
 import { SectionProvider, type Section } from '@/components/SectionProvider'
 import { TableOfContents } from '@/components/TableOfContents'
@@ -45,6 +46,7 @@ export function Layout({
           </div>
         </motion.header>
         <div className="relative flex h-full flex-col px-4 pt-14 sm:px-6 lg:px-8">
+          <HeroPattern />
           <div className="absolute top-18 right-2 mt-8 sm:right-2 lg:fixed lg:top-8 lg:right-8 lg:z-30">
             <EditLink />
           </div>

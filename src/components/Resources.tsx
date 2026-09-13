@@ -12,7 +12,7 @@ import { GridPattern } from '@/components/GridPattern'
 import { Heading } from '@/components/Heading'
 import { ChatBubbleIcon } from '@/components/icons/ChatBubbleIcon'
 import { EnvelopeIcon } from '@/components/icons/EnvelopeIcon'
-import { UserIcon } from '@/components/icons/UserIcon'
+import { PackageIcon } from '@/components/icons/PackageIcon'
 import { UsersIcon } from '@/components/icons/UsersIcon'
 
 interface Resource {
@@ -28,11 +28,11 @@ interface Resource {
 
 const resources: Array<Resource> = [
   {
-    href: '/connections',
-    name: 'Connections',
+    href: '/tool-installation',
+    name: 'Tool Installation',
     description:
-      'Manage your Power Platform environment connections with MFA support and secure authentication.',
-    icon: UserIcon,
+      'Discover, install, update, and manage tools from the Power Platform ToolBox marketplace.',
+    icon: PackageIcon,
     pattern: {
       y: 16,
       squares: [
@@ -42,7 +42,7 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: '/marketplace',
+    href: 'https://www.powerplatformtoolbox.com/tools',
     name: 'Tool Marketplace',
     description:
       'Discover and install tools from the marketplace to extend your Power Platform capabilities.',
@@ -56,7 +56,7 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: '/security',
+    href: 'https://www.powerplatformtoolbox.com/security',
     name: 'Security',
     description:
       'Learn about the security architecture and tool isolation that keeps your data safe.',
@@ -70,7 +70,7 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: '/community',
+    href: 'https://discord.gg/efwAu9sXyJ',
     name: 'Community',
     description:
       'Join the community, contribute to the project, and get support from other users.',
