@@ -24,7 +24,7 @@
     "clsx": "^2.1.1",
     "fast-glob": "^3.3.3",
     "flexsearch": "^0.8.205",
-    "framer-motion": "^12.23.11",
+    "framer-motion": "^12.43.0",
     "mdast-util-to-string": "^4.0.0",
     "mdx-annotations": "^0.1.4",
     "next": "15.4.10",
