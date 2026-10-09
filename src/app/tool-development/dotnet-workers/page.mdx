@@ -1,0 +1,276 @@
+export const metadata = {
+  title: '.NET Workers',
+  description:
+    'Add a .NET console worker to a Power Platform ToolBox tool and communicate with it through the worker API.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Prepare the Worker', id: 'prepare-the-worker' },
+  { title: 'Declare the Worker', id: 'declare-the-worker' },
+  { title: 'Connect from TypeScript', id: 'connect-from-typescript' },
+  { title: 'Implement the Worker Protocol', id: 'implement-the-worker-protocol' },
+  { title: 'Runtime and Platform Support', id: 'runtime-and-platform-support' },
+  { title: 'Security and Lifecycle', id: 'security-and-lifecycle' },
+  { title: 'Test and Debug', id: 'test-and-debug' },
+]
+
+# .NET Workers
+
+<HostSupport hosts="desktop" />
+
+Run compatible .NET business logic alongside a Power Platform ToolBox tool by packaging it as a .NET console tool. Your tool's TypeScript UI communicates with the worker through the declared worker API; the worker is not loaded into the webview and does not replace the UI. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+This is useful when you want to reuse .NET business logic, for example logic shared with an XrmToolBox plugin. Keep the user interface in your tool and move only the work that benefits from .NET into a console worker.
+
+The normal flow is:
+
+1. Package a .NET console application as a NuGet .NET tool.
+2. Declare its exact package identity and supported platforms in `pptb.config.json`.
+3. Explicitly connect to it from the tool, wait for the initialization handshake, and send named requests.
+4. For host operations such as Dataverse queries, let the TypeScript tool call the ToolBox API and return only the required data to the worker.
+
+PPTB manages package preparation, native-code consent, process launch, JSON-RPC transport, cancellation, and cleanup. Tool authors should use the public session API rather than implementing process or stdio management themselves.
+
+## Prepare the Worker {{ anchor: true }}
+
+Create a .NET console application that can run as a NuGet .NET tool. The package must declare a command, and its published package must contain the worker entry point and all required managed dependencies. PPTB installs and launches the console tool; it does not load an arbitrary DLL.
+
+For example, create a console project and configure it as a .NET tool package:
+
+```bash
+dotnet new console --name Contoso.SqlWorker --framework net8.0
+```
+
+Set the project file to include the tool packaging properties:
+
+**File: `Contoso.SqlWorker/Contoso.SqlWorker.csproj`**
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackAsTool>true</PackAsTool>
+    <PackageId>Contoso.SqlWorker</PackageId>
+    <Version>1.4.2</Version>
+    <ToolCommandName>contoso-sql-worker</ToolCommandName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
+  </ItemGroup>
+</Project>
+```
+
+Implement the worker's JSON-RPC startup and named methods in the console application's entry point, then pack it:
+
+```bash
+dotnet pack ./Contoso.SqlWorker/Contoso.SqlWorker.csproj --configuration Release --output ./local-nuget-feed
+```
+
+The resulting `.nupkg` must include the worker entry point and its dependencies. Keep `PackageId`, `Version`, `ToolCommandName`, and `TargetFramework` consistent with the declaration in the next section. PPTB requires a compatible installed .NET 10 SDK (10.0.100 or later) when preparing a local worker package, even when the worker targets an earlier supported framework.
+
+For a complete working example, see the [sample worker project](https://github.com/PowerPlatformToolBox/sample-tools/tree/main/new/html-sample/dotnet/Worker), including its [project file](https://github.com/PowerPlatformToolBox/sample-tools/blob/main/new/html-sample/dotnet/Worker/Worker.csproj).
+
+<Note type="important">
+If you are adapting an XrmToolBox plugin, the existing XrmToolBox UI is not reused. Port the UI to your tool's web technologies. A shared .NET library is optional: reference compatible business logic from the worker when useful, or keep a small worker's logic in the console project. Avoid XrmToolBox UI types in shared libraries, and check that framework-specific or native dependencies work on every platform you declare.
+</Note>
+
+## Declare the Worker {{ anchor: true }}
+
+Declare the worker in the tool package's `pptb.config.json`. This declaration identifies an exact package; it is not an executable path, shell command, permission grant, or place to put local feed settings.
+
+**File: `pptb.config.json`**
+
+```json
+{
+  "workers": {
+    "engine": {
+      "kind": "dotnet-tool",
+      "packageId": "Contoso.SqlWorker",
+      "packageVersion": "1.4.2",
+      "command": "contoso-sql-worker",
+      "dotnet": {
+        "targetFramework": "net8.0",
+        "minimumRuntimeVersion": "8.0.0",
+        "rollForward": "Major"
+      },
+      "platforms": ["all"]
+    }
+  }
+}
+```
+
+- `packageId` and `packageVersion` identify an exact NuGet package version. Do not use floating versions, ranges, or tags.
+- `command` is the command declared by the NuGet tool package, not a file path or an arbitrary argument list.
+- `dotnet.targetFramework` is the worker executable's target framework. A shared library can use another compatible target framework.
+- `dotnet.minimumRuntimeVersion` is a stable `major.minor.patch` version matching the target framework's major and minor versions, and must not be lower than the worker's requirement.
+- `dotnet.rollForward` accepts `Disable`, `Latest`, `Minor`, or `Major`; the default is `Major`.
+- `platforms` is required. Supported aliases are `all`, `windows-x64`, `windows-arm64`, `macos-x64`, `macos-arm64`, `linux-x64`, and `linux-arm64`. Use `all` by itself. It refers to PPTB's versioned support matrix, not every platform .NET may support.
+
+## Connect from TypeScript {{ anchor: true }}
+
+Starting a worker is explicit. Loading the npm tool does not restore its package or launch a process. Use `toolboxAPI.workers.connect()` with the declared worker ID, register any reverse-call handlers, then await `ready` before sending work:
+
+**File: `sample-ppt-tool/src/dotnetWorker.ts`**
+
+```typescript
+const worker = toolboxAPI.workers.connect('engine', {
+  requests: {
+    'dataverse/getAccounts': async ({ top }) => {
+      const fetchXml = buildAccountFetchXml(top)
+      const result = await dataverseAPI.fetchXmlQuery(fetchXml)
+
+      return result.value.map((account) => ({
+        name: account.name,
+        address1_country: account.address1_country,
+      }))
+    },
+  },
+})
+
+await worker.ready
+
+const summary = await worker.request('accounts/summarizeByCountry', {
+  top: 10,
+})
+
+await worker.stop()
+```
+
+The callback method name must match the method requested by the worker. Keep the callback's input and output narrow, validate caller-provided values, and return plain serializable data. The worker API also supports notifications and cancellation. If `stop()` fails, keep the session available so the user can retry cleanup; do not treat the worker as stopped or start a replacement prematurely.
+
+## Implement the Worker Protocol {{ anchor: true }}
+
+The worker communicates over framed UTF-8 JSON-RPC on stdin and stdout using the `jsonrpc-stdio-v1` protocol. Before handling tool requests, it must respond to `platform/initialize` with the same protocol name and version `1`. Keep stdout exclusively for protocol messages; write diagnostics to stderr.
+
+Expose named methods for your operations. A worker can call a registered TypeScript callback while a request is in progress. Its JSON-RPC loop must continue reading and dispatching messages during that callback, or the request can deadlock. Cancellation is cooperative: long-running operations should observe their cancellation token.
+
+The entry point creates the stdio transport, registers the request methods, and keeps the JSON-RPC listener running:
+
+**File: `Contoso.SqlWorker/Program.cs`**
+
+```csharp
+using StreamJsonRpc;
+
+using var handler = new HeaderDelimitedMessageHandler(
+  Console.OpenStandardOutput(),
+  Console.OpenStandardInput());
+using var rpc = new JsonRpc(handler);
+rpc.AddLocalRpcTarget(new WorkerMethods(rpc));
+rpc.StartListening();
+Console.Error.WriteLine("Worker ready; stdout is reserved for JSON-RPC.");
+await rpc.Completion;
+```
+
+The handler can expose a narrow method that requests data from the TypeScript callback and then performs the .NET work. For example, this method summarizes accounts by country:
+
+**File: `Contoso.SqlWorker/WorkerMethods.cs`**
+
+```csharp
+using Newtonsoft.Json;
+using StreamJsonRpc;
+
+public sealed class WorkerMethods(JsonRpc rpc)
+{
+  [JsonRpcMethod("platform/initialize")]
+  public object Initialize(string protocol, int protocolVersion)
+  {
+    if (protocol != "jsonrpc-stdio-v1" || protocolVersion != 1)
+      throw new InvalidOperationException("Unsupported PPTB worker protocol");
+
+    return new { protocol, protocolVersion };
+  }
+
+  [JsonRpcMethod("accounts/summarizeByCountry")]
+  public async Task<object> SummarizeByCountryAsync(
+    int top,
+    CancellationToken cancellationToken)
+  {
+    if (top is < 1 or > 100)
+      throw new ArgumentOutOfRangeException(nameof(top));
+
+    var response = await rpc.InvokeWithParameterObjectAsync<AccountReply>(
+      "dataverse/getAccounts",
+      new { top },
+      cancellationToken);
+
+    var countries = response.Value
+      .GroupBy(
+        account => string.IsNullOrWhiteSpace(account.Address1Country)
+          ? "Unspecified"
+          : account.Address1Country.Trim(),
+        StringComparer.OrdinalIgnoreCase)
+      .OrderByDescending(group => group.Count())
+      .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+      .Select(group => new { country = group.Key, count = group.Count() });
+
+    return new { totalAccounts = response.Value.Length, countries };
+  }
+}
+
+public sealed record AccountReply(
+  [property: JsonProperty("value")] AccountRow[] Value);
+
+public sealed record AccountRow(
+  [property: JsonProperty("name")] string? Name,
+  [property: JsonProperty("address1_country")] string? Address1Country);
+```
+
+The callback name `dataverse/getAccounts` must match the TypeScript `requests` handler. The complete implementations are in [`Program.cs`](https://github.com/PowerPlatformToolBox/sample-tools/blob/main/new/html-sample/dotnet/Worker/Program.cs) and [`WorkerMethods.cs`](https://github.com/PowerPlatformToolBox/sample-tools/blob/main/new/html-sample/dotnet/Worker/WorkerMethods.cs).
+
+For a Dataverse operation, a good boundary is for the worker to request the specific data it needs, for TypeScript to build and execute the query with `dataverseAPI`, and for TypeScript to return only the selected fields. Do not pass access tokens, connection credentials, or arbitrary SDK object graphs to the worker.
+
+## Runtime and Platform Support {{ anchor: true }}
+
+PPTB currently requires a compatible installed .NET 10.0 SDK (10.0.100 or later) to prepare a local worker package. The selected worker runtime is a separate requirement and must meet the declared minimum. PPTB does not silently install a missing SDK or runtime.
+
+`rollForward` controls runtime selection:
+
+| Value | Selection behavior |
+| --- | --- |
+| `Disable` | Use the exact minimum runtime version, including patch. |
+| `Latest` | Use the highest available compatible major, minor, and patch. |
+| `Minor` | Prefer the requested line and latest patch; otherwise use the next minor in the same major. |
+| `Major` | Prefer the requested line and latest patch, then a later minor in that major, then a higher major if needed. This is the default. |
+
+Do not assume a later .NET major is compatible just because it can load the target framework. Test the worker against the runtimes and operating systems you declare, including native dependencies. A successful package build on one machine is not cross-platform qualification.
+
+## Security and Lifecycle {{ anchor: true }}
+
+A worker is native code running as the current user, not an operating-system sandbox. It may access that user's files and network or start child processes. Consent and stdio do not restrict those capabilities.
+
+Keep startup explicit and explain why the worker is needed. Do not send credentials or bearer tokens to it. Tool close, crashes, updates, consent revocation, and application shutdown must leave the process cleanly stopped; handle stop failures as failures, not as successful cleanup.
+
+## Test and Debug {{ anchor: true }}
+
+Use **Load Local Tool** in the Desktop App to test the declared worker. Exercise the full lifecycle: consent, package preparation, initialization, a normal request, any reverse callbacks, cancellation, and stop/close behavior. Inspect the packed `.nupkg` to ensure it contains the tool entry point and all required assemblies; a project reference alone does not prove the package is complete.
+
+For unpublished worker packages, the Desktop App supports a local NuGet feed only in its eligible unpackaged developer build. The absolute feed path is supplied to the app's main-process environment as `PPTB_DOTNET_LOCAL_NUGET_FEED`; it does not belong in `pptb.config.json` and must not be exposed to the tool UI. See the [HTML sample tool](https://github.com/PowerPlatformToolBox/desktop-app/tree/main/new/html-sample) for the current package and protocol example.
+
+After packing `Contoso.SqlWorker` with the command above to create `local-nuget-feed/`, run these commands from the `desktop-app` repository root. The variable must be set in the shell that launches the app so it reaches the main process.
+
+**PowerShell**
+
+```powershell
+$env:PPTB_DOTNET_LOCAL_NUGET_FEED = (Resolve-Path .\local-nuget-feed).Path
+pnpm run dev
+```
+
+**macOS Terminal**
+
+```sh
+export PPTB_DOTNET_LOCAL_NUGET_FEED="$(cd ./local-nuget-feed && pwd)"
+pnpm run dev
+```
+
+**Linux Terminal**
+
+```sh
+export PPTB_DOTNET_LOCAL_NUGET_FEED="$(cd ./local-nuget-feed && pwd)"
+pnpm run dev
+```
