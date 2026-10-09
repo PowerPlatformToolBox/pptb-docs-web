@@ -248,11 +248,17 @@ Keep startup explicit and explain why the worker is needed. Do not send credenti
 
 ## Test and Debug {{ anchor: true }}
 
-Use **Load Local Tool** in the Desktop App to test the declared worker. Exercise the full lifecycle: consent, package preparation, initialization, a normal request, any reverse callbacks, cancellation, and stop/close behavior. Inspect the packed `.nupkg` to ensure it contains the tool entry point and all required assemblies; a project reference alone does not prove the package is complete.
+There are two ways to test a worker during tool development:
 
-For unpublished worker packages, the Desktop App supports a local NuGet feed only in its eligible unpackaged developer build. The absolute feed path is supplied to the app's main-process environment as `PPTB_DOTNET_LOCAL_NUGET_FEED`; it does not belong in `pptb.config.json` and must not be exposed to the tool UI. See the [HTML sample tool](https://github.com/PowerPlatformToolBox/desktop-app/tree/main/new/html-sample) for the current package and protocol example.
+### 1. Test an unpublished worker from a cloned Desktop App repository
 
-After packing `Contoso.SqlWorker` with the command above to create `local-nuget-feed/`, run these commands from the `desktop-app` repository root. The variable must be set in the shell that launches the app so it reaches the main process.
+Clone the [desktop-app repository](https://github.com/PowerPlatformToolBox/desktop-app) and use an eligible unpackaged developer build. From your tool project directory, pack `Contoso.SqlWorker` into a flat feed directory in the Desktop App checkout. For example, if the tool project and `desktop-app` clone are sibling directories:
+
+```bash
+dotnet pack ./Contoso.SqlWorker/Contoso.SqlWorker.csproj --configuration Release --output ../desktop-app/local-nuget-feed
+```
+
+Inspect the `.nupkg` to ensure it contains the worker entry point and all required assemblies; a project reference alone does not prove the package is complete. Then run the app from the `desktop-app` repository root, setting the absolute feed path in the same shell that launches the app:
 
 **PowerShell**
 
@@ -274,3 +280,11 @@ pnpm run dev
 export PPTB_DOTNET_LOCAL_NUGET_FEED="$(cd ./local-nuget-feed && pwd)"
 pnpm run dev
 ```
+
+The local feed path is main-process environment configuration: do not put it in `pptb.config.json` or expose it to the tool UI. The local-feed option is restricted to eligible unpackaged developer builds; packaged and production-mode builds reject it. See the [HTML sample tool](https://github.com/PowerPlatformToolBox/desktop-app/tree/main/new/html-sample) for a complete package and protocol example.
+
+### 2. Test a worker published to NuGet
+
+Publish the worker package to NuGet, update `packageVersion` in `pptb.config.json` to that exact published version, and pack/build your tool as usual. Then follow [Debugging in the Desktop App](/tool-development/debugging/desktop): start your tool's `dev-watch` process, enable the Debug menu, and use **Load Local Tool** to load the tool project root. The Desktop App will prepare the declared worker from NuGet; no local-feed environment variable or Desktop App source clone is needed.
+
+In either workflow, explicitly start the worker from the tool and exercise initialization, a normal request, reverse callbacks, cancellation, and stop/close behavior. If package contents or worker startup fail, check the app's developer console/logs as well as the tool DevTools.
