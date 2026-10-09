@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'AI Agent Skills',
   description:
-    'Use the pptb-agent-skills repository to teach Claude Code, GitHub Copilot, and OpenAI Codex how to build Power Platform ToolBox tools and review marketplace readiness.',
+    'Use the pptb-agent-skills repository to teach Claude Code, GitHub Copilot, and OpenAI Codex how to build Power Platform ToolBox tools, review marketplace readiness, and assess Verified badge readiness.',
 }
 
 export const sections = [
@@ -17,18 +17,19 @@ export const sections = [
 
 # AI Agent Skills
 
-[pptb-agent-skills](https://github.com/PowerPlatformToolBox/pptb-agent-skills) is a companion repository that teaches AI coding assistants — Claude Code, Cowork, GitHub Copilot, and OpenAI Codex — how to build tools for Power Platform ToolBox and review them for marketplace readiness. The skills are grounded directly in these docs, marketplace policies, and the `generator-pptb` scaffolding tool. {{ className: 'lead' }}
+[pptb-agent-skills](https://github.com/PowerPlatformToolBox/pptb-agent-skills) is a companion repository that teaches AI coding assistants — Claude Code, Cowork, GitHub Copilot, and OpenAI Codex — how to build tools for Power Platform ToolBox, review them for marketplace readiness, and assess Verified badge readiness. The skills are grounded directly in these docs, marketplace policies, and the `generator-pptb` scaffolding tool. {{ className: 'lead' }}
 
 ## Overview {{ anchor: true }}
 
-The repository ships two skills, built on the open `SKILL.md` standard (YAML frontmatter + Markdown body):
+The repository ships three skills, built on the open `SKILL.md` standard (YAML frontmatter + Markdown body):
 
 - **[tool-dev](https://github.com/PowerPlatformToolBox/pptb-agent-skills/tree/main/tool-dev)** — scaffold, fix, debug, validate, and publish PPTB tools.
 - **[intake-policy-review](https://github.com/PowerPlatformToolBox/pptb-agent-skills/tree/main/intake-policy-review)** — review an existing tool against current marketplace and AI-assisted-development policies, using repository evidence.
+- **[tool-verification](https://github.com/PowerPlatformToolBox/pptb-agent-skills/tree/main/tool-verification)** — check a tool repository URL against every current Verified badge criterion, distinguishing failures, missing evidence, and reviewer exceptions.
 
 Claude Skills, GitHub Copilot Agent Skills, and OpenAI Codex all read the same `SKILL.md` for each skill, so there is no separate entry point per assistant.
 
-Once either or both skills are installed in your project, you can describe what you want in plain language — scaffold a tool, fix a failing manifest, wire up inter-tool invocation, expose a tool to agents, or review marketplace readiness — and the assistant follows the relevant skill's workflow.
+Once the skills you need are installed in your project, you can describe what you want in plain language — scaffold a tool, fix a failing manifest, wire up inter-tool invocation, expose a tool to agents, review marketplace readiness, or check verification requirements — and the assistant follows the relevant skill's workflow.
 
 <Note type="warning">
   The `tool-dev` skill is not yet tested end-to-end against real build prompts.
@@ -70,22 +71,38 @@ The review covers:
 
 The assistant returns an overall assessment, an **Area / Status / Finding** table, detailed findings with concrete replacement snippets where useful, prioritized pre-submission changes, and a final readiness verdict. It distinguishes policy requirements from recommendations and does not impose destructive-operation controls on read-only tools.
 
+### Verified badge review
+
+The `tool-verification` skill targets the Verified maturity review after marketplace intake. A repository URL is enough to start; you can also specify a branch, tag, commit, or tool subfolder. The assistant reads the live [Tool Maturity Model](/tool-development/maturity-model) on every review and checks the candidate release alongside source code, issue and comment history, and available marketplace evidence.
+
+The review covers every required and optional criterion, plus submission prerequisites:
+
+- README quality, documented CSP exceptions, dependency vulnerabilities, supported PPTB APIs, host theme integration, and the packaged SVG icon
+- Published version, bug response, active contributors, compatibility with breaking changes, and marketplace usage metrics
+- Optional colour contrast and console-error checks
+
+The report starts with a quick verdict and concrete outstanding actions, then provides a criterion-by-criterion evidence table, prioritized fixes, missing evidence, and decisions reserved for human reviewers. Its verdict is **Ready to request verification**, **Needs reviewer judgment**, **Not ready**, or **Incomplete assessment**. Optional improvements do not block readiness, and missing evidence is kept distinct from confirmed failures.
+
+Every report ends with a **Reviewer response** list suitable for the verification web form: one self-contained item per required and optional criterion, marked ✅, ❌, or ❔. High or critical vulnerability findings confined to build/development dependencies are marked **Needs Manual Validation** pending human review; confirmed runtime findings fail the check. The skill preserves reviewer discretion for soft gates and usage waivers.
+
 ## Prerequisites {{ anchor: true }}
 
 - **Node.js and npm** — the workflow runs `yo`, `generator-pptb`, and `@pptb/types` (which provides the `pptb-validate` CLI). The skill does not install these for you; the assistant installs them per-project as it works through the steps.
 - **PPTB desktop app** installed locally if you want the assistant to exercise the debug loop (`dev-watch` → Load Local Tool) described in [Debugging Your Tool](/tool-development/debugging). Not required just to scaffold or validate a tool.
 - **Claude Code / Cowork**, **GitHub Copilot**, or **OpenAI Codex** with project or repo skills enabled, so the deployed `SKILL.md` is actually picked up.
 - **Policy and repository access** for `intake-policy-review` — the assistant needs access to the live policy pages and the tool's source files. Node.js/npm is needed when running validation or dependency audits; the PPTB desktop app is needed for real-environment testing.
+- **Verification evidence access** for `tool-verification` — repository files, issue/comment history, releases, and current maturity/API docs. Node.js/npm supports audit and validation; PPTB supports runtime checks. Marketplace usage, ratings, and ownership may require dated owner-provided evidence. Missing access produces explicit evidence gaps rather than assumed passes.
 
 ## Installing the Skills {{ anchor: true, id: 'installing-the-skill' }}
 
-Clone or download [pptb-agent-skills](https://github.com/PowerPlatformToolBox/pptb-agent-skills), then copy either or both skill folders into your project in the location your assistant expects. Run these commands from the cloned repository using Bash or Git Bash.
+Clone or download [pptb-agent-skills](https://github.com/PowerPlatformToolBox/pptb-agent-skills), then copy whichever skill folders you need into your project in the location your assistant expects, including each skill's `references/` directory when present. Run these commands from the cloned repository using Bash or Git Bash.
 
 ### Claude Code / Cowork
 
 ```bash
 cp -r tool-dev/ <project>/.claude/skills/pptb-tool-dev/
 cp -r intake-policy-review/ <project>/.claude/skills/intake-policy-review/
+cp -r tool-verification/ <project>/.claude/skills/tool-verification/
 ```
 
 ### GitHub Copilot
@@ -93,6 +110,7 @@ cp -r intake-policy-review/ <project>/.claude/skills/intake-policy-review/
 ```bash
 cp -r tool-dev/ <repo>/.github/skills/pptb-tool-dev/
 cp -r intake-policy-review/ <repo>/.github/skills/intake-policy-review/
+cp -r tool-verification/ <repo>/.github/skills/tool-verification/
 ```
 
 ### OpenAI Codex
@@ -103,6 +121,7 @@ For repository-scoped skills, copy the folders into `<repo>/.agents/skills/`:
 mkdir -p <repo>/.agents/skills
 cp -r tool-dev/ <repo>/.agents/skills/pptb-tool-dev/
 cp -r intake-policy-review/ <repo>/.agents/skills/intake-policy-review/
+cp -r tool-verification/ <repo>/.agents/skills/tool-verification/
 ```
 
 All three assistants read each skill's `SKILL.md` and any supporting files directly from their respective locations — there is nothing agent-specific to configure beyond where the folder lives.
@@ -117,6 +136,7 @@ Once deployed, ask your assistant naturally. The `description` field in each `SK
 - _"Expose my tool to an agent via MCP"_ → adds the `agents` block and an `invokeHeadless` entry point.
 - _"Review this PPTB repository for marketplace intake readiness"_ → uses `intake-policy-review` to verify the current policy pages, inspect repository evidence, and report findings with prioritized changes and a readiness verdict.
 - _"Check this tool folder against the marketplace and AI-assisted-development policies"_ → scopes the review to that tool, checking shared code when it materially affects its behavior.
+- _"Check https://github.com/my-org/my-tool against all PPTB verification requirements"_ → uses `tool-verification` to inspect the candidate release, source, issues, and available marketplace evidence, then reports every required and optional criterion with fixes and evidence gaps.
 
 ## Reference Files {{ anchor: true }}
 
@@ -133,6 +153,13 @@ The `tool-dev/SKILL.md` entry point defers to a `references/` folder that is loa
 
 `intake-policy-review` contains a standalone `SKILL.md`. It reads the live policy pages and repository evidence during each review rather than relying on bundled policy snapshots.
 
+`tool-verification/SKILL.md` uses two supporting files, reconciling their guidance with the live maturity model on every review:
+
+| File                                                | Covers                                                                                       |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `tool-verification/references/checklist.md`         | Evidence workflow for all maturity criteria, submission prerequisites, and badge maintenance |
+| `tool-verification/references/reviewer-response.md` | Per-criterion web-form response guidance and template                                        |
+
 <Note type="information">
   If you maintain a tool generator or template, you can drop `manifest.md` and
   `build-and-csp.md` directly into a scaffolded project (for example as
@@ -146,6 +173,7 @@ The `tool-dev/SKILL.md` entry point defers to a `references/` folder that is loa
 - [`sample-tools`](https://github.com/PowerPlatformToolBox/sample-tools) is intentionally **not** used as a scaffold source — it is considered outdated by the maintainers.
 - `Power-Maverick/PPTB-Tools` is referenced only as a pattern/convention example for real, shipped tools — never as a scaffolding template.
 - The `intake-policy-review` assessment does not replace marketplace maintainer approval or real-environment human testing. Validation and audit commands are only reported as passed when executed or supported by repository evidence.
+- The `tool-verification` assessment cannot grant a Verified badge or reviewer waiver. Private marketplace data and live PPTB behavior may need additional evidence; static inspection alone cannot prove host integration. The skill drafts reviewer responses without submitting the verification form or changing marketplace state.
 
 ## Next Steps {{ anchor: true }}
 
