@@ -327,6 +327,7 @@ export const navigation: Array<NavGroup> = [
         title: 'Agent Integration',
         href: '/tool-development/agent-integration',
       },
+      { title: '.NET Workers', href: '/tool-development/dotnet-workers' },
       {
         title: 'Local Validation',
         href: '/tool-development/validation',
