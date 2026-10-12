@@ -1,0 +1,180 @@
+export const metadata = {
+  title: 'Impersonation',
+  description:
+    'Run a tool as another Dataverse user to test security roles and record access without signing in as that user.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Before You Start', id: 'before-you-start' },
+  { title: 'Start Impersonating', id: 'start-impersonating' },
+  { title: 'Choose a User', id: 'choose-a-user' },
+  { title: 'Know When It Is Active', id: 'know-when-it-is-active' },
+  { title: 'Change or Stop Impersonating', id: 'change-or-stop-impersonating' },
+  { title: 'What Gets Impersonated', id: 'what-gets-impersonated' },
+  { title: 'For Tool Developers', id: 'for-tool-developers' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+]
+
+# Impersonation
+
+Need to check what another user can see or do in Dataverse? Impersonation lets a tool send its Dataverse requests on behalf of another user, using your existing connection. You do not need that user's credentials. {{ className: 'lead' }}
+
+<RequiresVersion>1.2.7</RequiresVersion>
+
+## Overview {{ anchor: true }}
+
+Impersonation is useful when you want to:
+
+- Test a user's security roles before they report a problem
+- Check which records a user can read or update
+- Reproduce an "access denied" error that only one user sees
+- Create or update records on behalf of another user
+
+Things to keep in mind:
+
+- Impersonation is set **per open tool tab and per connection**
+- Impersonation is not saved. Closing the tab or the app ends it.
+- Duplicating a tab that has impersonation active opens the new tab without impersonation.
+- Behind the scenes, Power Platform ToolBox adds the `CallerObjectId` header to the tool's Dataverse requests. Dataverse then runs those requests as the selected user.
+  - For more information regarding impersonation, see Microsoft's [Impersonate another user](https://learn.microsoft.com/power-apps/developer/data-platform/impersonate-another-user) for details.
+
+## Before You Start {{ anchor: true }}
+
+Impersonation is enforced by Dataverse, not by Power Platform ToolBox. Before you start, check the following:
+
+- **Your account needs the "Act on Behalf of Another User" privilege** (`prvActOnBehalfOfAnotherUser`).
+- **The privilege must be assigned to your user directly.** Dataverse does not allow it to be inherited through a team.
+
+<Note type="information">
+  Dataverse uses the **overlap** of your privileges and the impersonated user's
+  privileges. An action only succeeds if both of you are allowed to do it.
+  Impersonation cannot give anyone more access than they already have.
+</Note>
+
+<Note type="warning">
+  Records you create or update while impersonating are saved as the impersonated
+  user. Dataverse records your account in the **Created By (Delegate)** and
+  **Modified By (Delegate)** columns. Be careful when impersonating in
+  production environments.
+</Note>
+
+## Start Impersonating {{ anchor: true }}
+
+### When you open a tool
+
+1. In the connection screen, select the connection you want to use.
+2. Check **Impersonate as another user** under that connection.
+3. Confirm your connection.
+4. The **Impersonate User** window will open, providing you a list of users to select. [Choose a user](#choose-a-user) to begin impersonation, or select **Skip** to launch the tool under your user context.
+
+### On a tool that is already open
+
+<Note type="information">
+  When changing connections, the checkbox state is not retained for an
+  impersonated tab, and must be checked before confirmation for it to continue
+  to apply. If you confirm the same connection with the box unchecked,
+  impersonation is turned off.
+</Note>
+
+### Primary Connection
+
+1. Right-click the tool's tab.
+2. Select **Manage Connections...**.
+3. Check **Impersonate as another user** under the connection.
+4. Confirm, then [choose a user](#choose-a-user).
+
+### Secondary Connection
+
+1. Left-click the connection button to open a dialog to replace **just that connection**.
+2. Right-click the connection button to bring up a menu to **Change Impersonated User**, or **Change Connection**.
+
+### Multiple Connections
+
+You can assign the **same connection** to more than one slot and impersonate a **different user** in each. This makes it easy to compare what two users can see in the same environment, side by side.
+
+See [Authentication: Multiple Connections](/authentication#multiple-connections) for how multi-connection tools work.
+
+## Choose a User {{ anchor: true }}
+
+The **Impersonate User** window shows the connection name and environment at the top, so you know which connection you are choosing for.
+
+- The list shows enabled users in that environment, sorted by full name
+- Type in the search box to find users by **name or email**
+- Select **Load more** to see more results
+- Click a user to start impersonating them
+- Select **Skip** (or close the window) to continue **without** impersonation
+
+<Note type="information">
+  If the user list cannot be loaded, the window will display an error. Search
+  again, or select **Skip** to continue without impersonation. If the error
+  continues, check the ToolBox DevTools for any console errors, and ensure you
+  have the necessary permissions in the environment.
+</Note>
+
+## Know When It Is Active {{ anchor: true }}
+
+Power Platform ToolBox shows impersonation in three places:
+
+| Where                     | What you see                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Tool tab**              | A user shield icon is displayed. Hover over the icon in the tab to see who you are impersonating.                      |
+| **Banner above the tool** | "Dataverse impersonation active", followed by the user for the primary connection and, if set, Connection 2.           |
+| **Status bar**            | Additional connection squares show an impersonation icon. Hover over the respective connection to see the user's name. |
+
+## What Gets Impersonated {{ anchor: true }}
+
+Impersonation applies to Dataverse **data** operations made by the tool:
+
+| Impersonated                                     | Not impersonated (runs as you)                                                                                |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `create`, `retrieve`, `update`, `delete`         | `executeBatch`, `executeTransaction`                                                                          |
+| `createMultiple`, `updateMultiple`               | Metadata reads (`getEntityMetadata`, `getAllEntitiesMetadata`, `getEntityRelatedMetadata`, `getCSDLDocument`) |
+| `retrieveMultiple`, `fetchXmlQuery`, `queryData` | `getSolutions`, `publishCustomizations`, `deploySolution`, `getImportJobStatus`                               |
+| `associate`, `disassociate`                      | Table, column, relationship, and option set changes                                                           |
+| `execute` (actions and functions)                | Power Platform API calls                                                                                      |
+
+<Note type="warning">
+  If a tool uses batch operations, metadata, or the Power Platform API, those
+  requests still run as **your** account. Results from those calls do not
+  reflect the impersonated user's access.
+</Note>
+
+## For Tool Developers {{ anchor: true }}
+
+You do not need to write any code to support impersonation.
+
+- The user turns impersonation on in the ToolBox UI, not in your tool
+- ToolBox adds the `CallerObjectId` header for the [impersonated operations](#what-gets-impersonated) on the matching connection
+- Your tool keeps calling the [Dataverse API](/tool-development/api-reference/dataverse-api) as usual
+- There is currently no tool-facing API to read or change the impersonation state
+
+Design your tool to handle permission errors cleanly. When a user impersonates someone with fewer privileges, calls that normally succeed may return "access denied" errors. See [Error Handling](/tool-development/api-reference/error-handling).
+
+## Troubleshooting {{ anchor: true }}
+
+### Requests fail with a privilege error
+
+**Cause:** Your account does not have the "Act on Behalf of Another User" privilege.
+
+**Solution:**
+
+- Ask an administrator to assign the **Delegate** role (or a role with `prvActOnBehalfOfAnotherUser`) to your user directly
+- Reconnect, then try again
+
+### A user is missing from the list
+
+**Possible causes:**
+
+- The user is disabled in Dataverse
+- The user has no Microsoft Entra ID object ID (for example, some system or stub users)
+
+Search by email address if a name search does not find them.
+
+### Results look like my own access
+
+**Possible causes:**
+
+- The tool is using batch, metadata, or Power Platform API calls, which are [not impersonated](#what-gets-impersonated)
+- Impersonation was set on a different connection slot than the one the tool is using for the action
+- The tab was duplicated or reopened. New tabs start without impersonation.

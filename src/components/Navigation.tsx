@@ -272,6 +272,7 @@ export const navigation: Array<NavGroup> = [
         title: 'Entra App Registration Setup',
         href: '/authentication/entra-app-registration',
       },
+      { title: 'Impersonation', href: '/authentication/impersonation' },
       { title: 'Access to Data', href: '/data-access' },
     ],
   },
