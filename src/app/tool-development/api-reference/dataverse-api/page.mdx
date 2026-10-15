@@ -200,7 +200,9 @@ await dataverseAPI.updateMultiple('account', [
 
 ## Batch Operations {{ anchor: true }}
 
-Both methods submit multiple Dataverse Web API requests to the selected connection. A request contains an HTTP method and relative URL, with optional request headers, body, and `contentId`. Both methods return per-request status, response headers, optional body, and optional `contentId`.
+Both methods submit multiple Dataverse Web API requests to the selected connection. A request contains an HTTP method and relative URL, with optional request headers, body, and `contentId`. Each result contains its per-operation status and response `headers`, with optional `contentId` and body. Results can also include `batchHeaders`, a record of selected headers from the outer HTTP batch response, shared across the operation results. `batchHeaders` is optional and is omitted when none of the supported headers are present. Unlike per-operation `headers`, it does not contain headers from an individual operation.
+
+The supported outer response headers are `x-ms-dop-hint`, `x-ms-ratelimit-burst-remaining-xrm-requests`, and `x-ms-ratelimit-time-remaining-xrm-requests`. Envelope headers such as `Content-Type` and `Content-Length` are not included.
 
 ### `dataverseAPI.executeBatch(requests, connectionTarget?, additionalHeaders?)`
 
@@ -218,6 +220,9 @@ const results = await dataverseAPI.executeBatch(
   ],
   2,
 )
+
+// Selected headers from the outer batch response (when provided)
+const parallelismHint = results[0]?.batchHeaders?.['x-ms-dop-hint']
 ```
 
 ### `dataverseAPI.executeTransaction(requests, connectionTarget?, additionalHeaders?)`
@@ -227,6 +232,8 @@ Submit the requests as a transaction.
 **Parameters:** `requests: BatchRequest[]`; optional `connectionTarget?: ConnectionTarget` (defaults to `'primary'`); optional `additionalHeaders?: Record<string, string>` applied to the outer request.
 
 **Returns:** `Promise<BatchResult[]>`
+
+The transaction results use the same per-operation `headers` and optional outer-response `batchHeaders` described above.
 
 ```typescript
 const results = await dataverseAPI.executeTransaction(
