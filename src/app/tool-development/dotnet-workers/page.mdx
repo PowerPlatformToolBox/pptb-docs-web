@@ -72,7 +72,27 @@ Implement the worker's JSON-RPC startup and named methods in the console applica
 dotnet pack ./Contoso.SqlWorker/Contoso.SqlWorker.csproj --configuration Release --output ./local-nuget-feed
 ```
 
-The resulting `.nupkg` must include the worker entry point and its dependencies. Keep `PackageId`, `Version`, `ToolCommandName`, and `TargetFramework` consistent with the declaration in the next section. PPTB requires a compatible installed .NET 10 SDK (10.0.100 or later) when preparing a local worker package, even when the worker targets an earlier supported framework.
+The resulting `.nupkg` must include the worker entry point and its dependencies. Keep `PackageId`, `Version`, `ToolCommandName`, and `TargetFramework` consistent with the declaration in the next section. End users need only a compatible .NET runtime installed. No .NET SDK is required to run a worker. You still need an SDK that supports your target framework to build and pack it.
+
+### Package requirements
+
+PPTB downloads the exact `.nupkg`, extracts only its `.nuspec` and `tools/**` folder, checks it against your declaration, and launches the entry DLL with `dotnet exec`. NuGet dependencies are not resolved at install time; the worker runs only the files inside `tools/<targetFramework>/any/` of its package. The cache is reused on later starts and rebuilt automatically if it's damaged. Check that:
+
+- The project is packed with `PackAsTool=true`. The `.nuspec` must contain `<packageType name="DotnetTool" />`, which `dotnet pack` adds automatically.
+- The tool is a **framework-dependent, portable** tool: `tools/<targetFramework>/any/`.
+  - Don't set `RuntimeIdentifier`, `RuntimeIdentifiers`, `ToolPackageRuntimeIdentifiers`, `SelfContained`, or `PublishAot`.
+  - RID-specific tool packages are rejected, including those using the .NET 10 `DotnetToolSettings.xml` Version 2 format. Native-executable tools (`Runner="executable"`) are also rejected.
+- The package contains a `tools/<declared targetFramework>/any/` folder. A multi-targeted package works as long as the declared target framework's folder is present.
+- That folder contains:
+  - `DotnetToolSettings.xml`, with **exactly one** command whose `Name` equals `ToolCommandName` and the declared `command`
+  - the entry `.dll`
+  - `<Entry>.runtimeconfig.json`
+  - `<Entry>.deps.json`
+  - every dependency assembly
+- Every runtime asset listed in `deps.json` exists in that folder, and the entry DLL is listed there.
+- `dotnet pack` copies `PackageReference` and `ProjectReference` assemblies into the folder. Still open the `.nupkg` (it's a ZIP) and check. PPTB won't download missing dependencies.
+- The package doesn't ship a `*.runtimeconfig.dev.json`.
+- Use the [sample worker `.csproj`](https://github.com/PowerPlatformToolBox/sample-tools/blob/main/new/html-sample/dotnet/Worker/Worker.csproj) as the reference configuration.
 
 For a complete working example, see the [sample worker project](https://github.com/PowerPlatformToolBox/sample-tools/tree/main/new/html-sample/dotnet/Worker), including its [project file](https://github.com/PowerPlatformToolBox/sample-tools/blob/main/new/html-sample/dotnet/Worker/Worker.csproj).
 
@@ -106,10 +126,13 @@ Declare the worker in the tool package's `pptb.config.json`. This declaration id
 ```
 
 - `packageId` and `packageVersion` identify an exact NuGet package version. Do not use floating versions, ranges, or tags.
+  - The exact version must be **published and indexed on nuget.org**. Private and authenticated feeds aren't supported.
+  - A newly published version can take several minutes after upload before it can be downloaded. Until then PPTB reports `PACKAGE_NOT_FOUND`.
+  - Matching is case-insensitive, and versions are normalized (`1.2` = `1.2.0`).
 - `command` is the command declared by the NuGet tool package, not a file path or an arbitrary argument list.
 - `dotnet.targetFramework` is the worker executable's target framework. A shared library can use another compatible target framework.
-- `dotnet.minimumRuntimeVersion` is a stable `major.minor.patch` version matching the target framework's major and minor versions, and must not be lower than the worker's requirement.
-- `dotnet.rollForward` accepts `Disable`, `Latest`, `Minor`, or `Major`; the default is `Major`.
+- `dotnet.minimumRuntimeVersion` is a stable `major.minor.patch` version matching the target framework's major and minor versions, and must not be lower than the worker's requirement. It must **exactly equal** the `framework.version` in the packed `<Entry>.runtimeconfig.json`. That's usually `X.Y.0` (for example `8.0.0` for `net8.0`, `10.0.0` for `net10.0`) unless the project sets `RuntimeFrameworkVersion`. A mismatch fails with `PACKAGE_INVALID`.
+- `dotnet.rollForward` accepts `Disable`, `Latest`, `Minor`, or `Major`; the default is `Major`. If the project sets `<RollForward>`, it must match the declaration. `Latest` in `pptb.config.json` corresponds to `LatestMajor` in the project. Leaving it out of the project is fine.
 - `platforms` is required. Supported aliases are `all`, `windows-x64`, `windows-arm64`, `macos-x64`, `macos-arm64`, `linux-x64`, and `linux-arm64`. Use `all` by itself. It refers to PPTB's versioned support matrix, not every platform .NET may support.
 - Declaring `workers` requires `features.minAPI` in your tool's [`package.json`](/tool-development/manifest#features-object).
 
@@ -117,7 +140,7 @@ See [Tool Configuration](/tool-development/pptb-config#workers-object) for the f
 
 ## Connect from TypeScript {{ anchor: true }}
 
-Starting a worker is explicit. Loading the npm tool does not restore its package or launch a process. Use `toolboxAPI.workers.connect()` with the declared worker ID, register any reverse-call handlers, then await `ready` before sending work:
+Starting a worker is explicit. Loading the npm tool does not download its package or launch a process. Use `toolboxAPI.workers.connect()` with the declared worker ID, register any reverse-call handlers, then await `ready` before sending work:
 
 **File: `sample-ppt-tool/src/dotnetWorker.ts`**
 
@@ -230,7 +253,19 @@ For a Dataverse operation, a good boundary is for the worker to request the spec
 
 ## Runtime and Platform Support {{ anchor: true }}
 
-PPTB currently requires a compatible installed .NET 10.0 SDK (10.0.100 or later) to prepare a local worker package. The selected worker runtime is a separate requirement and must meet the declared minimum. PPTB does not silently install a missing SDK or runtime.
+PPTB needs only an installed .NET runtime (`Microsoft.NETCore.App`) that satisfies the declared `minimumRuntimeVersion` and `rollForward`. No SDK is required. PPTB does not install a missing runtime.
+
+<Note type="important">
+PPTB looks for `dotnet` only in the standard install locations. It doesn't use `PATH`, and it doesn't detect user-local installs such as `~/.dotnet` or those made by `dotnet-install`:
+
+- **Windows:** `C:\Program Files\dotnet\dotnet.exe` (and `x64\` under it)
+- **macOS:** `/usr/local/share/dotnet/dotnet` (and `x64/` under it)
+- **Linux:** `/usr/share/dotnet`, `/usr/lib/dotnet`, `/usr/lib64/dotnet`, `/usr/local/share/dotnet`
+
+The runtime's architecture must match the operating system (no x64 emulation on Arm64), and Linux musl/Alpine isn't supported.
+</Note>
+
+Because users must install the runtime themselves, state the required .NET runtime version in your tool's description or README.
 
 `rollForward` controls runtime selection:
 
@@ -286,8 +321,30 @@ pnpm run dev
 
 The local feed path is main-process environment configuration: do not put it in `pptb.config.json` or expose it to the tool UI. The local-feed option is restricted to eligible unpackaged developer builds; packaged and production-mode builds reject it. See the [HTML sample tool](https://github.com/PowerPlatformToolBox/desktop-app/tree/main/new/html-sample) for a complete package and protocol example.
 
+- The feed must be a **flat folder of regular files**: no subfolders and no symlinks.
+- PPTB reads only the exact `<packageid>.<version>.nupkg` file named by the declaration.
+- Because the package already contains its dependencies, the local feed never needs to serve other packages.
+- Repacking with the **same version** is supported. PPTB detects the new bytes, asks for native-code consent again, and caches it in a separate folder. You don't need to bump the version on every iteration.
+
 ### 2. Test a worker published to NuGet
 
 Publish the worker package to NuGet, update `packageVersion` in `pptb.config.json` to that exact published version, and pack/build your tool as usual. Then follow [Debugging in the Desktop App](/tool-development/debugging/desktop): start your tool's `dev-watch` process, enable the Debug menu, and use **Load Local Tool** to load the tool project root. The Desktop App will prepare the declared worker from NuGet; no local-feed environment variable or Desktop App source clone is needed.
 
 In either workflow, explicitly start the worker from the tool and exercise initialization, a normal request, reverse callbacks, cancellation, and stop/close behavior. If package contents or worker startup fail, check the app's developer console/logs as well as the tool DevTools.
+
+### Troubleshooting worker preparation
+
+If preparation fails, the tool receives only an error code; the detailed reason appears in the Desktop App logs.
+
+| Code | Meaning | Typical fix |
+| --- | --- | --- |
+| `RUNTIME_NOT_FOUND` | No installed runtime satisfies `minimumRuntimeVersion` / `rollForward` | Install the required .NET runtime in the standard location |
+| `HOST_NOT_FOUND` | No `dotnet` found in the standard install locations | Install .NET with the official installer, not a user-local install |
+| `PACKAGE_NOT_FOUND` | The exact ID/version isn't on nuget.org (or isn't in the local feed) | Publish, wait for indexing, check `packageId`/`packageVersion` |
+| `DOWNLOAD_FAILED` | Network, proxy, timeout or HTTP error | Check connectivity or the app's proxy settings, then retry |
+| `PACKAGE_INVALID` | Package layout or metadata doesn't match the declaration (the log says exactly what) | See "Package requirements" under [Prepare the Worker](#prepare-the-worker) |
+| `PACKAGE_HASH_MISMATCH` | Local-feed package bytes changed after approval | Restart the worker and approve again |
+| `WORKSPACE_INVALID` | The cache directory couldn't be written | Check disk space and permissions on the app data folder |
+
+- The prepared package is cached in `<app data>/powerplatform-toolbox/native-workers/<package-id>/<version>/`. It's safe to delete this folder to force a fresh download.
+- Older app versions left folders such as `<hash>.stage-…` and `<hash>-<rid>.lock` in `native-workers`. These are removed automatically and can be ignored.
