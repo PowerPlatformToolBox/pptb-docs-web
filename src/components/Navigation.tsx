@@ -282,6 +282,7 @@ export const navigation: Array<NavGroup> = [
       { title: 'Overview', href: '/tool-development' },
       { title: 'AI Agent Skills', href: '/tool-development/ai-agent-skills' },
       { title: 'Package Manifest', href: '/tool-development/manifest' },
+      { title: 'Tool Configuration', href: '/tool-development/pptb-config' },
       { title: 'API Reference', href: '/tool-development/api-reference' },
       {
         title: 'ToolBox API',

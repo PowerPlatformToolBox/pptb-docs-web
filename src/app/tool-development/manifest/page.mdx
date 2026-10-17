@@ -26,6 +26,10 @@ Every Power Platform ToolBox tool requires a `package.json` file at the root of 
 
 The `package.json` follows the standard [npm package format](https://docs.npmjs.com/cli/v10/configuring-npm/package-json) with additional PPTB-specific fields. Required fields must be present for your tool to load correctly.
 
+<Note type="information">
+  Invocation contracts, agent (MCP) integration, and .NET worker declarations live in a separate, optional `pptb.config.json` file. See [Tool Configuration](/tool-development/pptb-config).
+</Note>
+
 ## Required Fields {{ anchor: true }}
 
 | Field | Type | Description | Sample |

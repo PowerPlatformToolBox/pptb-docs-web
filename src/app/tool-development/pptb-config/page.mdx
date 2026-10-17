@@ -1,0 +1,303 @@
+export const metadata = {
+  title: 'Tool Configuration (pptb.config.json)',
+  description:
+    'Complete reference for the optional pptb.config.json file that declares invocation contracts, agent (MCP) integration, and .NET workers for a Power Platform ToolBox tool.',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Top-Level Fields', id: 'top-level-fields' },
+  { title: 'Invocation Object', id: 'invocation-object' },
+  { title: 'Schema Property Descriptors', id: 'schema-property-descriptors' },
+  { title: 'Capability Tags', id: 'capability-tags' },
+  { title: 'Agents Object', id: 'agents-object' },
+  { title: 'Workers Object', id: 'workers-object' },
+  { title: 'Publishing', id: 'publishing' },
+  { title: 'TypeScript Types', id: 'typescript-types' },
+  { title: 'Full Example', id: 'full-example' },
+]
+
+# Tool Configuration
+
+`pptb.config.json` is an optional file placed next to your tool's `package.json`. It declares Power Platform ToolBox–specific contracts: how other tools can invoke yours, how AI assistants can call it through MCP, and which .NET workers it uses. {{ className: 'lead' }}
+
+## Overview {{ anchor: true }}
+
+While [`package.json`](/tool-development/manifest) describes your tool to npm and the ToolBox host, `pptb.config.json` describes **integration contracts**. Every section is optional — add only the sections your tool needs.
+
+| Section | Used by | Learn more |
+| --- | --- | --- |
+| `invocation` | Other PPTB tools launching yours, and MCP callers | [Inter-Tool Invocation](/tool-development/inter-tool-invocation) |
+| `agents` | AI assistants calling your tool through the PPTB MCP server | [Agent Integration](/tool-development/agent-integration) |
+| `workers` | Your tool's UI, to run packaged .NET console workers | [.NET Workers](/tool-development/dotnet-workers) |
+
+Place the file in the **root of your tool package** so that `pptb-validate` can discover and validate it automatically alongside `package.json`. See [Local Validation](/tool-development/validation).
+
+## Top-Level Fields {{ anchor: true }}
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `invocation` | `object` | No | Invocation contract — how this tool can be called by other tools. See [Invocation Object](#invocation-object). |
+| `agents` | `object` | No | Agent contract — how this tool can be called by external automation. See [Agents Object](#agents-object). |
+| `workers` | `object` | No | Native worker declarations keyed by a stable worker ID. Requires `features.minAPI` in `package.json`. See [Workers Object](#workers-object). |
+
+## Invocation Object {{ anchor: true }}
+
+Describes the data callers can pre-populate when opening your tool, and the data your tool returns when it finishes.
+
+| Field | Type | Required | Description | Sample |
+| --- | --- | --- | --- | --- |
+| `version` | `string` | **Yes** (when `invocation` is present) | Semantic version of the invocation contract (`MAJOR.MINOR.PATCH[-prerelease][+build]`). Independent of your npm package version — bump it when the shape of `prefill` or `returnTopic` changes. | `"1.0.0"` |
+| `capabilities` | `string[]` | No | Capability tags used for discovery via `findToolsByCapability()`. See [Capability Tags](#capability-tags). | `["entity-picker"]` |
+| `prefill` | `object` | No | JSON-schema–style object describing the data a caller can pass in. Contains a `properties` map. | See below |
+| `returnTopic` | `object` | No | JSON-schema–style object describing the data your tool returns to its caller. Contains a `properties` map. | See below |
+
+```json
+{
+  "invocation": {
+    "version": "1.0.0",
+    "capabilities": ["entity-picker"],
+    "prefill": {
+      "properties": {
+        "entityName": {
+          "type": "string",
+          "title": "Table",
+          "description": "Logical name of the table to browse",
+          "required": true
+        },
+        "allowMultiSelect": { "type": "boolean" }
+      }
+    },
+    "returnTopic": {
+      "properties": {
+        "selectedId": { "type": "string" },
+        "selectedName": { "type": "string" },
+        "status": { "type": "string", "enum": ["success", "cancelled", "error"] }
+      }
+    }
+  }
+}
+```
+
+<Note type="information">
+  The contract is validated by `pptb-validate` but is **not enforced at runtime**. Callers and callees should both handle missing or unexpected fields gracefully.
+</Note>
+
+## Schema Property Descriptors {{ anchor: true }}
+
+Each entry in `prefill.properties` and `returnTopic.properties` is a property descriptor. All fields are optional.
+
+| Field | Type | Description | Sample |
+| --- | --- | --- | --- |
+| `type` | `string` | JSON type of the value: `"string"`, `"number"`, `"boolean"`, `"object"`, or `"array"` | `"string"` |
+| `enum` | `string[]` | Restricts the value to one of the listed literals | `["success", "cancelled", "error"]` |
+| `items` | `object` | Property descriptor for the elements of an `array` property | `{ "type": "string" }` |
+| `title` | `string` | Short human-readable label. Shown to the user when an agent must ask for this value | `"Table"` |
+| `description` | `string` | Explains the value. Shown to the user when an agent must ask for this value | `"Logical name of the table to browse"` |
+| `required` | `boolean` | Marks the property as required. When an MCP agent calls the tool without a required value, the value is requested from the user | `true` |
+
+```json
+"attributes": {
+  "type": "array",
+  "items": { "type": "string" },
+  "title": "Columns",
+  "description": "Logical names of the columns to include"
+}
+```
+
+<Note type="information">
+  `title`, `description`, and `required` matter most for tools exposed to AI assistants. They give the agent enough context to ask the user for missing input instead of guessing.
+</Note>
+
+## Capability Tags {{ anchor: true }}
+
+`invocation.capabilities` lists tags that callers use with `toolboxAPI.invocation.findToolsByCapability(tag)` to discover your tool.
+
+| Tag | Description |
+| --- | --- |
+| `fetchxml` | Accept or process FetchXML queries |
+| `entity-picker` | Browse and select a Dataverse entity (table) |
+| `record-selector` | Browse and select a Dataverse record |
+| `solution-selector` | Pick a Power Platform solution |
+| `webresource-editor` | Edit or manage web resources |
+| `plugin-inspector` | Inspect or manage plugins and assemblies |
+| `pcf-control-builder` | Build or scaffold PCF controls |
+
+The authoritative list lives in the PPTB capability registry, so new tags can be added without an app update. Retrieve the current list at runtime with `toolboxAPI.invocation.getKnownCapabilityTags()`. Custom strings are allowed for organisation-internal tags, but `pptb-validate` warns when a tag is not in the official registry.
+
+## Agents Object {{ anchor: true }}
+
+<HostSupport hosts="desktop" />
+
+Declares how AI assistants and other external automation can call your tool through the PPTB MCP server.
+
+| Field | Type | Required | Description | Sample |
+| --- | --- | --- | --- | --- |
+| `version` | `string` | **Yes** (when `agents` is present) | Semantic version of the agent-facing contract | `"1.0.0"` |
+| `headless` | `boolean` | **Yes** (when `agents` is present) | Whether the tool supports headless (automated) execution | `true` |
+| `invokable` | `boolean` | No | Opt-in flag that exposes the tool to the MCP server. Tools are not discoverable by agents unless this is `true` | `true` |
+| `modes` | `string[]` | No | Supported invocation modes: `"one-way"` (fire-and-forget) and/or `"two-way"` (returns a result) | `["one-way", "two-way"]` |
+| `defaultMode` | `string` | No | Mode used when the caller does not specify one: `"one-way"` or `"two-way"` | `"two-way"` |
+| `timeoutMS` | `number` | No | Timeout hint, in milliseconds, for two-way calls | `12000` |
+| `executionModes` | `string[]` | No | Supported execution modes: `"windowed"` (interactive UI) and/or `"headless"` (automated). When both are listed, `headless` is used by default and `windowed` is the fallback | `["windowed", "headless"]` |
+| `defaultExecutionMode` | `string` | No | **Currently ignored.** The MCP server prefers `headless` whenever it is supported. May be removed in a future release | `"headless"` |
+| `headlessEntry` | `string` | No | Path to the compiled automated runtime entry point that exports `invokeHeadless` | `"dist/headless.js"` |
+
+```json
+{
+  "agents": {
+    "version": "1.0.0",
+    "headless": true,
+    "invokable": true,
+    "modes": ["one-way", "two-way"],
+    "defaultMode": "two-way",
+    "timeoutMS": 12000,
+    "executionModes": ["windowed", "headless"],
+    "headlessEntry": "dist/headless.js"
+  }
+}
+```
+
+<Note type="warning">
+  Do not rely on `defaultExecutionMode` to force interactive runs. If your tool supports headless execution, it will be preferred. To support only interactive runs, set `"headless": false` and `"executionModes": ["windowed"]`.
+</Note>
+
+## Workers Object {{ anchor: true }}
+
+<HostSupport hosts="desktop" />
+
+Declares packaged .NET console workers, keyed by a stable worker ID that you pass to `toolboxAPI.workers.connect()`. Declarations are metadata only — they identify an exact package, not an executable path or shell command. Using `workers` requires `features.minAPI` to be set in [`package.json`](/tool-development/manifest#features-object).
+
+| Field | Type | Required | Description | Sample |
+| --- | --- | --- | --- | --- |
+| `kind` | `string` | **Yes** | Worker type. Currently only `"dotnet-tool"` | `"dotnet-tool"` |
+| `packageId` | `string` | **Yes** | NuGet package ID of the .NET tool | `"Contoso.SqlWorker"` |
+| `packageVersion` | `string` | **Yes** | Exact NuGet version. Ranges, floating versions, and tags are not allowed | `"1.4.2"` |
+| `command` | `string` | **Yes** | Command name declared by the NuGet tool package (`ToolCommandName`) | `"contoso-sql-worker"` |
+| `dotnet.targetFramework` | `string` | **Yes** | Worker executable target framework: `"net8.0"`, `"net9.0"`, or `"net10.0"` | `"net8.0"` |
+| `dotnet.minimumRuntimeVersion` | `string` | **Yes** | Stable `major.minor.patch` version matching the target framework | `"8.0.0"` |
+| `dotnet.rollForward` | `string` | No | Runtime roll-forward policy: `"Disable"`, `"Latest"`, `"Minor"`, or `"Major"`. Defaults to `"Major"` when omitted; explicit `null`, empty, or unknown values are invalid | `"Major"` |
+| `platforms` | `string[]` | **Yes** | Unique platform aliases: `"all"`, `"windows-x64"`, `"windows-arm64"`, `"macos-x64"`, `"macos-arm64"`, `"linux-x64"`, `"linux-arm64"`. `"all"` must appear alone and refers to PPTB's officially supported platform matrix | `["all"]` |
+
+```json
+{
+  "workers": {
+    "engine": {
+      "kind": "dotnet-tool",
+      "packageId": "Contoso.SqlWorker",
+      "packageVersion": "1.4.2",
+      "command": "contoso-sql-worker",
+      "dotnet": {
+        "targetFramework": "net8.0",
+        "minimumRuntimeVersion": "8.0.0",
+        "rollForward": "Major"
+      },
+      "platforms": ["all"]
+    }
+  }
+}
+```
+
+See [.NET Workers](/tool-development/dotnet-workers) for packaging, the worker protocol, and runtime behaviour.
+
+## Publishing {{ anchor: true }}
+
+`pptb.config.json` must be included in your published npm package, next to `package.json`. Add it to the `files` array:
+
+```json
+{
+  "files": ["dist", "npm-shrinkwrap.json", "pptb.config.json"]
+}
+```
+
+<Note type="important">
+  If `pptb.config.json` is missing from the published package, your tool will not be discoverable by capability or by agents, and declared workers will not be available. Contracts are read when the tool is **installed** — reinstall or reload a local tool after changing the file.
+</Note>
+
+## TypeScript Types {{ anchor: true }}
+
+`@pptb/types` ships type definitions for every section of the file:
+
+```typescript
+import type {
+  PPTBConfig,
+  InvocationConfig,
+  AgentsConfig,
+  AgentInvocationMode,
+  AgentExecutionMode,
+  JsonSchemaObject,
+  JsonSchemaProperty,
+  CapabilityTag,
+  KnownCapabilityTag,
+  WorkerDeclaration,
+  WorkerTargetFramework,
+  WorkerRollForward,
+  WorkerPlatform,
+} from '@pptb/types/pptbConfig'
+```
+
+## Full Example {{ anchor: true }}
+
+```json
+{
+  "invocation": {
+    "version": "1.0.0",
+    "capabilities": ["fetchxml"],
+    "prefill": {
+      "properties": {
+        "entityName": {
+          "type": "string",
+          "title": "Table",
+          "description": "Logical name of the table to query",
+          "required": true
+        },
+        "attributes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "title": "Columns",
+          "description": "Logical names of the columns to include"
+        }
+      }
+    },
+    "returnTopic": {
+      "properties": {
+        "result": { "type": "object" },
+        "status": { "type": "string", "enum": ["success", "cancelled", "error"] },
+        "error": { "type": "string" }
+      }
+    }
+  },
+  "agents": {
+    "version": "1.0.0",
+    "headless": true,
+    "invokable": true,
+    "modes": ["one-way", "two-way"],
+    "defaultMode": "two-way",
+    "timeoutMS": 12000,
+    "executionModes": ["windowed", "headless"],
+    "headlessEntry": "dist/headless.js"
+  },
+  "workers": {
+    "engine": {
+      "kind": "dotnet-tool",
+      "packageId": "Contoso.SqlWorker",
+      "packageVersion": "1.4.2",
+      "command": "contoso-sql-worker",
+      "dotnet": {
+        "targetFramework": "net8.0",
+        "minimumRuntimeVersion": "8.0.0"
+      },
+      "platforms": ["all"]
+    }
+  }
+}
+```
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/inter-tool-invocation" arrow="right">
+    <>Inter-Tool Invocation</>
+  </Button>
+  <Button href="/tool-development/agent-integration" variant="outline">
+    <>Agent Integration</>
+  </Button>
+</div>

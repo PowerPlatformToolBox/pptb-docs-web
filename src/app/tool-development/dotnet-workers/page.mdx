@@ -111,6 +111,9 @@ Declare the worker in the tool package's `pptb.config.json`. This declaration id
 - `dotnet.minimumRuntimeVersion` is a stable `major.minor.patch` version matching the target framework's major and minor versions, and must not be lower than the worker's requirement.
 - `dotnet.rollForward` accepts `Disable`, `Latest`, `Minor`, or `Major`; the default is `Major`.
 - `platforms` is required. Supported aliases are `all`, `windows-x64`, `windows-arm64`, `macos-x64`, `macos-arm64`, `linux-x64`, and `linux-arm64`. Use `all` by itself. It refers to PPTB's versioned support matrix, not every platform .NET may support.
+- Declaring `workers` requires `features.minAPI` in your tool's [`package.json`](/tool-development/manifest#features-object).
+
+See [Tool Configuration](/tool-development/pptb-config#workers-object) for the full field reference.
 
 ## Connect from TypeScript {{ anchor: true }}
 

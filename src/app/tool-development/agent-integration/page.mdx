@@ -55,18 +55,25 @@ These docs use end-user language for the two execution styles:
 
 Interactive runs are a good fit for existing UI-driven tools. Automated runs are a good fit for repeatable tasks, direct data returns, and unattended workflows.
 
+When a tool supports both, the MCP server uses an **automated (headless) run by default** and falls back to an **interactive (windowed) run** when headless execution is not available.
+
 ## Declare Tool Metadata {{ anchor: true }}
 
-Add both `invocation` and `agents` to `pptb.config.json`.
+Add both `invocation` and `agents` to `pptb.config.json`. See [Tool Configuration](/tool-development/pptb-config) for the complete field reference.
 
 ```json
 {
   "invocation": {
     "version": "1.0.0",
-    "capabilities": ["fetchxml-builder"],
+    "capabilities": ["fetchxml"],
     "prefill": {
       "properties": {
-        "entityName": { "type": "string" }
+        "entityName": {
+          "type": "string",
+          "title": "Table",
+          "description": "Logical name of the table to build the query for",
+          "required": true
+        }
       }
     },
     "returnTopic": {
@@ -77,31 +84,43 @@ Add both `invocation` and `agents` to `pptb.config.json`.
   },
   "agents": {
     "version": "1.0.0",
+    "headless": true,
     "invokable": true,
     "modes": ["one-way", "two-way"],
     "defaultMode": "two-way",
     "timeoutMS": 12000,
-    "headless": true,
-    "executionModes": [
-        "windowed",
-        "headless"
-    ],
-    "defaultExecutionMode": "headless",
+    "executionModes": ["windowed", "headless"],
     "headlessEntry": "dist/headless.js"
   }
 }
 ```
 
-Field summary:
+`agents` fields:
 
-- `agents.invokable` exposes the tool through MCP discovery.
-- `agents.modes` declares whether the tool supports fire-and-forget calls, result-returning calls, or both.
-- `agents.defaultMode` defines the fallback when the caller does not specify one.
-- `agents.timeoutMS` gives a timeout hint for result-returning calls.
-- `agents.headless` enables automated headless execution of the tool.
-- `agents.executionModes` lists the supported execution modes (e.g., `windowed`, `headless`).
-- `agents.defaultExecutionMode` sets the default execution mode when none is specified.
-- `agents.headlessEntry` points to the compiled automated runtime entry point.
+| Field | Required | Description |
+| --- | --- | --- |
+| `version` | **Yes** | Semantic version of the agent-facing contract. |
+| `headless` | **Yes** | Whether the tool supports automated (headless) execution. Set to `false` for interactive-only tools. |
+| `invokable` | No | Opt-in flag that exposes the tool through MCP discovery. |
+| `modes` | No | Whether the tool supports fire-and-forget calls (`one-way`), result-returning calls (`two-way`), or both. |
+| `defaultMode` | No | Fallback mode when the caller does not specify one. |
+| `timeoutMS` | No | Timeout hint, in milliseconds, for result-returning calls. |
+| `executionModes` | No | Supported execution modes (`windowed`, `headless`). When both are listed, `headless` is used by default and `windowed` is the fallback. |
+| `defaultExecutionMode` | No | **Currently ignored** — headless is preferred whenever supported. May be removed in a future release. |
+| `headlessEntry` | No | Path to the compiled automated runtime entry point. |
+
+<Note type="warning">
+  Don't use `defaultExecutionMode` to force interactive runs — it has no effect. For an interactive-only tool, set `"headless": false` and `"executionModes": ["windowed"]`.
+</Note>
+
+### Describe Input for Agents
+
+Property descriptors in `invocation.prefill` support `title`, `description`, and `required` in addition to `type`, `enum`, and `items`. Agents use these fields to understand your input:
+
+- `title` and `description` are shown to the user when the agent must ask for a value.
+- `required: true` marks a value as mandatory. If the agent calls the tool without it, the value is requested from the user rather than guessed.
+
+Add these fields to every input an assistant is likely to supply, especially required ones.
 
 <Note type="important">
   In prose we refer to automated runs, but the runtime field value remains
@@ -254,9 +273,10 @@ Before publishing or sharing your tool with assistant users:
 1. Validate `pptb.config.json` locally with [Local Validation](/tool-development/validation).
 2. Check that the tool appears in MCP discovery only when `agents.invokable` is `true`.
 3. Test both `one-way` and `two-way` calls if you advertise both modes.
-4. Confirm that your automated runtime returns a payload matching `returnTopic`.
-5. Confirm that progress, runtime logs, results, and failures appear correctly in the PPTB MCP Server invocation details.
-6. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
+4. Call the tool without each `required` prefill property and confirm the agent asks the user for it.
+5. Confirm that your automated runtime returns a payload matching `returnTopic`.
+6. Confirm that progress, runtime logs, results, and failures appear correctly in the PPTB MCP Server invocation details.
+7. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
 
 To start MCP Inspector for debugging, run:
 
@@ -278,7 +298,7 @@ If a call fails, compare the request and response payloads against `prefill` and
   <Button href="/tool-development/inter-tool-invocation" arrow="right">
     <>Learn invocation patterns</>
   </Button>
-  <Button href="/tool-development/manifest" variant="outline">
-    <>Review manifest fields</>
+  <Button href="/tool-development/pptb-config" variant="outline">
+    <>Review pptb.config.json fields</>
   </Button>
 </div>

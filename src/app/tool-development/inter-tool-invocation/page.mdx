@@ -83,13 +83,24 @@ Create a `pptb.config.json` file at the **root of your tool package** (next to `
 | `invocation.version` | **Yes** (when `invocation` is present) | Semver version of your contract (e.g. `"1.0.0"`). Bump when the shape of `prefill` or `returnTopic` changes. |
 | `invocation.capabilities` | No | Array of capability tag strings (e.g. `["entity-picker"]`). Used by callers to discover your tool. |
 | `invocation.prefill` | No | JSON-schema–style object describing the data a caller can pass in. |
-| `invocation.prefill.properties` | No | Map of property names to `{ type?, enum?, items? }` descriptors. |
+| `invocation.prefill.properties` | No | Map of property names to property descriptors (see below). |
 | `invocation.returnTopic` | No | JSON-schema–style object describing the data your tool returns. |
-| `invocation.returnTopic.properties` | No | Map of property names to `{ type?, enum?, items? }` descriptors. |
+| `invocation.returnTopic.properties` | No | Map of property names to property descriptors (see below). |
 
-Supported `type` values: `"string"`, `"number"`, `"boolean"`, `"object"`, `"array"`.
-Use `"enum"` to restrict a string property to a fixed set of values.
-Use `"items"` to describe the element type of an array.
+Each property descriptor supports these optional fields:
+
+| Field | Description |
+| --- | --- |
+| `type` | JSON type of the value: `"string"`, `"number"`, `"boolean"`, `"object"`, or `"array"`. |
+| `enum` | Restricts the value to a fixed set of string literals. |
+| `items` | Property descriptor for the elements of an `array` property. |
+| `title` | Short human-readable label. Shown to the user when an agent must ask for this value. |
+| `description` | Explains the value. Shown to the user when an agent must ask for this value. |
+| `required` | Marks the property as required. When an [AI agent](/tool-development/agent-integration) calls the tool without it, the value is requested from the user. |
+
+<Note type="information">
+  For the full `pptb.config.json` reference — including the `agents` and `workers` sections — see [Tool Configuration](/tool-development/pptb-config).
+</Note>
 
 **Example `pptb.config.json`:**
 
@@ -100,7 +111,12 @@ Use `"items"` to describe the element type of an array.
     "capabilities": ["entity-picker"],
     "prefill": {
       "properties": {
-        "entityName": { "type": "string" },
+        "entityName": {
+          "type": "string",
+          "title": "Table",
+          "description": "Logical name of the table to browse",
+          "required": true
+        },
         "allowMultiSelect": { "type": "boolean" }
       }
     },
@@ -708,10 +724,10 @@ The validator checks:
 
 - `invocation.version` is present and a valid semver string.
 - `invocation.capabilities` (when present) is an array of non-empty strings, each a recognised capability tag (a warning is issued for unrecognised tags).
-- `invocation.prefill.properties` values are valid JSON-schema property descriptors.
+- `invocation.prefill.properties` values are valid JSON-schema property descriptors (`type`, `enum`, `items`, `title`, `description`, `required`).
 - `invocation.returnTopic.properties` values are valid JSON-schema property descriptors.
 
-See [Local Validation](/tool-development/validation) for a full CLI reference.
+See [Local Validation](/tool-development/validation) for a full CLI reference and [Tool Configuration](/tool-development/pptb-config) for every `pptb.config.json` field.
 
 ### TypeScript Types
 
@@ -732,6 +748,7 @@ For auto-complete on capability tags, import from the bundled declaration file:
 import type {
   PPTBConfig,
   InvocationConfig,
+  JsonSchemaProperty,
   CapabilityTag,
   KnownCapabilityTag,
 } from "@pptb/types/pptbConfig";
