@@ -1,0 +1,132 @@
+export const metadata = {
+  title: 'Proxy & Network Configuration',
+  description:
+    'Configure Power Platform ToolBox to work behind a corporate proxy, understand current limitations, and collect logs for troubleshooting.',
+}
+
+export const sections = [
+  { title: 'Proxy Settings', id: 'proxy-settings' },
+  {
+    title: 'How ToolBox Uses the Network',
+    id: 'how-tool-box-uses-the-network',
+  },
+  { title: 'Known Limitations', id: 'known-limitations' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+]
+
+# Proxy & Network Configuration
+
+Configure Power Platform ToolBox to work on networks that route internet traffic through a corporate proxy, and learn what to check when connections fail. {{ className: 'lead' }}
+
+## Proxy Settings {{ anchor: true }}
+
+Open **Settings → Network / Proxy** to configure how ToolBox reaches the internet.
+
+### Proxy mode
+
+| Mode                                   | When to use it                                                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Auto-detect system proxy** (default) | Your computer already has a proxy configured by IT, either directly or through a PAC file. ToolBox uses the same proxy. |
+| **Manual proxy**                       | You need to enter a specific proxy address, or the proxy requires a username and password.                              |
+| **No proxy**                           | You connect to the internet directly, without a proxy.                                                                  |
+
+### Other settings
+
+| Setting              | Description                                                                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Proxy URL**        | Used in **Manual proxy** mode. Format: `http://host:port`, or `http://user:pass@host:port` if the proxy requires credentials. Example: `http://proxy.company.com:8080`. |
+| **No Proxy List**    | Comma-separated hosts or domain suffixes that bypass the proxy and connect directly. Example: `localhost,127.0.0.1,.internal`.                                          |
+| **Custom CA Bundle** | Path to a PEM file containing your organization's root certificate. Needed when the proxy inspects (decrypts and re-encrypts) TLS traffic. Ask IT for this file.        |
+
+### Test Connection
+
+Click **Test Connection** to check that ToolBox can reach the internet through the configured route. Any HTTP response, **including 4xx errors**, means the proxy route is working. The test checks the network path, not access to a specific service.
+
+<Note type="important">
+  Restart ToolBox after you switch to or from **Auto-detect system proxy**, or
+  after IT changes the system proxy or PAC file. The system proxy is detected
+  only when the app starts.
+</Note>
+
+## How ToolBox Uses the Network {{ anchor: true }}
+
+ToolBox sends traffic in two ways, and each follows different proxy settings:
+
+| Traffic type     | Examples                                                                                                       | Proxy settings used                                                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Browser-side** | Microsoft sign-in window, in-app web pages, app auto-updates                                                   | The operating system proxy settings, including PAC files, proxy sign-in prompts and the OS certificate store |
+| **App-side**     | Tool marketplace, sign-in token exchange, Dataverse and Power Platform API calls made by tools, tool downloads | The ToolBox [proxy settings](#proxy-settings)                                                                |
+
+This is why the Microsoft sign-in window can open successfully while a later step, such as loading Dataverse data, still fails: the two steps use different routes.
+
+## Known Limitations {{ anchor: true }}
+
+The following limitations apply to the current release and are being tracked for a future release.
+
+### Proxies that require a username and password
+
+<Note type="warning">
+  When a proxy returns **HTTP 407 Proxy Authentication Required**, a credentials
+  prompt appears only for browser-side traffic. For app-side requests, a *Proxy
+  authentication required* notification appears instead.
+</Note>
+
+**Symptom:** The marketplace doesn't load, tools show no Dataverse data, or adding a connection fails. Errors mention `407`.
+
+**Workaround:**
+
+1. Select **Manual proxy** mode.
+2. Enter the credentials in the proxy URL, for example `http://user:pass@proxy.company.com:8080`.
+3. URL-encode special characters in the username or password. For example, `@` becomes `%40`.
+
+Proxies that use integrated Windows authentication (NTLM or Kerberos) are not supported yet.
+
+### PAC (Proxy Auto-Config) files
+
+A PAC file is a script published by IT that chooses, for each website, whether to use a proxy (and which one) or to connect directly.
+
+<Note type="warning">
+  In **Auto-detect system proxy** mode, ToolBox checks the proxy once at startup
+  and uses that single answer for all app-side traffic. It doesn't ask the PAC
+  file for each website.
+</Note>
+
+**Symptom:** Sites that the PAC file sends directly, such as internal hosts or, in some organizations, `*.dynamics.com`, still go through the proxy and may be blocked.
+
+**Workaround:** Add those hosts to the **No Proxy List** (for example `.dynamics.com,.internal`), or use **Manual proxy** mode.
+
+## Troubleshooting {{ anchor: true }}
+
+### Collect logs
+
+Start ToolBox from a terminal to see its log output.
+
+| OS          | How to start ToolBox                                                                                                                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **macOS**   | In Terminal, run `"/Applications/Power Platform ToolBox.app/Contents/MacOS/Power Platform ToolBox"`                                                                                       |
+| **Windows** | In PowerShell, run the installed `.exe` and redirect output to a file if needed, for example `& "<install folder>\Power Platform ToolBox.exe" *> "$env:USERPROFILE\Desktop\pptb-log.txt"` |
+
+Use the actual installed app name and location if they differ. On Windows, right-click the Start Menu shortcut and select **Open file location** to find the `.exe`.
+
+### Log lines to look for
+
+| Log line                                               | What it tells you                                                                                                                                                                        |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[ProxyManager] System proxy auto-detection completed` | Whether a system proxy was found at startup                                                                                                                                              |
+| `[ProxyManager] Effective proxy configuration applied` | The proxy mode and proxy host in use                                                                                                                                                     |
+| `[ProxyManager] Outbound route resolved`               | For each host, whether traffic goes through the proxy or directly. Channel `fetch` is the marketplace; channel `node-http` is sign-in, Dataverse, Power Platform API and tool downloads. |
+
+<Note type="information">
+  Logs never include proxy passwords. Only the proxy host and port are shown, so
+  these lines are safe to share with IT or in a support request.
+</Note>
+
+### Common errors
+
+Marketplace failures display the error in ToolBox with **Retry** and **Copy
+details** actions.
+
+| Error          | Likely cause                                      | What to do                                                                                         |
+| -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `ECONNREFUSED` | Nothing is listening at the proxy address or port | Check the host and port in the **Proxy URL**, or confirm the system proxy with IT                  |
+| `407`          | The proxy requires credentials                    | See **Proxies that require a username and password** under [Known Limitations](#known-limitations) |

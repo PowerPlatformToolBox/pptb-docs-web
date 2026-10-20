@@ -341,7 +341,7 @@ If preparation fails, the tool receives only an error code; the detailed reason 
 | `RUNTIME_NOT_FOUND` | No installed runtime satisfies `minimumRuntimeVersion` / `rollForward` | Install the required .NET runtime in the standard location |
 | `HOST_NOT_FOUND` | No `dotnet` found in the standard install locations | Install .NET with the official installer, not a user-local install |
 | `PACKAGE_NOT_FOUND` | The exact ID/version isn't on nuget.org (or isn't in the local feed) | Publish, wait for indexing, check `packageId`/`packageVersion` |
-| `DOWNLOAD_FAILED` | Network, proxy, timeout or HTTP error | Check connectivity or the app's proxy settings, then retry |
+| `DOWNLOAD_FAILED` | Network, proxy, timeout or HTTP error | Check connectivity or the app's [proxy settings](/proxy-network), then retry |
 | `PACKAGE_INVALID` | Package layout or metadata doesn't match the declaration (the log says exactly what) | See "Package requirements" under [Prepare the Worker](#prepare-the-worker) |
 | `PACKAGE_HASH_MISMATCH` | Local-feed package bytes changed after approval | Restart the worker and approve again |
 | `WORKSPACE_INVALID` | The cache directory couldn't be written | Check disk space and permissions on the app data folder |

@@ -274,6 +274,10 @@ export const navigation: Array<NavGroup> = [
       },
       { title: 'Impersonation', href: '/authentication/impersonation' },
       { title: 'Access to Data', href: '/data-access' },
+      {
+        title: 'Proxy & Network Configuration',
+        href: '/proxy-network',
+      },
     ],
   },
   {
