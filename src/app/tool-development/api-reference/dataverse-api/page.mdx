@@ -6,7 +6,7 @@ export const metadata = {
 
 export const sections = [
   { title: 'CRUD Operations', id: 'crud-operations' },
-  { title: 'Batch Operations', id: 'batch-operations' },
+  { title: 'Batch & Transaction Operations', id: 'batch-transaction-operations' },
   { title: 'Relationship Associations', id: 'relationship-associations' },
   { title: 'Queries', id: 'queries' },
   { title: 'Metadata', id: 'metadata' },
@@ -198,9 +198,11 @@ await dataverseAPI.updateMultiple('account', [
 ])
 ```
 
-## Batch Operations {{ anchor: true }}
+## Batch & Transaction Operations {{ anchor: true }}
 
-Both methods submit multiple Dataverse Web API requests to the selected connection. A request contains an HTTP method and relative URL, with optional request headers, body, and `contentId`. Each result contains its per-operation status and response `headers`, with optional `contentId` and body. Results can also include `batchHeaders`, a record of selected headers from the outer HTTP batch response, shared across the operation results. `batchHeaders` is optional and is omitted when none of the supported headers are present. Unlike per-operation `headers`, it does not contain headers from an individual operation.
+<RequiresVersion>1.2.8</RequiresVersion>
+
+Both methods submit multiple Dataverse Web API requests to the selected connection. A request contains an HTTP method and relative URL, with optional request headers, body, `contentId`, and `changesetId`. In `executeBatch`, requests with the same `changesetId` are grouped into one atomic changeset in their original order. The changeset appears where its first request appeared in the input; requests without a `changesetId` remain independent. Each result contains its per-operation status and response `headers`, with optional `contentId` and body. Results can also include `batchHeaders`, a record of selected headers from the outer HTTP batch response, shared across the operation results. `batchHeaders` is optional and is omitted when none of the supported headers are present. Unlike per-operation `headers`, it does not contain headers from an individual operation.
 
 The supported outer response headers are `x-ms-dop-hint`, `x-ms-ratelimit-burst-remaining-xrm-requests`, and `x-ms-ratelimit-time-remaining-xrm-requests`. Envelope headers such as `Content-Type` and `Content-Length` are not included.
 
@@ -213,13 +215,21 @@ Submit a collection of Dataverse requests as a batch.
 **Returns:** `Promise<BatchResult[]>`
 
 ```typescript
-const results = await dataverseAPI.executeBatch(
-  [
-    { method: 'GET', url: 'accounts?$select=name&$top=5' },
-    { method: 'GET', url: 'contacts?$select=fullname&$top=5' },
-  ],
-  2,
-)
+const results = await dataverseAPI.executeBatch([
+  {
+    method: 'POST',
+    url: 'accounts',
+    changesetId: 'account-and-contact',
+    body: { name: 'Contoso' },
+  },
+  { method: 'GET', url: 'accounts?$select=name' },
+  {
+    method: 'POST',
+    url: 'contacts',
+    changesetId: 'account-and-contact',
+    body: { firstname: 'Ada' },
+  },
+])
 
 // Selected headers from the outer batch response (when provided)
 const parallelismHint = results[0]?.batchHeaders?.['x-ms-dop-hint']
