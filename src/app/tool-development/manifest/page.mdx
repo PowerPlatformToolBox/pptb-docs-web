@@ -39,7 +39,7 @@ The `package.json` follows the standard [npm package format](https://docs.npmjs.
 | `displayName` | `string` | Human-readable name shown in the ToolBox UI. Must describe what the tool does — see [Tool Naming](/policies/marketplace#tool-naming) | `"My Awesome Tool"` |
 | `description` | `string` | Short description of what the tool does | `"Manage Dataverse solutions"` |
 | `main` | `string` | Entry-point file relative to the `dist` root | `"index.html"` |
-| `icon` | `string` | Path to SVG icon relative to the `dist` root. Use `fill="currentColor"` to support light/dark themes | `"icons/tool.svg"` |
+| `icon` | `string` | Path to SVG icon relative to the `dist` root. Single-colour icons (for example, `fill="currentColor"`) follow the light/dark theme; multi-colour icons are shown as authored and must be legible on both — see **Icon Colours and Themes** in [Publishing](/tool-development/publishing) | `"icons/tool.svg"` |
 | `license` | `string` | An approved open-source license identifier | `"MIT"` |
 | `contributors` | `array` | One or more objects with a `name` and optional `url` | See below |
 | `configurations` | `object` | PPTB-specific links and metadata | See [Configurations Object](#configurations-object) |

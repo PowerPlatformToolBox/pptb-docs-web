@@ -104,7 +104,7 @@ Ensure all required fields are present:
 </Note>
 
 <Note type="warning">
-  To support light and dark themes, your SVG icon should use `fill="currentColor"` (or `stroke="currentColor"` as needed).
+  Single-colour SVG icons (for example, using `fill="currentColor"`) follow the light and dark themes. Multi-colour icons are shown in their own colours on both themes, so they must be legible on both. See **Icon Colours and Themes** below.
 </Note>
 
 <Properties>
@@ -146,6 +146,20 @@ Ensure all required fields are present:
     combine them with `connections`.
   </Property>
 </Properties>
+
+### Icon Colours and Themes
+
+ToolBox decides how to draw your SVG icon from the colours it uses:
+
+- **Single-colour icons** use `currentColor`, or one colour throughout (shapes without a fill count as black). ToolBox draws them in its text colour, so they adapt to the light and dark themes automatically.
+- **Multi-colour icons** use two or more colours, a gradient, or an embedded image. ToolBox shows them exactly as authored, on both themes, and doesn't recolour or filter them. Transparency is kept.
+
+If your icon uses colour:
+
+- **Make it legible on both themes.** The same icon is shown on a light background and on a dark one. Dark colours can disappear on the dark theme, and light colours on the light theme. If your colours only work on one background, put the glyph on its own coloured tile or give it a contrasting outline.
+- **Check it before you submit.** Load your tool locally (see [Debugging](/tool-development/debugging/desktop)), then look at the icon in the Installed Tools sidebar with the ToolBox theme set to light and then to dark.
+
+During intake and updates, reviewers preview your icon on both the light and dark themes. If it isn't legible on one of them, you'll be asked to change it.
 
 ### Including Your Icon in `dist/`
 
