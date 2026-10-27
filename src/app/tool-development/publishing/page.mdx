@@ -151,8 +151,8 @@ Ensure all required fields are present:
 
 ToolBox decides how to draw your SVG icon from the colours it uses:
 
-- **Single-colour icons** use `currentColor`, or one colour throughout (shapes without a fill count as black). ToolBox draws them in its text colour, so they adapt to the light and dark themes automatically.
-- **Multi-colour icons** use two or more colours, a gradient, or an embedded image. ToolBox shows them exactly as authored, on both themes, and doesn't recolour or filter them. Transparency is kept.
+- **Single-colour icons** use `currentColor`, or one colour throughout (shapes without a fill count as black). ToolBox draws them in its text colour, so they adapt to the light and dark themes automatically. An icon that uses `currentColor` anywhere counts as single-colour, so don't mix `currentColor` with other colours if you want those colours shown.
+- **Multi-colour icons** use two or more colours, a gradient or pattern, or an embedded image. ToolBox shows them exactly as authored, on both themes, and doesn't recolour or filter them. Transparency is kept.
 
 If your icon uses colour:
 
