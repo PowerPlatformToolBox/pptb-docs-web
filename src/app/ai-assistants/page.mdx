@@ -11,6 +11,7 @@ export const sections = [
   { title: 'Two Ways to Run Tools', id: 'two-ways-to-run-tools' },
   { title: 'Interactive Tool Runs', id: 'interactive-tool-runs' },
   { title: 'Automated Tool Runs', id: 'automated-tool-runs' },
+  { title: 'Connections and Missing Inputs', id: 'connections-and-missing-inputs' },
   { title: 'What Assistants Can Do', id: 'what-assistants-can-do' },
   { title: 'Monitor Invocations', id: 'monitor-invocations' },
   { title: 'Security and Access', id: 'security-and-access' },
@@ -56,7 +57,7 @@ PPTB supports two styles of assistant-driven tool execution:
 | Run style | What it feels like | Best for |
 | --- | --- | --- |
 | Interactive tool run | The tool opens its normal UI and the assistant works with that interactive experience | Pickers, review screens, confirmation steps, anything where a person should stay in the loop |
-| Automated tool run | The tool completes the task without opening its UI | Background actions, repeatable workflows, CI jobs, or agent-driven orchestrations |
+| Automated tool run | The tool runs without opening its UI | Background actions, repeatable workflows, or agent orchestration when required input and authentication are available |
 
 The assistant chooses the run style based on what the tool supports and what the task requires.
 
@@ -80,10 +81,31 @@ This is useful when the task needs:
 
 - repeatable background execution
 - integration into larger agent workflows
-- unattended processing
 - a direct JSON result that the assistant can reason over immediately
 
-Not every tool supports automated runs. Tool authors must explicitly add that runtime.
+Not every tool supports automated runs. Tool authors must explicitly add that runtime. Automated runs can still need information or sign-in from you; the assistant handles those requests in its chat instead of opening the tool's UI.
+
+## Connections and Missing Inputs {{ anchor: true }}
+
+When a tool needs a Power Platform connection, the assistant can use two built-in MCP tools:
+
+| MCP tool | Purpose |
+| --- | --- |
+| `pptb_list_connections` | Lists saved connections with their name, environment, URL, authentication type, and sign-in status. It does not expose connection IDs, secrets, or tokens. |
+| `pptb_authenticate_connections` | Authenticates the connections you selected. It returns per-connection results, never tokens. |
+
+For each new task that uses connections, the assistant should show you the available connection names, environments, and URLs and wait for your choice—even if there is only one connection or it is already signed in. If the tool needs multiple connections, select one for each required slot. The assistant must not choose an environment based on sign-in status or try other connections to find data.
+
+| Sign-in status | What happens |
+| --- | --- |
+| `signed-in` | PPTB can reuse a valid sign-in; no authentication call is needed. |
+| `refreshable` | PPTB can obtain a token without asking you to sign in. |
+| `sign-in-required` | The assistant requests authentication for the connection you selected. An interactive connection may open a browser on your device. |
+| `incomplete-credentials` | Complete the connection's credentials in PPTB before using it. |
+
+After you select connections and complete any needed sign-in, the assistant invokes the tool with those connections in slot order. If a call is missing a required connection or tool input, PPTB returns an `input_required` response with the missing requirements. The assistant can ask you for the missing details and retry; this is a request for input, not a tool failure. Required tool inputs can include a title, description, or allowed values to help explain what is needed.
+
+If you cancel or do not choose a connection, the assistant should stop without authenticating or invoking the connection-dependent tool. If you prefer to enter connection and input details in the PPTB UI, the assistant may use a tool's windowed mode when that tool supports it.
 
 ## What Assistants Can Do {{ anchor: true }}
 
@@ -115,7 +137,7 @@ The exact details depend on the tool. Automated tools can report live progress a
 PPTB does not automatically make every installed tool available for every kind of agent workflow.
 
 - Tool authors control whether a tool is invokable by assistants.
-- Automated runs can use caller-provided authentication or a saved PPTB connection when supported by the tool and runtime.
+- The assistant must use only connections you explicitly select. Authentication results do not include tokens.
 - Input and output payloads follow each tool's declared contract, which helps keep assistant calls predictable.
 - Invocation details can include tool-provided messages and result data. Review them before sharing diagnostics, and do not place secrets in tool output or logs.
 

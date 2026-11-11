@@ -106,7 +106,7 @@ Each entry in `prefill.properties` and `returnTopic.properties` is a property de
 ```
 
 <Note type="information">
-  `title`, `description`, and `required` matter most for tools exposed to AI assistants. They give the agent enough context to ask the user for missing input instead of guessing.
+  `title`, `description`, and `required` matter most for tools exposed to AI assistants. They give the agent enough context to ask the user for missing input instead of guessing. If a required value is missing, the Desktop MCP server returns an `input_required` response with the missing parameter details so the assistant can ask and retry. See [Connection and Input Requirements](/tool-development/agent-integration#connection-and-input-requirements).
 </Note>
 
 ## Capability Tags {{ anchor: true }}

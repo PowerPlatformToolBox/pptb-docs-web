@@ -9,6 +9,7 @@ export const sections = [
   { title: 'MCP Contract', id: 'mcp-contract' },
   { title: 'Interactive and Automated Runs', id: 'interactive-and-automated-runs' },
   { title: 'Declare Tool Metadata', id: 'declare-tool-metadata' },
+  { title: 'Connection and Input Requirements', id: 'connection-and-input-requirements' },
   { title: 'Add an Automated Runtime', id: 'add-an-automated-runtime' },
   { title: 'Report Progress and Logs', id: 'report-progress-and-logs' },
   { title: 'Invocation Metadata', id: 'invocation-metadata' },
@@ -53,7 +54,7 @@ These docs use end-user language for the two execution styles:
 | Interactive tool run | `executionMode: "windowed"` | PPTB opens the tool UI and the assistant works through the normal interactive experience |
 | Automated tool run | `executionMode: "headless"` | PPTB runs the tool without opening the UI and returns a structured result when available |
 
-Interactive runs are a good fit for existing UI-driven tools. Automated runs are a good fit for repeatable tasks, direct data returns, and unattended workflows.
+Interactive runs are a good fit for existing UI-driven tools. Automated runs are a good fit for repeatable tasks and direct data returns. If a call is missing a connection, sign-in, or required input, PPTB returns the requirements to the agent; the client can ask the user and retry without opening the tool UI.
 
 When a tool supports both, the MCP server uses an **automated (headless) run by default** and falls back to an **interactive (windowed) run** when headless execution is not available.
 
@@ -121,6 +122,24 @@ Property descriptors in `invocation.prefill` support `title`, `description`, and
 - `required: true` marks a value as mandatory. If the agent calls the tool without it, the value is requested from the user rather than guessed.
 
 Add these fields to every input an assistant is likely to supply, especially required ones.
+
+## Connection and Input Requirements {{ anchor: true }}
+
+The Desktop MCP server provides `pptb_list_connections` and `pptb_authenticate_connections`; tool authors do not need to implement connection selection or sign-in themselves. For a tool that uses connections, the MCP client should show the user the available connection names, environments, and URLs and wait for an explicit selection. It should do this for every new task, even when only one connection is available or already signed in.
+
+The user-selected saved connection names are passed in `__pptb.connectionNames` in slot order: index `0` is primary, index `1` is secondary, and later indexes are additional slots. The tool's `features.connections` declaration in `package.json` defines the required and allowed number of connections; see [Features Object](/tool-development/manifest#features-object). The MCP server resolves the selected names and authentication for headless execution. It does not expose connection IDs, secrets, or tokens to the agent.
+
+When a selected connection is not already signed in, the client can call `pptb_authenticate_connections` for that user-selected connection before retrying the tool. A required interactive sign-in opens a browser on the user's device. If a connection has incomplete credentials, the user must complete it in PPTB. The client must not choose a connection based on its authentication status or try other connections to find data.
+
+If requirements are missing, PPTB returns an `input_required` MCP result rather than treating the request as a tool failure. The result can combine:
+
+- missing or unknown connection names and the connection slots available to the tool (headless calls)
+- selected connections that need authentication (headless calls)
+- missing required `invocation.prefill` parameters (both windowed and headless calls)
+
+The result includes messages and next steps for the assistant. For missing parameters, it includes the property name and type, and any declared `title`, `description`, `enum`, or object/array schema. The assistant should ask the user for missing values, then retry with the original arguments plus the new values. Other schema validation errors are rejected directly.
+
+When the user prefers to use PPTB's connection picker or enter values in the tool UI, the assistant can retry in `windowed` mode if the tool supports it.
 
 <Note type="important">
   In prose we refer to automated runs, but the runtime field value remains
@@ -226,7 +245,7 @@ Assistants can pass PPTB-specific metadata under `arguments.__pptb`.
     "executionMode": "headless",
     "timeoutMs": 60000,
     "authToken": "optional-caller-token",
-    "connectionName": "optional-saved-connection"
+    "connectionNames": ["user-selected-saved-connection"]
   }
 }
 ```
@@ -237,7 +256,9 @@ Key fields:
 - `executionMode`: `windowed` or `headless`
 - `timeoutMs`: per-call timeout hint
 - `authToken`: optional token provided by the caller
-- `connectionName`: optional saved PPTB connection name
+- `connectionNames`: saved PPTB connection names explicitly selected by the user, in connection-slot order. Up to 10 names are supported.
+
+`connectionName` remains available as a legacy alias for the first name in `connectionNames`. When both are provided, they must refer to the same connection.
 
 When your UI-based tool is launched through MCP, `toolboxAPI.invocation.getLaunchContext()` includes the original prefill data and a `__pptb` metadata object such as:
 
@@ -274,9 +295,10 @@ Before publishing or sharing your tool with assistant users:
 2. Check that the tool appears in MCP discovery only when `agents.invokable` is `true`.
 3. Test both `one-way` and `two-way` calls if you advertise both modes.
 4. Call the tool without each `required` prefill property and confirm the agent asks the user for it.
-5. Confirm that your automated runtime returns a payload matching `returnTopic`.
-6. Confirm that progress, runtime logs, results, and failures appear correctly in the PPTB MCP Server invocation details.
-7. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
+5. Test a connection-dependent invocation with too few, unknown, and unauthenticated connection names; confirm the client requests user selection and authenticates only the selected connections.
+6. Confirm that your automated runtime returns a payload matching `returnTopic`.
+7. Confirm that progress, runtime logs, results, and failures appear correctly in the PPTB MCP Server invocation details.
+8. Use MCP Inspector as the manual test harness for tool discovery and tool calls.
 
 To start MCP Inspector for debugging, run:
 
