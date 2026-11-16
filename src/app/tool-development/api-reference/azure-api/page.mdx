@@ -1,0 +1,183 @@
+export const metadata = {
+  title: 'Azure and Microsoft Graph API',
+  description:
+    'Read-only ARM and Microsoft Graph APIs available to PPTB renderer and MCP headless tools',
+}
+
+export const sections = [
+  { title: 'Overview', id: 'overview' },
+  { title: 'Connection Setup', id: 'connection-setup' },
+  { title: 'MCP Headless Execution', id: 'mcp-headless-execution' },
+  { title: 'Manifest', id: 'manifest' },
+  { title: 'Requests and Limits', id: 'requests-and-limits' },
+  { title: 'Cost Management', id: 'cost-management' },
+  {
+    title: 'Pagination, Cancellation, and Errors',
+    id: 'pagination-cancellation-and-errors',
+  },
+]
+
+# Azure Resource Manager and Microsoft Graph
+
+PPTB exposes host-proxied, read-only Azure Resource Manager (ARM) and Microsoft Graph APIs to renderer tools and MCP headless tools. The host manages authentication and tokens; tools never receive access tokens or secrets. {{ className: 'lead' }}
+
+<Note type="warning">
+  These APIs require PPTB Desktop and the matching `@pptb/types` version to be
+  **1.2.9 or later**, with the Azure API support included. Set `features.minAPI`
+  to `"1.2.9"` or later.
+</Note>
+
+## Overview {{ anchor: true }}
+
+Use the standalone `window.azureAPI.arm` and `window.azureAPI.graph` clients. They reuse the selected Dataverse connection's account, tenant, client ID, credentials, and proxy settings, but acquire separate host-held, resource-specific tokens. Dataverse, Power Platform, ARM, and Graph tokens are not interchangeable.
+
+```typescript
+await window.azureAPI.arm.authenticate()
+const subscriptions = await window.azureAPI.arm.listSubscriptions()
+const profile = await window.azureAPI.graph.Get<{ displayName: string }>(
+  '/v1.0/me',
+)
+```
+
+This is not unrestricted Azure access. ARM and Graph expose `GET` and pagination; ARM additionally exposes subscription discovery, cost queries, and a cost-access check. The only supported `POST` is the validated, subscription-scoped Cost Management Query operation, which is read-only in effect. By contrast, [Power Platform `Raw` methods](/tool-development/api-reference/powerplatform-api#raw-responses-and-binary-downloads) include `POST`, `PUT`, `PATCH`, and `DELETE`.
+
+In renderer tools, use `window.azureAPI`. In MCP headless execution, `globalThis.azureAPI` and its `window.azureAPI` alias expose the same API. The API is not exposed to .NET or other workers. It supports Azure public cloud (`management.azure.com`) and Microsoft Graph `v1.0` only—not sovereign clouds, arbitrary endpoints/audiences, or Graph `beta`.
+
+## Connection Setup {{ anchor: true }}
+
+Enable the APIs on the existing Dataverse connection in **Add/Edit Connection** under **Additional APIs (Optional)**:
+
+- **Enable Power Platform API** — the existing Power Platform API integration; requires an explicit client ID.
+- **Enable Azure Resource Manager API** — enables ARM access.
+- **Enable Microsoft Graph API** — enables Graph access.
+
+These are optional connection settings. They do not add another account, tenant, or subscription picker, and enabling one does not make it a tool launch requirement. Azure and Graph authenticate on demand, independently of Power Platform token acquisition. Disabling an API blocks further requests for it and invalidates its pending work, without disconnecting Dataverse.
+
+OAuth connections use the selected MSAL account and resource tenant. Connections using a client ID and secret use application authentication; the host does not expose credentials or tokens to tool code. Additional tokens stay in the host's session-memory cache and are not persisted or exported. Changing the account, tenant, registration, credentials, or selected connection slot cancels old work and invalidates the corresponding additional API access and paging handles.
+
+See the end-user [Entra App Registration Setup](/authentication/entra-app-registration#mode-c-azure-and-microsoft-graph-apis) for the Client ID, desktop redirect, API permission, and consent steps. **Configure App does not yet provision ARM or Graph permissions**, so they must be configured manually for tools using those APIs to work. A Client ID or consent alone does not grant Azure RBAC or billing visibility.
+
+## MCP Headless Execution {{ anchor: true }}
+
+Declare the same `features.apis` entries in the installed package and enable ARM and/or Graph on the saved Dataverse connection. Use the existing `agents.headless` / `agents.headlessEntry` configuration and the MCP connection-selection and authentication flow. No additional Azure-specific opt-in is needed.
+
+During `invokeHeadless`, `globalThis.azureAPI` (also available as `window.azureAPI`) exposes the same ARM/Graph methods and structured errors. Requests use the invocation's assigned connection slots, not the app's active connection. An empty or deleted slot rejects with `notConnected`; safe connection metadata includes ARM/Graph enablement flags.
+
+Like the Power Platform headless client, Azure acquires its own resource token on demand: silent MSAL acquisition or renewal first, then host-managed browser sign-in if consent, MFA, or Conditional Access requires interaction. There is **no additional PPTB API approval dialog**, and a windowed Azure request does not need to be approved first. Entra consent and Azure/Graph authorization still apply. `authenticate()` is available for an explicit retry, including a claims challenge.
+
+Headless execution does not open the tool UI, but sign-in can require user interaction; it is not an unattended authentication guarantee.
+
+```typescript
+/// <reference types="@pptb/types" />
+
+export async function invokeHeadless() {
+  const subscriptions = await globalThis.azureAPI.arm.listSubscriptions()
+  return { subscriptions: subscriptions.data?.value ?? [] }
+}
+```
+
+Tokens remain inside the host's Azure authentication and transport and are not added to invocation context. Headless execution has the same read-only methods, pinned origins, proxy handling, request deadlines, throttling diagnostics, and opaque pagination. `connectionTarget` selects `"primary"`, `"secondary"`, or a numeric slot. `cancelRequest()` and `onConnectionChanged()` are available. Page handles, cancellation IDs, and event subscriptions are isolated per invocation; pending requests and subscriptions are disposed when execution returns, fails, or reaches its MCP job deadline. Do not retain the client after invocation.
+
+### Connection indicators
+
+Connection selectors show compact enabled-API badges in a fixed order, for example **PP, ARM, Graph**. Hovering or keyboard focus reveals the full names and clarifies that enablement does not verify authentication or authorization.
+
+When a tool declares required APIs, the selector shows a **Required APIs** banner (for example, “Required APIs: PP, ARM. Choose connections with matching tags.”). Selecting a connection without an API the tool declares shows a **Selected connection missing** warning. Multi-connection tools check the assigned connections. These warnings do **not** prevent selection.
+
+An enabled badge or required-API match is not proof that the user is signed in, has consented, or is authorized for the requested resource or subscription. Check API state and handle request errors at runtime.
+
+## Manifest {{ anchor: true }}
+
+Use `features.apis` for new tools. `required` defaults to `false`; `required: true` adds connection-selection guidance but does not guarantee authentication or access. Optional APIs remain available on demand.
+
+```json
+{
+  "features": {
+    "connections": 1,
+    "minAPI": "1.2.9",
+    "apis": {
+      "pp": { "required": true },
+      "arm": { "required": true },
+      "graph": { "required": false, "scopes": ["Reports.Read.All"] }
+    }
+  }
+}
+```
+
+Declare only the APIs and permissions the tool needs. When Graph is declared, `scopes` is required and must contain 1–20 short, read-only permission names ending in `.Read`, `.ReadBasic`, `.Read.All`, `.ReadBasic.All`, or `.Read.Selected` (for example, `User.Read` or `Reports.Read.All`), not scope URLs or write/manage permissions. `User.Read` is only needed if the tool reads the user's profile. ARM uses a fixed resource scope; Power Platform keeps its existing authentication behavior.
+
+Existing declarations remain supported:
+
+| Declaration                                                       | Meaning                                    |
+| ----------------------------------------------------------------- | ------------------------------------------ |
+| Deprecated `features.enabledForPowerPlatformAPI: true`            | Power Platform declared as required        |
+| Deprecated `features.enabledForPowerPlatformAPI: false` or absent | No Power Platform requirement              |
+| `features.azure.arm: true`                                        | ARM declared as optional                   |
+| `features.azure.graph: ["User.Read"]`                             | Graph declared as optional with that scope |
+
+Legacy declarations can coexist with `features.apis` declarations for different APIs. If the same API is declared in both formats, required status and Graph scopes must agree (scope order does not matter). Conflicting declarations fail validation and the host denies API access. To make legacy Azure access required, remove its `features.azure` declaration and use `features.apis`.
+
+See [Package Manifest: Features Object](/tool-development/manifest#features-object) for the full feature reference.
+
+## Requests and Limits {{ anchor: true }}
+
+Each resource provides `getConnectionState()`, `authenticate(options?)`, `Get(path, options?)`, and `nextPage(handle, options?)` in renderer and MCP headless execution. ARM also provides `listSubscriptions(options?)`, `queryCosts(scope, query, options?)`, and `checkCostAccess(scope, options?)`.
+
+```typescript
+const options = { connectionTarget: 'primary', timeoutMs: 30_000 }
+const state = await window.azureAPI.arm.getConnectionState(
+  options.connectionTarget,
+)
+
+if (state.configured && state.signedIn) {
+  await window.azureAPI.arm.authenticate(options) // Call from a user action.
+  const result = await window.azureAPI.graph.Get('/v1.0/me', options)
+  console.log(result.data)
+}
+```
+
+`connectionTarget` accepts `"primary"`, `"secondary"`, or a zero-based numeric slot (`0` is primary, `1` secondary). `requestId` identifies work for `cancelRequest(id)`. `timeoutMs` is a total deadline including token acquisition, host approval where applicable, and networking; its default is 30 seconds, and accepted values are 1,000–120,000 ms. Explicit authentication defaults to 120 seconds.
+
+`getConnectionState()` reports configuration and sign-in state, but its access value remains `unverified`; it does not prove service authorization. In renderer tools, `authenticate()` requests host confirmation and, when needed, browser authentication; call it from a user action. In headless execution, it is available for an explicit authentication retry but does not show the renderer API approval dialog.
+
+Paths must begin with `/`; ARM requests require an `api-version`, and Graph paths must use `/v1.0/...`. Responses are JSON-only; binary downloads are not supported. The host does not accept arbitrary methods, URLs, headers, token scopes, or redirects. Tokens are only attached to the resource's pinned HTTPS origin.
+
+## Cost Management {{ anchor: true }}
+
+`arm.listSubscriptions()` discovers subscriptions the account can enumerate. Subscription discovery can be restricted even when the user can access a known subscription; tools may accept a manually entered `/subscriptions/{GUID}` scope. Discovery does not prove access to cost data.
+
+The cost helpers support subscription scope only. `queryCosts` accepts validated `ActualCost` or `AmortizedCost` queries with supported timeframes, daily/monthly/no granularity, Sum aggregations, dimensions/tags, and `In` filters. Cost queries use API version `2025-03-01`; subscription listing uses `2022-12-01`. Resource-group, management-group, billing-account/profile, invoice-section, EA enrollment/department, and partner-customer scopes are not supported by these helpers. Generic ARM `GET` remains available for supported read endpoints, including dimension discovery.
+
+```typescript
+const scope = '/subscriptions/00000000-0000-0000-0000-000000000001'
+const access = await window.azureAPI.arm.checkCostAccess(scope)
+if (access.costData === 'accessible') {
+  const result = await window.azureAPI.arm.queryCosts(scope, {
+    type: 'ActualCost',
+    timeframe: 'MonthToDate',
+    dataset: {
+      granularity: 'Daily',
+      aggregation: { totalCost: { name: 'PreTaxCost', function: 'Sum' } },
+    },
+  })
+  console.log(result.data?.properties)
+}
+```
+
+`checkCostAccess(scope)` runs a small actual-cost query for the previous day and reports configured/sign-in/scope state, `costData` (`accessible`, `accessDenied`, or `unverified`), timestamp, and an optional structured error. Success—including empty data—verifies only that operation and period; it does not prove access to amortized costs, every dimension, or historical periods. Empty rows and HTTP 204 are not permission failures or zero spend.
+
+Cost access depends on effective permissions at the selected scope and agreement-specific billing visibility. **Cost Management Reader** at the subscription (or an appropriate ancestor) is a common starting point, not a guarantee. A 403 does not identify one exact missing role; do not recommend Owner or Contributor by default.
+
+## Pagination, Cancellation, and Errors {{ anchor: true }}
+
+Successful requests return `{ status, headers, data, continuation? }`. Response header names are lowercase; safe request/correlation IDs, rate-limit metadata, and retry headers are available. Follow a returned handle with `nextPage(handle, options)` on the same resource and connection. Handles are opaque, expire after 15 minutes, and are bound to the tool, resource, and connection. Pagination preserves the original method and query body; do not present partial pages as a complete result.
+
+Use a unique `requestId` for each request and call `azureAPI.cancelRequest(id)` (`window.azureAPI` in renderer tools or `globalThis.azureAPI` in headless execution) to cancel it. Do not send an `AbortSignal` through Electron IPC; connect a tool-side `AbortController` to `cancelRequest`, and discard late results after cancellation. A connection change cancels old work and invalidates page handles. `onConnectionChanged(listener)` lets a tool invalidate displayed data when the connection changes and returns an unsubscribe function. Headless requests, handles, and subscriptions are also disposed when their invocation ends.
+
+At most eight active operations, 100 outstanding continuation handles per tool, 100 hops per continuation chain, and 10 MiB per response are allowed. Query bodies are limited to 64 KiB, with additional bounds on filters, grouping, and custom periods. Narrow requests rather than retrying unchanged limit failures.
+
+HTTP 429 responses are not retried automatically. Honor `retryAfterMs` or the retained retry headers, wait with cancellation support, and avoid parallel retry storms. One silent refresh/retry is permitted after a 401 without a claims challenge; 403 is not retried.
+
+Failures reject with a plain `AzureApiError` object (not necessarily an `Error` instance). It may contain `code`, `status`, safe `headers`, `serviceCode`, request/correlation IDs, and `retryAfterMs`. Handle expected states such as `notConfigured`, `notConnected`, `consentRequired`, `accessDenied`, `throttled`, `cancelled`, and `timeout`; surface safe diagnostics to administrators without logging tokens, secrets, claims challenges, or response bodies. Use `onConnectionChanged()` to invalidate displayed results and outstanding paging state.
+
+For signatures and implementation details, see the public [Azure API declaration](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/packages/types/azureAPI.d.ts), the [daily Azure costs example](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/packages/types/examples/azure-costs.ts), and the [desktop Azure API guide](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/docs/AZURE_API.md).

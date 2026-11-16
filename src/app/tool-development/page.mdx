@@ -75,7 +75,7 @@ Organized into namespaces:
 - **events** - Subscribe to platform events (tool-specific)
 
 <Note type="important">
-  For connection typing in `@pptb/types`: `DataverseConnection` is deprecated and renamed to `Connection`. The `Connection` model also includes `enabledForPowerPlatformAPI?: boolean` and `scopesForPowerPlatformAPI?: string[]`.
+  For connection typing in `@pptb/types`: `DataverseConnection` is deprecated and renamed to `Connection`. The `Connection` model exposes the connection's Power Platform API enablement and granted-scope state; this runtime connection state is separate from the tool's manifest declaration. New manifests should declare API requirements with `features.apis`.
 </Note>
 
 ### Dataverse API (`window.dataverseAPI`)

@@ -93,7 +93,7 @@ interface Connection {
   categoryColor?: string // Hex color code for the category badge (added in 1.2.0)
   createdAt: string // ISO date string of when the connection was created
   lastUsedAt?: string // ISO date string of when the connection was last used
-  enabledForPowerPlatformAPI?: boolean // True when this connection is enabled for Power Platform API usage
+  enabledForPowerPlatformAPI?: boolean // Runtime connection enablement state; separate from features.apis in the manifest
   scopesForPowerPlatformAPI?: string[] // Granted scopes for Power Platform API calls
   isActive?: boolean // @deprecated legacy field retained for backwards compatibility
 }

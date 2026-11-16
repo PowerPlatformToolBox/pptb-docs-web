@@ -1,16 +1,29 @@
 export const metadata = {
-    title: 'Entra App Registration Setup',
+  title: 'Entra App Registration Setup',
   description:
-    'End-user guide to configure a Microsoft Entra app registration for Power Platform ToolBox when using only Client ID or enabling Power Platform API access',
+    'End-user guide to configure a Microsoft Entra app registration for Power Platform ToolBox, Power Platform API, Azure Resource Manager, and Microsoft Graph',
 }
 
 export const sections = [
   { title: 'When to Use This Guide', id: 'when-to-use-this-guide' },
   { title: 'Mode A: Client ID Only', id: 'mode-a-client-id-only' },
-  { title: 'Mode B: Enable for Power Platform API', id: 'mode-b-enable-for-power-platform-api' },
-  { title: 'Automatic Configuration in ToolBox', id: 'automatic-configuration-in-toolbox' },
+  {
+    title: 'Mode B: Enable for Power Platform API',
+    id: 'mode-b-enable-for-power-platform-api',
+  },
+  {
+    title: 'Mode C: Azure and Microsoft Graph APIs',
+    id: 'mode-c-azure-and-microsoft-graph-apis',
+  },
+  {
+    title: 'Automatic Configuration in ToolBox',
+    id: 'automatic-configuration-in-toolbox',
+  },
   { title: 'PowerShell Handoff Script', id: 'powershell-handoff-script' },
-  { title: 'Manual Configuration in Entra', id: 'manual-configuration-in-entra' },
+  {
+    title: 'Manual Configuration in Entra',
+    id: 'manual-configuration-in-entra',
+  },
   { title: 'Verification Checklist', id: 'verification-checklist' },
   { title: 'Troubleshooting', id: 'troubleshooting' },
 ]
@@ -60,12 +73,36 @@ Common delegated scopes to start with are:
 - `ResourceQuery.Resources.Read`
 
 <Note type="important">
-    This scope list is a starting point for common scenarios. It is not a comprehensive list and not a guaranteed minimum for every tool workflow.
+  This scope list is a starting point for common scenarios. It is not a
+  comprehensive list and not a guaranteed minimum for every tool workflow.
 </Note>
 
 <Note type="information">
-    The latest permission and scope names are maintained in Microsoft documentation. Recheck before rollout in production:
-    [Programmability permission reference](https://learn.microsoft.com/en-us/power-platform/admin/programmability-permission-reference).
+  The latest permission and scope names are maintained in Microsoft
+  documentation. Recheck before rollout in production: [Programmability
+  permission
+  reference](https://learn.microsoft.com/en-us/power-platform/admin/programmability-permission-reference).
+</Note>
+
+## Mode C: Azure and Microsoft Graph APIs {{ anchor: true }}
+
+Use this setup when a tool needs Azure Resource Manager (ARM) or Microsoft Graph access. Configure the normal Dataverse connection with an explicit **Client ID**, then enable **Enable Azure Resource Manager API** and/or **Enable Microsoft Graph API** in the connection's **Additional APIs (Optional)** section. These settings reuse the existing connection identity; they do not add another account or tenant.
+
+For **Microsoft Login (OAuth)**, keep the app registration set up as a desktop/public client with the **Mobile and desktop applications** platform and both redirect URIs from Mode A, including `http://localhost`. Do not register the loopback redirect as a SPA or require a client secret for OAuth.
+
+In the app registration's **API permissions**, add:
+
+- **Azure Service Management** > **Delegated permissions** > `user_impersonation` for ARM.
+- **Microsoft Graph** > **Delegated permissions** for the read permissions the tool requires. Use the permissions listed by the tool or its documentation, such as `User.Read` or `Reports.Read.All`; do not add broader permissions than needed.
+
+Grant user or admin consent according to your tenant's consent policy. Admin consent does not grant Azure RBAC or cost-data billing visibility. Cost Management access also requires effective access at the queried subscription and any applicable agreement-specific billing visibility.
+
+For a **Client ID/Secret** connection, Graph uses application permissions and requires admin consent. ARM application access is controlled through Azure role assignments. The host-provided ARM/Graph tool APIs remain read-only regardless of the identity's broader permissions.
+
+<Note type="warning">
+  **Configure & Add/Save does not yet provision ARM or Microsoft Graph
+  permissions.** Add these permissions and obtain any required consent manually;
+  otherwise tools using ARM or Graph will not work properly.
 </Note>
 
 ## Automatic Configuration in ToolBox {{ anchor: true }}
@@ -73,11 +110,11 @@ Common delegated scopes to start with are:
 From the connection dialog you can use:
 
 - **Add Connection** dialog buttons:
-    - **Configure & Add**: attempts to update redirect URIs and baseline Power Platform API permissions automatically.
-    - **Copy Script & Add**: adds the connection and gives you a PowerShell script you can run manually.
+  - **Configure & Add**: attempts to update redirect URIs and baseline Power Platform API permissions automatically.
+  - **Copy Script & Add**: adds the connection and gives you a PowerShell script you can run manually.
 - **Edit Connection** dialog buttons:
-    - **Configure & Save**: attempts to update redirect URIs and baseline Power Platform API permissions automatically.
-    - **Copy Script & Save**: saves the connection and gives you a PowerShell script you can run manually.
+  - **Configure & Save**: attempts to update redirect URIs and baseline Power Platform API permissions automatically.
+  - **Copy Script & Save**: saves the connection and gives you a PowerShell script you can run manually.
 
 Use the script path when automatic configuration is blocked by tenant restrictions or permission boundaries.
 
@@ -153,7 +190,8 @@ Write-Host 'App registration updated successfully.'
 ```
 
 <Warning>
-  The account running this script must be allowed to update app registrations in your tenant.
+  The account running this script must be allowed to update app registrations in
+  your tenant.
 </Warning>
 
 ## Manual Configuration in Entra {{ anchor: true }}

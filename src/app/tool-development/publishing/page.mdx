@@ -93,8 +93,10 @@ Ensure all required fields are present:
   "features": {
     // Optional section to declare special features your tool needs
     "connections": { "min": 1, "max": 3 }, // requires Desktop 1.2.7 or later
-    "enabledForPowerPlatformAPI": true, // required when using window.powerplatformAPI
-    "minAPI": "1.2.7" // minimum supported ToolBox API version
+    "apis": {
+      "pp": { "required": true }
+    }, // preferred declaration for window.powerplatformAPI
+    "minAPI": "1.2.9" // minimum supported ToolBox API version for features.apis
   }
 }
 ```
@@ -140,8 +142,9 @@ Ensure all required fields are present:
     Content Security Policy exceptions if needed
   </Property>
   <Property name="features" type="object">
-    Special features your tool requires (e.g., `connections`,
-    `enabledForPowerPlatformAPI`, `minAPI`). The legacy `multiConnection` and
+    Special features your tool requires (e.g., `connections`, `apis`, `minAPI`).
+    The legacy `enabledForPowerPlatformAPI` manifest field is deprecated and
+    retained for backward compatibility. The legacy `multiConnection` and
     `connectionRequirement` fields remain supported but are deprecated; do not
     combine them with `connections`.
   </Property>

@@ -7,6 +7,7 @@ export const metadata = {
 export const sections = [
   { title: 'Overview', id: 'overview' },
   { title: 'Shared Client Methods', id: 'shared-client-methods' },
+  { title: 'Raw Responses and Binary Downloads', id: 'raw-responses-and-binary-downloads' },
   { title: 'Namespace Catalog', id: 'namespace-catalog' },
 ]
 
@@ -30,24 +31,28 @@ Use the API through `window.powerplatformAPI`. The surface is organized into ser
   1. Configure your Microsoft Entra app registration using the end-user guide: **[Entra App Registration Setup](/authentication/entra-app-registration)**.
   2. In your Power Platform ToolBox connection settings, populate the App Registration **Client ID**.
   3. Enable **Enabled for Power Platform API** in that connection when you want to call `window.powerplatformAPI`.
-  4. In your tool's `package.json`, set `features.enabledForPowerPlatformAPI` to `true`.
+  4. In your tool's `package.json`, declare the API with `features.apis.pp` (example below).
 
   Microsoft references:
   - [Enable programmability and API support](https://learn.microsoft.com/en-us/power-platform/admin/programmability-authentication-v2)
   - [Programmability permission reference](https://learn.microsoft.com/en-us/power-platform/admin/programmability-permission-reference)
 
-  You can inspect this state from the ToolBox connections API through `Connection.enabledForPowerPlatformAPI` and `Connection.scopesForPowerPlatformAPI`.
+  Connection API enablement and granted Power Platform scopes can be inspected through the ToolBox connections API.
 </Note>
 
 ```json
-"features": {
-  "connections": 1,
-  "minAPI": "1.2.7",
-  "enabledForPowerPlatformAPI": true
+{
+  "features": {
+    "connections": 1,
+    "minAPI": "1.2.9",
+    "apis": {
+      "pp": { "required": true }
+    }
+  }
 }
 ```
 
-`enabledForPowerPlatformAPI` declares that the tool uses this API; it does not enable the API for a connection. Users must still enable **Enabled for Power Platform API** for each connection the tool uses.
+`features.apis.pp` declares the tool's Power Platform API requirement; it does not enable the API on a user's connection or guarantee authentication/authorization. Users must still enable **Enabled for Power Platform API** on each connection the tool uses. The legacy `features.enabledForPowerPlatformAPI` manifest field is deprecated; existing manifests remain supported. Use `features.apis.pp` for new tools.
 
 ## Shared Client Methods {{ anchor: true }}
 
@@ -93,6 +98,110 @@ const response = await powerplatform.EnvironmentManagement.Get(
 
 console.log(response)
 ```
+
+## Raw Responses and Binary Downloads {{ anchor: true }}
+
+Available with minimum ToolBox API **1.2.9**. Set `features.minAPI` to `"1.2.9"` or later. `.Raw` is opt-in per request; the existing parsed methods and their behavior remain unchanged.
+
+```typescript
+const client = window.powerplatformAPI.EnvironmentManagement;
+
+const parsed = await client.Get(path); // Existing parsed response.
+const raw = await client.Raw.Get(path);
+
+raw.status; // HTTP status
+raw.headers['location']; // Header names are always lowercase.
+raw.headers['retry-after'];
+raw.body; // Uint8Array; empty responses have a zero-length body.
+```
+
+`Raw` provides `Get`, `Post`, `Put`, `Patch`, and `Delete`. Methods retain the corresponding parsed method's argument order and add a final optional `{ requireDelegatedAuthentication: true }` option. Connection targets accept `"primary"`, `"secondary"`, or a zero-based numeric slot (`0` is primary, `1` is secondary). For example:
+
+```typescript
+const response = await client.Raw.Post(
+  path,
+  requestBody,
+  'primary',
+  undefined,
+  { requireDelegatedAuthentication: true },
+);
+```
+
+`requireDelegatedAuthentication` rejects app-only connections for that request without disabling app-only authentication on other APIs. Keep the same target and option for every request in a multi-step operation.
+
+Raw bodies are bytes: they are not parsed as JSON or automatically decoded/decompressed. A gzip export remains compressed bytes even when its media type is `application/gzip` and no `Content-Encoding` header is present. Decode it explicitly in a renderer when appropriate:
+
+```typescript
+const stream = new Blob([raw.body])
+  .stream()
+  .pipeThrough(new DecompressionStream('gzip'));
+const text = await new Response(stream).text();
+```
+
+### Asynchronous exports and `Retry-After`
+
+Some endpoints return an empty `202` response and provide the operation URL in `Location`; read the lowercase response header rather than trying to parse JSON. Poll the returned URL until the endpoint reports success, then request the download URL. URLs are validated as HTTPS requests to `api.powerplatform.com` in the same API category; redirects are not followed automatically.
+
+Honor `Retry-After` before polling. It can be a number of delay-seconds or an HTTP date:
+
+```typescript
+function retryDelayMs(value: string): number {
+  if (/^\d+$/.test(value)) return Number(value) * 1000;
+  const deadline = Date.parse(value);
+  if (!Number.isFinite(deadline)) throw new Error('Invalid Retry-After header.');
+  return Math.max(0, deadline - Date.now());
+}
+
+const options = { requireDelegatedAuthentication: true };
+const target = 'primary';
+const started = await client.Raw.Post(exportPath, parameters, target, undefined, options);
+const operationUrl = started.headers['location'];
+if (!operationUrl) throw new Error('The service did not return an operation location.');
+
+let operation = started;
+let progress: unknown;
+while (!isExportComplete(progress)) {
+  const retryAfter = operation.headers['retry-after'];
+  await delay(retryAfter ? retryDelayMs(retryAfter) : documentedIntervalMs);
+  operation = await client.Raw.Get(operationUrl, target, undefined, options);
+  progress = JSON.parse(new TextDecoder().decode(operation.body));
+}
+// isExportComplete, documentedIntervalMs, and delay are endpoint/tool-specific.
+// Check terminal failure states too, then read the endpoint's download Location.
+const downloadUrl = operation.headers['location'];
+if (!downloadUrl) throw new Error('The service did not return a download location.');
+const download = await client.Raw.Get(downloadUrl, target, undefined, options);
+const compressedBytes = download.body;
+```
+
+The status fields, polling interval, and download location are endpoint-specific. Add a total timeout and cancellation policy; do not poll indefinitely.
+
+### Errors and availability
+
+Non-2xx HTTP responses reject with a plain `PowerPlatformHttpError` object, not an `Error` instance. It preserves `status`, lowercase `headers`, and the original error `body` bytes, plus a message and optional API code. Authentication, validation, and transport failures without an HTTP response reject separately. Repeated response-header values are joined with `", "`. Authorization, routing, and framing headers are host-managed and cannot be overridden.
+
+```typescript
+try {
+  await client.Raw.Get(path);
+} catch (error: unknown) {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'name' in error &&
+    error.name === 'PowerPlatformHttpError'
+  ) {
+    const failure = error as PowerPlatformAPI.HttpError;
+    const status = failure.status;
+    const retryAfter = failure.headers['retry-after'];
+    // failure.message and failure.body are available for endpoint-specific handling.
+    // Present a safe message; do not log response contents or sensitive URLs.
+  } else {
+    // Surface authentication, validation, or transport failure separately.
+  }
+}
+```
+
+The client is available as `window.powerplatformAPI` in renderer tools and `globalThis.powerplatformAPI` in headless tools. In contrast, the separate read-only ARM/Graph API is renderer-only; see [Azure and Microsoft Graph API](/tool-development/api-reference/azure-api). For exact `Raw` signatures, see the public [PowerPlatform API declaration](https://github.com/PowerPlatformToolBox/desktop-app/blob/main/packages/types/powerplatformAPI.d.ts).
 
 ## Namespace Catalog {{ anchor: true }}
 

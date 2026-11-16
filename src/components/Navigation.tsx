@@ -301,12 +301,12 @@ export const navigation: Array<NavGroup> = [
         href: '/tool-development/api-reference/powerplatform-api',
       },
       {
-        title: 'Additional Headers',
-        href: '/tool-development/api-reference/additional-headers',
+        title: 'Azure and Microsoft Graph API',
+        href: '/tool-development/api-reference/azure-api',
       },
       {
-        title: 'Entra App Registration Setup',
-        href: '/authentication/entra-app-registration',
+        title: 'Additional Headers',
+        href: '/tool-development/api-reference/additional-headers',
       },
       { title: 'Events API', href: '/tool-development/api-reference/events' },
       {

@@ -131,7 +131,8 @@ The validator checks every field that the official review pipeline inspects:
 | `features.connectionRequirement` | Deprecated | Legacy value, if present, must be `"required"` or `"optional"`; emits a deprecation warning |
 | Connection declaration | Required with `features` | Declare `connections` or the legacy `multiConnection`; `connections` cannot be combined with either legacy connection field |
 | `features.minAPI` | ⚠️ optional | If present: must be a valid semantic version string |
-| `features.enabledForPowerPlatformAPI` | ⚠️ optional | If present: must be `true` or `false` |
+| `features.enabledForPowerPlatformAPI` | Deprecated | If present, legacy value must be boolean; retained for existing manifests. New manifests should use `features.apis.pp`. |
+| `features.apis` | ⚠️ optional | Preferred Power Platform, ARM, and Graph declarations; Graph requires read-only permission names in `scopes` |
 
 **Approved licenses:** `MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `GPL-2.0`, `GPL-3.0`, `LGPL-3.0`, `ISC`, `AGPL-3.0-only`
 
@@ -148,6 +149,8 @@ The validator checks every field that the official review pipeline inspects:
 | Optional fields present but malformed (bad URL, invalid icon path, Windows absolute path, backslash separator, etc.) | ⚠ **Warning** or ✖ **Error** as appropriate |
 
 A clean run with no errors exits with code `0`. Any error exits with code `1`. Warnings alone do **not** cause a non-zero exit.
+
+When a legacy and preferred declaration name the same API, their required status and Graph scopes must agree; conflicting declarations fail validation and the host denies API access. See [API requirements in the Package Manifest](/tool-development/manifest#declaring-api-requirements) for the compatibility rules.
 
 **Sample human-readable output:**
 

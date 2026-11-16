@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'API Reference',
   description:
-    'Complete API reference for ToolBox API, PowerPlatform API, and Dataverse API available to tool developers',
+    'Complete reference for ToolBox, Dataverse, Power Platform, ARM, and Microsoft Graph APIs available to tool developers',
 }
 
 export const sections = [
@@ -24,6 +24,7 @@ Power Platform ToolBox provides a comprehensive set of APIs that enable tool dev
 - **ToolBox API** - Platform features including connections, utilities, and terminal management
 - **Dataverse API** - Complete HTTP client for interacting with Microsoft Dataverse
 - **PowerPlatform API** - Direct access to Power Platform service endpoints and management operations
+- **Azure and Microsoft Graph API** - Host-proxied, read-only ARM and Graph access for renderer tools
 - **Settings API** - Persistent storage for tool-specific preferences and configuration
 - **File System API** - Secure file operations for reading, writing, and managing files
 - **Events API** - Subscribe to platform events like connection changes and settings updates
@@ -41,6 +42,20 @@ Power Platform ToolBox provides a comprehensive set of APIs that enable tool dev
     </div>
     <div className="mt-4">
       <Button href="/tool-development/api-reference/toolbox-api" variant="text" arrow="right">
+        View Documentation
+      </Button>
+    </div>
+  </div>
+
+  <div className="relative rounded-2xl border border-zinc-900/5 p-6 dark:border-white/5">
+    <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+      Azure and Microsoft Graph API
+    </h3>
+    <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+      Read-only ARM and Graph requests, subscription discovery, and cost queries
+    </div>
+    <div className="mt-4">
+      <Button href="/tool-development/api-reference/azure-api" variant="text" arrow="right">
         View Documentation
       </Button>
     </div>
@@ -152,8 +167,9 @@ For developers new to Power Platform ToolBox, we recommend starting with:
 1. **[Quickstart Guide](/quickstart)** - Get up and running quickly
 2. **[ToolBox API](/tool-development/api-reference/toolbox-api)** - Learn about platform features
 3. **[PowerPlatform API](/tool-development/api-reference/powerplatform-api)** - Call Power Platform service endpoints
-4. **[Dataverse API](/tool-development/api-reference/dataverse-api)** - Start interacting with Dataverse
-5. **[Error Handling](/tool-development/api-reference/error-handling)** - Implement robust error handling
+4. **[Azure and Microsoft Graph API](/tool-development/api-reference/azure-api)** - Use read-only ARM and Graph access
+5. **[Dataverse API](/tool-development/api-reference/dataverse-api)** - Start interacting with Dataverse
+6. **[Error Handling](/tool-development/api-reference/error-handling)** - Implement robust error handling
 
 ## Next Steps {{ anchor: true }}
 

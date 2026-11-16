@@ -82,21 +82,51 @@ Declare ToolBox-specific capabilities your tool needs. If you omit connection se
 
 <RequiresVersion>1.2.7</RequiresVersion>
 
+<Note type="information">
+  For new manifests, declare Power Platform access with `features.apis.pp` (for example, `{ "required": true }`). The legacy `enabledForPowerPlatformAPI` manifest field is deprecated and retained only for backward compatibility.
+</Note>
+
 | Field | Type | Values | Description | Sample |
 |-------|------|--------|-------------|--------|
 | `connections` | `integer` \| `object` | Integer `0`–`10`, or `{ "min"?: integer, "max"?: integer }` | Exact connection count, or an inclusive allowed range. Object defaults: `min` is `1`; `max` is the resolved `min`. Both bounds must be integers from `0` to `10`, and `min` cannot exceed `max`. | `{ "min": 1, "max": 3 }` |
 | `multiConnection` | `string` | `"none"` \| `"optional"` \| `"required"` | **Deprecated.** Legacy connection cardinality setting; retained for existing manifests. Do not combine with `connections`. | `"optional"` |
 | `connectionRequirement` | `string` | `"required"` \| `"optional"` | **Deprecated.** Legacy setting for whether any connection is required. Do not combine with `connections`. | `"optional"` |
 | `minAPI` | `string` | SemVer | Minimum ToolBox API version the tool requires | `"1.2.0"` |
-| `enabledForPowerPlatformAPI` | `boolean` | `true` \| `false` | Opt the tool in to the Power Platform API. Set to `true` before using `window.powerplatformAPI` | `true` |
+| `apis` | `object` | `pp`, `arm`, `graph` | Preferred API declarations. Each API can set `required`; Graph also requires read-only `scopes`. Set `minAPI` to `"1.2.9"` when using these APIs. | `{ "arm": { "required": true } }` |
+| `enabledForPowerPlatformAPI` | `boolean` | `true` \| `false` | **Deprecated.** Legacy declaration retained for existing manifests; use `apis.pp`. | `true` |
+| `azure` | `object` | `arm`, `graph` | **Legacy.** Optional ARM/Graph declarations. Requires API support from 1.2.9; prefer `apis.arm` and `apis.graph`. | `{ "arm": true }` |
 
 ```json
 "features": {
   "connections": { "min": 1, "max": 3 },
-  "enabledForPowerPlatformAPI": true,
-  "minAPI": "1.2.7"
+  "minAPI": "1.2.9",
+  "apis": {
+    "pp": { "required": true }
+  }
 }
 ```
+
+### Declaring API requirements
+
+For new tools, use `features.apis`. Its `pp`, `arm`, and `graph` entries can each declare `required`; omitted or `false` means optional. `required: true` adds connection-selection guidance but does not guarantee that the user is authenticated, has consented, or is authorized to access a resource.
+
+```json
+{
+  "features": {
+    "connections": 1,
+    "minAPI": "1.2.9",
+    "apis": {
+      "pp": { "required": true },
+      "arm": { "required": true },
+      "graph": { "required": false, "scopes": ["Reports.Read.All"] }
+    }
+  }
+}
+```
+
+When Graph is declared, `scopes` is required and must list the read permissions the tool uses. Declare only permissions actually needed. The APIs, connection setup, and their runtime behavior are documented in [Azure and Microsoft Graph API](/tool-development/api-reference/azure-api).
+
+The deprecated `enabledForPowerPlatformAPI` field remains supported for existing tools; `true` declares Power Platform as required. Legacy Azure declarations also remain supported: `features.azure.arm: true` declares optional ARM access, and `features.azure.graph: ["User.Read"]` declares optional Graph access with that scope. Old and new formats may be combined for different APIs. If both formats declare the same API, their required status and Graph scopes must agree (scope order does not matter). Conflicts fail validation and the host denies access. For new tools, use `features.apis`; to make legacy optional Azure access required, remove its `features.azure` declaration and declare it in `features.apis`.
 
 ### Declaring Connection Counts and Ranges
 
@@ -212,8 +242,10 @@ The supported CSP directives are:
   },
   "features": {
     "connections": { "min": 1, "max": 2 },
-    "enabledForPowerPlatformAPI": true,
-    "minAPI": "1.2.7"
+    "minAPI": "1.2.9",
+    "apis": {
+      "pp": { "required": true }
+    }
   },
   "cspExceptions": {
     "connect-src": [
