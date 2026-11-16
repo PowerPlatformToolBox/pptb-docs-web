@@ -94,7 +94,6 @@ Declare ToolBox-specific capabilities your tool needs. If you omit connection se
 | `minAPI` | `string` | SemVer | Minimum ToolBox API version the tool requires | `"1.2.0"` |
 | `apis` | `object` | `pp`, `arm`, `graph` | Preferred API declarations. Each API can set `required`; Graph also requires read-only `scopes`. Set `minAPI` to `"1.2.9"` when using these APIs. | `{ "arm": { "required": true } }` |
 | `enabledForPowerPlatformAPI` | `boolean` | `true` \| `false` | **Deprecated.** Legacy declaration retained for existing manifests; use `apis.pp`. | `true` |
-| `azure` | `object` | `arm`, `graph` | **Legacy.** Optional ARM/Graph declarations. Requires API support from 1.2.9; prefer `apis.arm` and `apis.graph`. | `{ "arm": true }` |
 
 ```json
 "features": {
@@ -126,7 +125,7 @@ For new tools, use `features.apis`. Its `pp`, `arm`, and `graph` entries can eac
 
 When Graph is declared, `scopes` is required and must list the read permissions the tool uses. Declare only permissions actually needed. The APIs, connection setup, and their runtime behavior are documented in [Azure and Microsoft Graph API](/tool-development/api-reference/azure-api).
 
-The deprecated `enabledForPowerPlatformAPI` field remains supported for existing tools; `true` declares Power Platform as required. Legacy Azure declarations also remain supported: `features.azure.arm: true` declares optional ARM access, and `features.azure.graph: ["User.Read"]` declares optional Graph access with that scope. Old and new formats may be combined for different APIs. If both formats declare the same API, their required status and Graph scopes must agree (scope order does not matter). Conflicts fail validation and the host denies access. For new tools, use `features.apis`; to make legacy optional Azure access required, remove its `features.azure` declaration and declare it in `features.apis`.
+The deprecated `enabledForPowerPlatformAPI` field remains supported for existing tools; `true` declares Power Platform as required. For new tools, declare Power Platform, ARM, and Graph access with `features.apis`.
 
 ### Declaring Connection Counts and Ranges
 

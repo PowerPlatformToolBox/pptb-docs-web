@@ -112,10 +112,8 @@ Existing declarations remain supported:
 | ----------------------------------------------------------------- | ------------------------------------------ |
 | Deprecated `features.enabledForPowerPlatformAPI: true`            | Power Platform declared as required        |
 | Deprecated `features.enabledForPowerPlatformAPI: false` or absent | No Power Platform requirement              |
-| `features.azure.arm: true`                                        | ARM declared as optional                   |
-| `features.azure.graph: ["User.Read"]`                             | Graph declared as optional with that scope |
 
-Legacy declarations can coexist with `features.apis` declarations for different APIs. If the same API is declared in both formats, required status and Graph scopes must agree (scope order does not matter). Conflicting declarations fail validation and the host denies API access. To make legacy Azure access required, remove its `features.azure` declaration and use `features.apis`.
+For new tools, declare all API requirements with `features.apis`.
 
 See [Package Manifest: Features Object](/tool-development/manifest#features-object) for the full feature reference.
 
