@@ -245,6 +245,7 @@ export const navigation: Array<NavGroup> = [
       { title: 'Introduction', href: '/' },
       { title: 'Quick Start', href: '/quickstart' },
       { title: 'Tool Installation', href: '/tool-installation' },
+      { title: 'Extensions', href: '/extensions' },
       { title: 'Authentication', href: '/authentication' },
       { title: 'AI Assistants', href: '/ai-assistants' },
     ],
@@ -354,6 +355,15 @@ export const navigation: Array<NavGroup> = [
       {
         title: 'Tool Maturity Model',
         href: '/tool-development/maturity-model',
+      },
+    ],
+  },
+  {
+    title: 'Extension Development',
+    links: [
+      {
+        title: 'Connection Providers',
+        href: '/extension-development/connection-providers',
       },
     ],
   },

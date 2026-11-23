@@ -19,6 +19,13 @@ export const sections = [
 
 Add an internal tool catalog to Power Platform ToolBox by hosting a registry file and enabling it as a private marketplace source. {{ className: 'lead' }}
 
+<Note type="information">
+  This guide describes private **tool** catalog entries. The same registry JSON
+  can also contain a separate `extensions` array for connection-provider
+  extensions. See [Private catalog configuration](/extension-development/connection-providers#private-catalogs)
+  for that schema and the extension archive requirements.
+</Note>
+
 <Note type="important">
   Private marketplace v1 supports registry and package URLs that already
   contain access information, such as read-only SAS tokens. Interactive Entra
@@ -110,13 +117,11 @@ curl --fail --head "https://marketplace.contoso.com/packages/contoso-environment
 ## Enable the Marketplace {{ anchor: true }}
 
 1. Open **Settings** in the Power Platform ToolBox desktop app.
-2. Find the **Marketplace Sources** section.
-3. Select **Add source**.
-4. Choose **Private** as the source type.
-5. Enter a descriptive label, such as **Contoso Marketplace**.
-6. Enter the full HTTPS URL of `registry.json`. Include its access query string when the endpoint requires one.
-7. Enable the source and save the settings.
-8. Open **Tools Marketplace** and confirm that tools from the new source appear.
+2. Find the **Marketplace** section.
+3. Select **Add private source**.
+4. Enter a descriptive display name, such as **Contoso Marketplace**, and the full HTTPS URL of `registry.json`. Include its access query string when the endpoint requires one.
+5. Select **Enabled**, then select **Save Settings**. Restart the app if prompted.
+6. Open **Tools Marketplace** and confirm that tools from the new source appear.
 
 You can keep the built-in source enabled to show public and private tools together. To show only private tools, first enable a private source and then disable the built-in source.
 
