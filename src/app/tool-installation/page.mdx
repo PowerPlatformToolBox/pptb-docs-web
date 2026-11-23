@@ -5,6 +5,7 @@ export const metadata = {
 }
 
 export const sections = [
+  { title: 'Tools and Extensions', id: 'tools-and-extensions' },
   { title: 'Tool Marketplace', id: 'tool-marketplace' },
   { title: 'Rating Tools', id: 'rating-tools' },
   { title: 'Reporting a Concern', id: 'reporting-a-concern' },
@@ -23,6 +24,10 @@ export const sections = [
 # Tool Installation & Management
 
 Power Platform ToolBox uses a marketplace-style registry system for discovering and installing tools. Learn how to find, install, update, and manage tools. {{ className: 'lead' }}
+
+## Tools and Extensions {{ anchor: true }}
+
+**Tools Marketplace** and **Extensions** have separate activity-bar icons and manage different package types. Connection providers are extensions, not tools; a package cannot be both a tool and a connection provider. The only extension kind currently implemented is connection provider. For its user workflow, see [Extensions](/extensions); for the developer contract, see [Connection Providers](/extension-development/connection-providers).
 
 ## Tool Marketplace {{ anchor: true }}
 
@@ -55,6 +60,8 @@ Tools marked with a checkmark have completed an additional human review. Verifie
 ### Private Marketplaces
 
 Organizations can add one or more private marketplace sources for internal tools. Private and built-in sources can be enabled together, or the built-in marketplace can be disabled after a private source is active.
+
+This page covers tool catalog entries. Connection-provider extensions are browsed separately in **Extensions**; private registry JSON can hold an independent `extensions` array as documented in [Private catalog configuration](/extension-development/connection-providers#private-catalogs).
 
 <div className="not-prose mt-4">
   <Button href="/tool-installation/private-marketplace" variant="text" arrow="right">

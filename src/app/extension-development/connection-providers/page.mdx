@@ -1,0 +1,223 @@
+export const metadata = {
+  title: 'Connection Providers',
+  description:
+    'Develop, validate, package, and debug Power Platform ToolBox connection-provider extensions.',
+}
+
+export const sections = [
+  { title: 'Package Kinds', id: 'package-kinds' },
+  { title: 'Manifest', id: 'manifest' },
+  { title: 'Provider Entry Point', id: 'provider-entry-point' },
+  { title: 'Lifecycle and Connections', id: 'lifecycle-and-connections' },
+  { title: 'Validation', id: 'validation' },
+  { title: 'Public Extension Packaging', id: 'public-extension-packaging' },
+  { title: 'Public Catalog Compatibility', id: 'public-catalog-compatibility' },
+  { title: 'Private Catalogs', id: 'private-catalogs' },
+  { title: 'Debugging', id: 'debugging' },
+]
+
+# Connection Providers
+
+A connection provider is an extension that contributes connections and obtains access tokens for them. It is not a tool and does not provide a tool UI. {{ className: 'lead' }}
+
+<Note type="warning">
+  Provider code runs in its own Node.js utility process, but it has Node.js
+  privileges. Treat it as trusted code; process isolation is not a security
+  sandbox.
+</Note>
+
+## Package Kinds {{ anchor: true }}
+
+Tools and extensions are distinct package kinds. The desktop app currently implements only the **connection-provider** extension kind; do not use other extension kinds in a manifest.
+
+The discriminator is `pptbExtensionKind: "connection-provider"`. `pptbKind` is not the discriminator. A tool package cannot declare `pptbExtensionKind` or `pptbConnectionProviders`, and a provider extension is not a tool package. It does not need a tool entry point such as `dist/index.html`.
+
+## Manifest {{ anchor: true }}
+
+Declare one or more providers in the extension's root `package.json`:
+
+```json
+{
+  "name": "@contoso/connection-provider",
+  "version": "1.0.0",
+  "displayName": "Contoso Connections",
+  "description": "Connections managed by Contoso.",
+  "pptbExtensionKind": "connection-provider",
+  "pptbConnectionProviders": [
+    {
+      "id": "contoso",
+      "displayName": "Contoso",
+      "main": "dist/provider.cjs"
+    }
+  ]
+}
+```
+
+The connection-provider manifest validator requires a non-empty package `name` and `version`, the exact discriminator above, and a non-empty `pptbConnectionProviders` array. Provider declaration IDs must be unique within the package and contain 1–64 letters, digits, periods, underscores, or hyphens. `main` is a relative path inside the package; `displayName` is optional and, when provided, must be non-empty. The CLI also checks that every `main` path resolves to a regular file inside the package.
+
+## Provider Entry Point {{ anchor: true }}
+
+The `main` path identifies a CommonJS module. It must export a provider class as `module.exports`, `default`, or `ConnectionProvider`. ToolBox constructs the class with a host object:
+
+```js
+class ContosoProvider {
+  constructor(host) {
+    this.host = host
+  }
+
+  async getConnections() {
+    return [
+      {
+        id: 'production',
+        name: 'Contoso Production',
+        url: 'https://contoso.crm.dynamics.com',
+        environment: 'Production',
+      },
+    ]
+  }
+
+  async authenticate(connectionId, { reason, tool }) {
+    // Replace getProviderToken with the provider's authentication implementation.
+    const token = await getProviderToken(connectionId, { reason, tool })
+    return { accessToken: token.accessToken, expiresOn: token.expiresOn }
+  }
+
+  async dispose() {}
+}
+
+module.exports = ContosoProvider
+```
+
+`getConnections()` and `authenticate(connectionId, context)` are required. The provider can also implement `getConnectionById`, `signOut`, and `dispose`. The host object exposes:
+
+- `host.providerId`, the fully qualified provider ID.
+- `host.acquireEntraToken(request)`, which attempts silent Microsoft Entra token acquisition and can fall back to interactive sign-in.
+- `host.prompt(request)`, which asks the user for values using a host-rendered form. A cancelled prompt returns `null`; providers supply a field schema, not HTML or script.
+- `host.log.info`, `host.log.warn`, and `host.log.error`, which write provider-tagged entries to the app log.
+
+Use the shared extension types from `@pptb/types/extension`, including `ExtensionKind`, `ExtensionPackageManifestBase`, and `ExtensionPackageManifest`. The provider-specific interfaces, including connection fields, prompt shapes, host services, and token context, are in `@pptb/types/connectionProvider`. Both entry points' types are also re-exported from the `@pptb/types` package root. `ExtensionKind` currently contains only `"connection-provider"`; no other extension kind is implemented. A tool instance is included in `context.tool` when known; it contains the tool ID, name, version, and instance ID, not filesystem paths.
+
+```ts
+import type {
+  ExtensionKind,
+  ExtensionPackageManifest,
+} from '@pptb/types/extension'
+import type {
+  ConnectionProvider,
+  ConnectionProviderPackageManifest,
+} from '@pptb/types/connectionProvider'
+
+const kind: ExtensionKind = 'connection-provider'
+```
+
+## Lifecycle and Connections {{ anchor: true }}
+
+Each declared provider runs in its own Electron utility process, separate from the main process, renderer, and tool web views. ToolBox starts it while loading the extension, calls `getConnections()`, and starts it again when the app reloads installed extensions at startup. **Reload** restarts its processes so rebuilt local code and manifest changes are read. **Unload** or **Uninstall** stops its processes.
+
+Return an array of connections with unique provider-local `id`, `name`, and an HTTPS `url`. ToolBox namespaces each returned connection ID, normalizes its URL to the HTTPS origin, and exposes the connection as read-only. `environment` can be `Dev`, `Test`, `UAT`, or `Production`; `category`, `categoryColor`, `username`, and `description` are optional. Invalid and duplicate items are ignored, and the host accepts at most 5,000 connections from a provider.
+
+When a connection is opened, ToolBox calls `authenticate` with `reason: "connect"`. It calls again with `reason: "refresh"` when refreshing a token. The optional `tool` context may be absent when the connection is activated from the app rather than a specific tool. Provider calls can run again for separate connection activations, so providers should reuse a still-valid provider-owned token where appropriate instead of repeatedly prompting. ToolBox also keeps returned connection access tokens in an in-memory overlay while usable; these tokens are not saved as ordinary persisted connections.
+
+When a provider is refreshed, its returned connection list replaces the cached list, and ToolBox drops in-memory token overlays for connections no longer returned. When the extension is unloaded or uninstalled, ToolBox removes its supplied connections, clears their saved tool connection slots and open-tool assignments, and drops the extension's in-memory token overlays. Credentials or caches separately maintained by the provider are outside that app-managed connection-token cleanup.
+
+Throw an `Error` from `getConnections()` or `authenticate()` when an operation fails. ToolBox surfaces provider errors in extension details and logs them. Provider status can be `starting`, `ready`, `error`, or `stopped`.
+
+## Validation {{ anchor: true }}
+
+Use `@pptb/types` for TypeScript declarations and the `pptb-validate` CLI. The CLI distinguishes connection-provider manifests from tool manifests: it validates the extension contract and checks that every declared module file exists inside the package. For tool packages, provider-only fields are rejected. `pptb.config.json` is a tool configuration and is not validated for a connection-provider extension.
+
+Install versions of `@pptb/types` and `@pptb/validate` that include connection-provider validation support:
+
+```bash
+npm install --save-dev @pptb/types @pptb/validate
+```
+
+Add a script and validate from the package root:
+
+```json
+{
+  "scripts": {
+    "validate": "pptb-validate"
+  }
+}
+```
+
+```bash
+npm run validate
+# or
+pnpm exec pptb-validate
+```
+
+The programmatic `@pptb/validate` API includes `validateConnectionProviderPackageJson(packageJson)`, which validates manifest fields without checking the filesystem. Use the CLI for the complete check, including `main` module-file checks. `@pptb/types` also supplies the `pptb-validate` binary; consult the installed package documentation for supported flags and versions.
+
+<Note type="information">
+  Validation support is version-dependent. Confirm that the package versions
+  available in your registry include the connection-provider contract before
+  relying on the CLI; the implementation documented here was inspected in the
+  desktop-app working tree, and publication of updated packages was not
+  independently verified.
+</Note>
+
+## Public Extension Packaging {{ anchor: true }}
+
+Public catalog installation downloads and extracts a package archive; it does not run `npm install`, `pnpm install`, dependency resolution, or package install scripts. Publish a self-contained npm tarball that includes `package.json`, the declared provider module, and everything needed at runtime. Bundle dependencies into your provider module or include their runtime files in the package archive. Do not expect marketplace installation to fetch dependencies.
+
+The public catalog uses the selected npm tarball and verifies its recorded SHA-512 SRI value against the downloaded archive before extraction. Public tarballs must come from the npm registry. The archive must contain `package.json` at its root or under `package/`, and may contain only regular files and directories—no links or special files. Keep the provider module path inside the package. The current installer limits downloads to 100 MiB and extracted archive contents to 250 MiB.
+
+## Public Catalog Compatibility {{ anchor: true }}
+
+Public catalog entries include a minimum desktop-app version. If the running app is older than that minimum, the entry remains visible with a compatibility message, but the app blocks installation.
+
+The catalog can mark an entry **active** or **deprecated**. Deprecated entries are labeled in Browse and details; deprecation is a notice and does not by itself block installation. The public catalog's SHA-512 integrity value, package identity, and selected version are checked during installation. A public update uses the currently selected catalog release and asks the user to confirm; that selected release may be older than the installed version.
+
+## Private Catalogs {{ anchor: true }}
+
+Configure a private source under **Settings → Marketplace** with a display name and an HTTPS URL to a JSON registry. The registry can independently contain tool and extension entries:
+
+```json
+{
+  "tools": [],
+  "extensions": [
+    {
+      "id": "contoso-connections",
+      "kind": "connection-provider",
+      "name": "Contoso Connections",
+      "packageName": "@contoso/connection-provider",
+      "version": "1.0.0",
+      "description": "Connections managed by Contoso.",
+      "author": "Contoso",
+      "downloadUrl": "https://packages.contoso.example/contoso-connections-1.0.0.tar.gz",
+      "readmeUrl": "https://docs.contoso.example/connections"
+    }
+  ]
+}
+```
+
+Each extension entry requires a unique source-local `id` (1–128 letters, digits, periods, underscores, or hyphens), `kind: "connection-provider"`, non-empty `name`, `packageName`, and `version`, and a `downloadUrl`. `description`, `author`, `readmeUrl`, and `checksum` are optional. `readmeUrl`, when used, should be HTTPS. `downloadUrl` must resolve to HTTPS; it can be relative to the registry URL.
+
+The optional `checksum` is a 64-character hexadecimal SHA-256 digest of the downloaded archive. Omit it when no digest is available. The private catalog schema does not use the public catalog's SHA-512 `integrity` field.
+
+Private package archives must contain `package.json` at the archive root or inside a top-level `package/` directory. The package's name and version must match the catalog entry, and its provider files and runtime dependencies must be included. Archive paths must be safe; only regular files and directories are accepted, not links or special files. The app limits the registry response to 2 MiB, the package download to 100 MiB, and extracted archive contents to 250 MiB. It extracts the archive as provided and does not install its dependencies or run scripts.
+
+## Debugging {{ anchor: true }}
+
+For a local development cycle:
+
+1. Build the provider so the manifest's `main` file exists.
+2. In ToolBox, enable **Show Debug Menu** in **Settings → Behavior**, save settings, and open **Debug** in the activity bar.
+3. Under **Extension Local Development**, select **Browse** to choose the package root, then **Load Extension** and confirm the trust prompt.
+4. Open **Extensions → Installed** and select the extension. The details page shows each provider's status, connection count, and any errors. Use **Refresh connections** to retry listing.
+5. After rebuilding, select **Reload** in the extension details.
+6. Use `host.log.info`, `host.log.warn`, and `host.log.error` for provider diagnostics; these entries are tagged with the provider ID in the app log.
+7. To attach a Node inspector while launching the desktop app, set `PPTB_DEBUG_CONNECTION_PROVIDERS=1` before startup. Use `PPTB_DEBUG_CONNECTION_PROVIDERS=brk` to pause provider startup until a debugger attaches. The provider inspector ports start at 9230; attach with `chrome://inspect` or VS Code's **Attach to Node Process**.
+
+The app allows 30 seconds for a provider process to start and up to 15 minutes for `getConnections()` or `authenticate()` calls that may wait for user interaction. Check that the declared CommonJS module loads and exports the provider class, then inspect the error shown in extension details and the app log.
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/tool-development/validation" arrow="right">
+    <>Local Validation</>
+  </Button>
+  <Button href="/extensions" variant="outline">
+    <>Manage Extensions</>
+  </Button>
+</div>

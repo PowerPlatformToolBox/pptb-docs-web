@@ -1,0 +1,115 @@
+export const metadata = {
+  title: 'Extensions (Preview)',
+  description:
+    'Preview: browse, install, and manage Power Platform ToolBox connection-provider extensions.',
+}
+
+export const sections = [
+  { title: 'Tools and Extensions', id: 'tools-and-extensions' },
+  { title: 'Browse and Install', id: 'browse-and-install' },
+  { title: 'Installed Extensions', id: 'installed-extensions' },
+  { title: 'Development Installs', id: 'development-installs' },
+  { title: 'Use Provider Connections', id: 'use-provider-connections' },
+  { title: 'Remove an Extension', id: 'remove-an-extension' },
+  { title: 'Troubleshooting', id: 'troubleshooting' },
+]
+
+# Extensions (Preview)
+
+The Extensions experience is in preview. Use it to browse and manage connection-provider extensions in Power Platform ToolBox; its availability and behavior may change. {{ className: 'lead' }}
+
+<Note type="warning">
+  Extensions run code with Node.js privileges. Install or load only providers
+  from publishers and sources you trust.
+</Note>
+
+## Tools and Extensions {{ anchor: true }}
+
+Tools and extensions are separate package types and have separate activity-bar icons:
+
+- **Tools Marketplace** opens the catalog for tools.
+- **Extensions** opens the extension view.
+- A connection provider is an extension, not a tool. A package cannot declare both a tool and a connection provider.
+
+The only extension kind implemented here is **connection provider**. It supplies connections and access tokens to the app; it is not launched as a tool. See [Connection Providers for Developers](/extension-development/connection-providers) for the package contract.
+
+## Browse and Install {{ anchor: true }}
+
+1. Select **Extensions** in the activity bar, then select **Browse**.
+2. Search by extension name, package name, description, or publisher. Use the source filter to narrow the results.
+3. Select an entry to review its publisher, version, source, deprecation or compatibility message, and any available documentation.
+4. Select **Install** and confirm the trust prompt.
+
+The view can show entries from the built-in public catalog and enabled private catalogs. The built-in public marketplace must be enabled in **Settings → Marketplace**. Catalog loading problems appear in the view; an unavailable catalog does not hide entries returned by other enabled sources.
+
+Public catalog entries that require a newer desktop app remain visible with a compatibility message, but **Install** is unavailable until the app meets its minimum version. Deprecated entries are marked **Deprecated**; the marker does not itself block installation. Archived and revoked public catalog releases are not offered.
+
+### Configure a private catalog
+
+1. Open **Settings** and find **Marketplace**.
+2. Select **Add private source**, enter a display name and the HTTPS URL of its registry JSON, and select **Enabled**.
+3. Save settings and restart the app if prompted.
+4. Return to **Extensions → Browse**. Private catalog entries are shown alongside the public catalog entries; use the source filter as needed.
+
+The registry can contain both `tools` and `extensions` arrays. Extension entries use `kind: "connection-provider"`; see [Private catalog configuration](/extension-development/connection-providers#private-catalogs) for the schema, archive rules, and integrity options. The existing [Private Marketplace](/tool-installation/private-marketplace) guide covers tool entries.
+
+## Installed Extensions {{ anchor: true }}
+
+Select **Installed** to search and view loaded or installed extensions. Each card shows the extension's version and provider status. Select a card to open the redesigned extension details page, which shows its name, description, version, source, publisher, and a **Connection providers** section. Each provider shows its status and connection count; any provider or extension error is displayed with the provider. Select **Refresh connections** beside a provider to request its connection list again.
+
+The details page also provides:
+
+- **Reload** to restart the extension's provider processes and re-read its manifest.
+- **Update** for an extension installed from a catalog or npm. A public marketplace update asks you to confirm the currently selected catalog release; it can be older than the installed version.
+- **Uninstall** to remove an extension installed from a catalog or npm, or **Unload** to remove a locally loaded extension from ToolBox.
+- **Documentation**, when the extension provides a documentation link.
+
+## Development Installs {{ anchor: true }}
+
+Local loading and direct npm installation are available in the **Debug** activity view. First open **Settings → Behavior**, enable **Show Debug Menu**, and select **Save Settings**. Then select **Debug** in the activity bar.
+
+### Load a local extension
+
+In **Extension Local Development**:
+
+1. Select **Browse** next to **Extension Directory Path** and choose the extension package root (the directory containing `package.json`).
+2. Select **Load Extension** and confirm the trust prompt.
+
+ToolBox loads the extension from that directory; it does not copy or install the local source files. After rebuilding, use **Extensions → Installed**, open the extension details, and select **Reload** to restart the provider processes. Select **Unload** when finished. Unloading removes the extension from ToolBox but does not delete its source directory.
+
+### Install a trusted npm package
+
+In **Extension Registry Install**, enter the npm package name, optionally with an exact version or tag, then select **Install Extension** and confirm the trust prompt. This path requires `pnpm` to be installed and available to the app, and the configured npm registry and any required credentials to be usable by `pnpm`. ToolBox installs production dependencies into app-managed storage and disables package install scripts. The extension code still runs with Node.js privileges when loaded.
+
+For catalog installation, use **Extensions → Browse** instead. Marketplace archives do not run npm or pnpm dependency installation; see [Public extension packaging](/extension-development/connection-providers#public-extension-packaging).
+
+## Use Provider Connections {{ anchor: true }}
+
+After a provider starts, its connections appear after your own connections in the **Connections** view and in connection pickers. The app can also make them available through MCP. Select a provider connection as you would another connection; ToolBox asks the provider for an access token when the connection is opened and when a token needs refreshing.
+
+Provider-supplied connections are read-only in ToolBox. If a provider refresh removes a connection, ToolBox drops its in-memory cached connection token. When the extension is unloaded or uninstalled, its connections become unavailable: ToolBox clears those connection IDs from saved tool connection slots and open tools, and removes the extension's in-memory cached connection tokens. This does not describe credentials or token caches maintained separately by the provider itself.
+
+## Remove an Extension {{ anchor: true }}
+
+In the extension details, choose **Uninstall** for a marketplace/npm extension or **Unload** for a locally loaded extension, then confirm. The confirmation shows which providers and supplied connections will be affected.
+
+Uninstall removes the app-managed package files. Unload only removes the local extension from ToolBox and leaves its source files in place. In both cases the provider processes stop, supplied connections are no longer available, assigned connection slots are cleared, and ToolBox drops the associated in-memory connection-token overlays.
+
+## Troubleshooting {{ anchor: true }}
+
+- **A catalog is missing or shows an issue:** Check the message in **Browse**, verify the source is enabled under **Settings → Marketplace**, and confirm the registry and package URLs use HTTPS and are reachable. Private source URLs can include access information such as a read-only SAS token; the Extensions view does not provide an interactive Entra sign-in for private sources.
+- **No matching extension appears:** Clear the search, set the source filter to **All sources**, and verify the private registry has an `extensions` array with a `connection-provider` entry.
+- **Install is unavailable:** Read the compatibility message. Public catalog entries requiring a newer minimum app version cannot be installed on the current app version.
+- **A provider shows Error or a connection cannot be opened:** Open the extension details and read the extension/provider error. Check that the declared module exists, that the provider starts successfully, and that `getConnections()` and `authenticate()` return the expected values. Then use **Reload** or **Refresh connections** and check the app log for provider errors.
+- **The provider lists no connections:** Use **Refresh connections**. Confirm the provider's listing service is reachable and that it returns valid connection IDs, names, and HTTPS URLs.
+- **You are developing a local provider:** Rebuild first, then select **Reload**. The app does not rebuild the provider project for you.
+- **npm installation fails:** Check that `pnpm` is on `PATH`, the package name or version/tag is valid, and the configured npm registry and credentials work outside ToolBox.
+
+<div className="not-prose mt-6 mb-16 flex gap-3">
+  <Button href="/extension-development/connection-providers" arrow="right">
+    <>Build a Connection Provider</>
+  </Button>
+  <Button href="/tool-installation" variant="outline">
+    <>Tool Installation</>
+  </Button>
+</div>
